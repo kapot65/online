@@ -1,7 +1,6 @@
 TEMPLATE = subdirs
 
-SUBDIRS = \
-        CamacClient \
+SUBDIRS = CamacClient \
         CCPC7_Server \
         DataVisualizer \
         HV_Server

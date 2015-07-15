@@ -3,19 +3,19 @@ QT += network
 INCLUDEPATH += $$PWD
 
 unix: !macx{
-message(Unix)
+#message(Unix)
 INCLUDEPATH += $$PWD/easylogging/c++9/
 HEADERS  += $$PWD/easylogging/c++9/easylogging++.h
 }
 win32{
 contains(QT_MAJOR_VERSION, 4){
-message(win32:Qt_4)
+#message(win32:Qt_4)
 INCLUDEPATH += $$PWD/easylogging/c++9/
 HEADERS  += $$PWD/easylogging/c++9/easylogging++.h
 }
 
 contains(QT_MAJOR_VERSION, 5){
-message(win32:Qt_5)
+#message(win32:Qt_5)
 CONFIG += c++11
 INCLUDEPATH += $$PWD/CCPC7_Server/easylogging
 HEADERS  += $$PWD/easylogging/easylogging++.h

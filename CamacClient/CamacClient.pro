@@ -1,0 +1,62 @@
+#-------------------------------------------------
+#
+# Project created by QtCreator 2015-02-19T17:45:02
+#
+#-------------------------------------------------
+
+QT       += core gui network serialport printsupport
+
+greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+
+TARGET = CamacClient
+TEMPLATE = app
+
+include(../easylogging.pri )
+include(../revision_info.pri )
+include(../DataVisualizer/datavisualizer.pri)
+include(../tcp/tcp.pri)
+
+#включение тестовых функций
+DEFINES += TEST_MODE
+#виртуальный режим
+#DEFINES += VIRTUAL_MODE
+
+CONFIG += c++11
+
+#подключение QJson, если версия qt меньше 5
+lessThan(QT_MAJOR_VERSION, 5){
+    LIBS += D:/SDK/qjson/lib/libqjson.dll.a
+}else{
+    DEFINES += USE_QTJSON
+}
+
+win32{
+INCLUDEPATH += D:/SDK/qjsonsrc/include
+CONFIG += c++11
+}
+
+HEADERS  += \
+    camacclientform.h \
+    ccpc7handlerform.h \
+    hvhandler.h \
+    hvhandlerform.h \
+    serverhandler.h \
+    ccpc7handler.h \
+    online.h \
+    onlineform.h
+
+SOURCES += main.cpp\
+    camacclientform.cpp \
+    ccpc7handlerform.cpp \
+    hvhandler.cpp \
+    hvhandlerform.cpp \
+    serverhandler.cpp \
+    ccpc7handler.cpp \
+    online.cpp \
+    onlineform.cpp
+
+FORMS    += \
+    ccpc7handlerform.ui \
+    camacclientform.ui \
+    hvhandlerform.ui \
+    onlineform.ui
