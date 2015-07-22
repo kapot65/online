@@ -34,8 +34,8 @@ enum ERROR_TYPE
 
 enum METATYPE
 {
-    UNDEFINED_METATYPE = 0,
-    JSON_METATYPE = 1
+    UNDEFINED_METATYPE = 0x00000000,
+    JSON_METATYPE = 0x00010000
 };
 
 enum BINARYTYPE
@@ -69,19 +69,23 @@ class TcpProtocol
 public:
     /*!
      * \brief readMachineHeader
+     * \details Метод считывает бинарный хедер.
      * \param message
      * \param ok
      * \return
      */
     static MachineHeader readMachineHeader(QByteArray &message, bool *ok = 0);
+
     /*!
      * \brief createMessage
      * \details метод создает сообщение в соотвествии с форматом протокола
+     * http://elog.mass.inr.ru/online/1 .
      * \param meta
      * \param data
      * \return
      */
     static QByteArray createMessage(QVariantMap meta, QByteArray data, unsigned int metaType = 0x01, unsigned int binaryType = 0);
+
     /*!
      * \brief parceMesssage
      * \details метод пытается считать сообщение в соотвествии с форматом протокола
@@ -91,6 +95,7 @@ public:
      * \return в случае успешного парсинга возвращает 1, в противном случае возвращает 0
      */
     static bool parceMesssage(QByteArray message, QVariantMap &meta, QByteArray &data, bool headerOnly = 0);
+
     /*!
      * \brief функция создает бинарный хедер в соответсвии с форматом
      * \param header
@@ -137,8 +142,33 @@ public:
     static QByteArray createMessageWithPoints(QVariantMap meta, QVector<Event> events,
                                               unsigned int metaType = JSON_METATYPE, unsigned int binaryType = UNDEFINED_BINARY);
 
+    /*!
+     * \brief parceMessageWithPoints
+     * \details метод парсит сообщение с бинарными данными точки, создаваемое методом
+     * TcpProtocol::createMessageWithPoints. На вход принимается уже разобранное сообщение.
+     * \param messageHeader
+     * \param messageMeta
+     * \param messageData
+     * \param events Вектор выходных точек.
+     * \return
+     */
     static bool parceMessageWithPoints(MachineHeader messageHeader, QVariantMap messageMeta, QByteArray messageData, QVector<Event> &events);
+    /*!
+     * \brief parceMessageWithPoints
+     * \details метод парсит сообщение с бинарными данными точки, создаваемое методом
+     * TcpProtocol::createMessageWithPoints. На вход принимается неразобранное сообщение.
+     * \param message
+     * \param meta
+     * \param events Вектор выходных точек.
+     * \return
+     */
     static bool parceMessageWithPoints(QByteArray message, QVariantMap &meta, QVector<Event> &events);
+
+    /*!
+     * \brief getAviableMeasuteTimes
+     * \details Метод выдает список доступных времен сбора для CAMAC.
+     * \return
+     */
     static QMap<int, unsigned short> getAviableMeasuteTimes();
 };
 

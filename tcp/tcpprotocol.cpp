@@ -63,7 +63,7 @@ QByteArray TcpProtocol::createMessage(QVariantMap meta, QByteArray data, unsigne
 
     //создание заголовка
     MachineHeader header;
-    header.type = 0x0140;
+    header.type = 0x00014000;
     header.metaType = metaType;
     header.metaLength = serializedMeta.size() + 2; //отступы тоже включаются в размер метаданных
     header.dataType = binaryType;

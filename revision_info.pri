@@ -1,3 +1,5 @@
-#на компьютере должен быть устновлен git
+#РЅР° РєРѕРјРїСЊСЋС‚РµСЂРµ РґРѕР»Р¶РµРЅ Р±С‹С‚СЊ СѓСЃС‚Р°РЅРѕРІР»РµРЅ git
+#РІРµСЂСЃРёСЏ СЂРµРїРѕР·РёС‚РѕСЂРёСЏ
+REP_VERSION = 1
 REVISION = $$system(git describe --always --tags)
-DEFINES += APP_REVISION=\\\"$$REVISION\\\"
+DEFINES += APP_REVISION=\\\"$$REP_VERSION.$$REVISION\\\"
