@@ -260,6 +260,11 @@ void OnlineForm::on_startButton_clicked()
         online->updateInfo(initialCommentInfo);
     }
 
+    QVariantMap revisionInfo;
+    revisionInfo["name"] = "programm_revision";
+    revisionInfo["value"] = APP_REVISION;
+    online->updateInfo(revisionInfo);
+
 #ifndef VIRTUAL_MODE
     if(!online->init(settingsManager->getSettingsValue("CCPC7Handler", "ip").toString(),
                  settingsManager->getSettingsValue("CCPC7Handler", "port").toInt(),

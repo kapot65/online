@@ -724,7 +724,7 @@ void HVMonitor::prepareVoltageFile()
     meta["binary_type"] = "block(unsigned char), time(unsigned long long int), value(double)";
     meta["programm_revision"] = APP_REVISION;
 
-    QByteArray serializedMeta = TcpProtocol::createMessage(meta, QByteArray());
+    QByteArray serializedMeta = TcpProtocol::createMessage(meta, QByteArray(), JSON_METATYPE, HV_BINARY);
     hvFileMachineHeader = TcpProtocol::readMachineHeader(serializedMeta);
 
     voltageFile->write(serializedMeta);

@@ -79,6 +79,11 @@ public:
                     QObject *parent = 0);
     ~Online();
 
+    /*!
+     * \brief getCurrSubFolder
+     * Возвращает относительный путь к текущей подпапке.
+     * \return
+     */
     QString getCurrSubFolder(){return currSubFolder;}
 
     bool prepareFolder(QString session, QString group, int iteration, bool add_time = true);
@@ -135,6 +140,16 @@ signals:
     void stop_pauseLoop();
 
 public slots:
+    /*!
+     * \brief updateInfo
+     * \details Добавляет комментарий к сбору.
+     * Если параметр addAsComment - false, то infoBlock должен иметь тип QVariantMap и иметь поля
+     * name и value. Если addAsComment - true, то при типе infoBlock - QString комментарий запишется со временем,
+     * если тип другой - то комментарий запишется в оригинальном виде через QJson.
+     * \param infoBlock блок информации
+     * \param addAsComment если параметр - 0, то комментарий запишется на главный уровень, если 1 - то
+     * запишется в массив комментариев.
+     */
     void updateInfo(QVariant infoBlock = QVariant(), bool addAsComment = false);
     void pause();
     void resume();

@@ -253,7 +253,8 @@ void CommandHandler::processAcquirePoint(QVariantMap message)
 
     //создание сообщения
     QVariantMap messageToSend;
-    messageToSend.insert("type", "reply");
+    messageToSend["programm_revision"] = APP_REVISION;
+    messageToSend["type"] = "reply";
     messageToSend.insert("date", acqDate.toString("yyyy.MM.dd"));
     messageToSend.insert("start_time", acqTimeStart.toString("hh:mm:ss.zzz"));
     messageToSend.insert("end_time", acqTimeEnd.toString("hh:mm:ss.zzz"));
@@ -268,7 +269,7 @@ void CommandHandler::processAcquirePoint(QVariantMap message)
         messageToSend.insert("breaked", "true");
 
     QByteArray prepairedMessage = TcpProtocol::createMessageWithPoints(messageToSend, events,
-                                                                       JSON_METATYPE, DIRECT_BINARY);
+                                                                       JSON_METATYPE, POINT_DIRECT_BINARY);
     emit sendRawMessage(prepairedMessage);
     busyFlag = 0;
 }
