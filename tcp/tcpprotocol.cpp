@@ -82,7 +82,7 @@ bool TcpProtocol::parceMesssage(QByteArray message, QVariantMap &meta, QByteArra
     switch(header.metaType)
     {
         //мета в формате QJson
-        case 1:
+        case JSON_METATYPE:
         {
             message.remove(0,30);
             QByteArray JSonMeta = message.mid(0, header.metaLength);
