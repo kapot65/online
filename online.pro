@@ -1,4 +1,5 @@
 TEMPLATE = subdirs
+
 unix: !macx{
 	SUBDIRS = CCPC7_Server
 }

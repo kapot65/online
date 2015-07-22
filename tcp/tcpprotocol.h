@@ -40,9 +40,11 @@ enum METATYPE
 
 enum BINARYTYPE
 {
-    UNDEFINED_BINARY = 0,
-    DIRECT_BINARY = 1,
-    QDATASTREAM_BINARY = 7
+    UNDEFINED_BINARY = 0x00000000,
+    POINT_DIRECT_BINARY = 0x00000100,
+    POINT_QDATASTREAM_BINARY = 0x00000107,
+    HV_BINARY = 0x00000200, //Бинарный формат HV
+    HV_TEXT_BINARY = 0x00000201, //тексовый формат HV
 };
 
 /*!
@@ -84,7 +86,9 @@ public:
      * \param data
      * \return
      */
-    static QByteArray createMessage(QVariantMap meta, QByteArray data, unsigned int metaType = 0x01, unsigned int binaryType = 0);
+    static QByteArray createMessage(QVariantMap meta, QByteArray data,
+                                    unsigned int metaType = JSON_METATYPE,
+                                    unsigned int binaryType = UNDEFINED_BINARY);
 
     /*!
      * \brief parceMesssage

@@ -168,7 +168,7 @@ QByteArray TcpProtocol::createMessageWithPoints(QVariantMap meta, QVector<Event>
     switch (binaryType)
     {
         //сериализация данных обычным способом
-        case DIRECT_BINARY:
+        case POINT_DIRECT_BINARY:
         {
             meta["binary_data_structure"] = QString("Direct: data(unsigned short(%1 bytes)), time(int(%2 bytes)), "
                                              "valid(bool(%3 bytes))").arg(sizeof(unsigned short))
@@ -182,7 +182,7 @@ QByteArray TcpProtocol::createMessageWithPoints(QVariantMap meta, QVector<Event>
             break;
         }
         //сериализация с помощью Qt
-        case QDATASTREAM_BINARY:
+        case POINT_QDATASTREAM_BINARY:
         {
             meta["binary_data_structure"] = "Qt4_8: QDataStream. See src 'event.h'";
             ds << events;
@@ -203,7 +203,7 @@ bool TcpProtocol::parceMessageWithPoints(MachineHeader messageHeader, QVariantMa
     {
         case UNDEFINED_BINARY:
             return false;
-        case DIRECT_BINARY:
+        case POINT_DIRECT_BINARY:
         {
             QDataStream ds(&messageData, QIODevice::ReadOnly);
 
@@ -219,7 +219,7 @@ bool TcpProtocol::parceMessageWithPoints(MachineHeader messageHeader, QVariantMa
             }
             return true;
         }
-        case QDATASTREAM_BINARY:
+        case POINT_QDATASTREAM_BINARY:
         {
             QDataStream ds(&messageData, QIODevice::ReadOnly);
             ds.setVersion(QDataStream::Qt_4_8);
