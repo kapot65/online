@@ -21,7 +21,7 @@ include(../tcp/tcp.pri)
 
 unix: !macx{
 #LIBS += /home/user/QTProjects/QJson_build/lib/libqjson.so.0
-LIBS += -L$$PWD/../QJson_build/lib/ -lqjson
+LIBS += -L/home/user/QTProjects/QJson_build/lib/ -lqjson
 INCLUDEPATH += /home/user/QTProjects/qjson-0.8.1/include \
                ccpc/original/
 
