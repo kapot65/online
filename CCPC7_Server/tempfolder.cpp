@@ -54,7 +54,7 @@ void TempFolder::clear()
 
     QDir tempDir(folderPath);
 
-    QFileInfoList files = tempDir.entryInfoList(QDir::NoDotAndDotDot | QDir::AllEntries, QDir::Time);
+    QFileInfoList files = tempDir.entryInfoList(QDir::NoDotAndDotDot | QDir::AllEntries, QDir::Time | QDir::Reversed);
 
     for(int i = 0; i < files.size(); i++)
     {
