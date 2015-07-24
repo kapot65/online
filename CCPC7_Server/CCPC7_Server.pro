@@ -41,6 +41,8 @@ LIBS += -L$$PWD/../../SDK/qjson_master_build_4_8/src/ -llibqjson
 INCLUDEPATH += D:/SDK/qjsonsrc/include \
                ccpc/virtual
 
+CONFIG += c++11
+
 SOURCES += \
         ccpc/virtual/ccpc7.cpp \
         ccpc/virtual/ccpc7base.cpp \
@@ -74,11 +76,13 @@ SOURCES += main.cpp\
     camacalgoritm.cpp \
     commandhandler.cpp \
     camacserversettings.cpp \
-    camacserverhandler.cpp
+    camacserverhandler.cpp \
+    tempfolder.cpp
 
 HEADERS  += \
     camacserver.h \
     camacalgoritm.h \
     commandhandler.h \
     camacserversettings.h \
-    camacserverhandler.h
+    camacserverhandler.h \
+    tempfolder.h

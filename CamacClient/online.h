@@ -46,6 +46,7 @@ public:
     double last_divider1_voltage;
     double last_divider2_voltage;
 
+    void insertVoltage(QVariantMap message);
 signals:
     void getVoltage(int block);
 
@@ -60,11 +61,30 @@ private:
     QString subFolder;
     HVHandler *hvHandler;
 
-    void prepareVoltageFile();
+    void prepareVoltageFile(BINARYTYPE type = HV_TEXT_BINARY);
     void closeVoltageFile();
+
+    /*!
+     * \brief insertVoltageBinary
+     * \details записывает напряжение в блоки в бинарном виде
+     * \param message
+     */
+    void insertVoltageBinary(QVariantMap &message);
+
+    /*!
+     * \brief insertVoltageBinary
+     * \details записывает напряжение в блоки в текстовом виде
+     * \param message
+     */
+    void insertVoltageText(QVariantMap &message);
 
     MachineHeader hvFileMachineHeader;
 
+    /*!
+     * \brief type
+     * тип данных, в котором будет записываться напряжение
+     */
+    BINARYTYPE binaryType;
     QFile* voltageFile;
     bool voltageStartFlag;
 };

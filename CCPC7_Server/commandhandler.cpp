@@ -255,6 +255,7 @@ void CommandHandler::processAcquirePoint(QVariantMap message)
     QVariantMap messageToSend;
     messageToSend["programm_revision"] = APP_REVISION;
     messageToSend["type"] = "reply";
+    messageToSend["time_coeff"] = TcpProtocol::madsTimeToNSecCoeff(acqisitionTime);
     messageToSend.insert("date", acqDate.toString("yyyy.MM.dd"));
     messageToSend.insert("start_time", acqTimeStart.toString("hh:mm:ss.zzz"));
     messageToSend.insert("end_time", acqTimeEnd.toString("hh:mm:ss.zzz"));
@@ -270,6 +271,15 @@ void CommandHandler::processAcquirePoint(QVariantMap message)
 
     QByteArray prepairedMessage = TcpProtocol::createMessageWithPoints(messageToSend, events,
                                                                        JSON_METATYPE, POINT_DIRECT_BINARY);
+
+    //запись точки во временную папку
+    QFile pointFile(tr("%1/%2%3.point").arg(tempFolder)
+                      .arg(acqDate.toString("yyyyMMdd"))
+                      .arg(acqTimeStart.toString("hhmmsszzz")));
+    pointFile.open(QIODevice::WriteOnly);
+    pointFile.write(prepairedMessage);
+    pointFile.close();
+
     emit sendRawMessage(prepairedMessage);
     busyFlag = 0;
 }
@@ -299,6 +309,8 @@ CommandHandler::CommandHandler(CamacServerSettings *settings, QObject *parent): 
     camac = 0;
     busyFlag = 0;
     this->settings = settings;
+
+    tempFolder = settings->getSettingsValue("tempFolder", "dirPath").toString();
 
     connect(this, SIGNAL(breakAcquisition()), this, SLOT(on_breakAcquisition()));
 }

@@ -1,7 +1,7 @@
 #include "camacserverhandler.h"
 #include "camacserversettings.h"
 
-CamacServerHandler::CamacServerHandler(QObject *parent) :
+CamacServerHandler::CamacServerHandler(TempFolder *tempFolder, QObject *parent) :
     QObject(parent)
 {
     CamacServerSettings *settings = new CamacServerSettings(this);
@@ -13,6 +13,7 @@ CamacServerHandler::CamacServerHandler(QObject *parent) :
         emit showMessage(QString("Start canceled. Please fix problems and restart server"));
         return;
     }
+    settings->setSettingaValue("tempFolder", "dirPath", tempFolder->getFolderPath());
 
     server = new CamacServer(settings->getSettingsValue("CamacServer","port").toInt(), settings);
 

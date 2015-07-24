@@ -44,6 +44,7 @@ public slots:
     void processGetCountersValue(QVariantMap message);
 
 private:
+    QString tempFolder;
     bool busyFlag;
 };
 

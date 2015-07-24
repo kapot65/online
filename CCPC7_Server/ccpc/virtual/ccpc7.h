@@ -3,7 +3,7 @@
 #include <QJson/Serializer>
 #include "tcpserver.h"
 #include "ccpc7base.h"
-#include "tcpprotocol.h"
+#include <tcpprotocol.h>
 
 #ifndef CCPC7
 #define CCPC7

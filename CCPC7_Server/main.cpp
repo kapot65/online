@@ -1,8 +1,8 @@
 #include "camacserver.h"
 #include "camacserverhandler.h"
+#include "tempfolder.h"
 #include <QCoreApplication>
 #include <QDateTime>
-
 #include <QDir>
 
 // настройки логгера
@@ -13,56 +13,40 @@ INITIALIZE_EASYLOGGINGPP
 _INITIALIZE_EASYLOGGINGPP
 #endif
 
-#ifdef Q_OS_WIN
-#define LOG_DIRECTORY "D:\\Logs\\CCPC7Server\\"
-#elif defined(Q_OS_LINUX)
-#define LOG_DIRECTORY "/Logs/CCPC7Server/"
-#endif
-
 int main(int argc, char *argv[])
 {
-QDateTime curr_datetime = QDateTime::currentDateTime();
+    QCoreApplication a(argc, argv);
+
+    //создание временной папки
+    TempFolder tempFolder("temp/CCPC7Server", 200);
+    QDateTime curr_datetime = QDateTime::currentDateTime();
+    //обновление каждые 2 минуты
+    QTimer timer;
+    timer.connect(&timer, SIGNAL(timeout()), &tempFolder, SLOT(clear()));
+    timer.start(120000);
 
 #if QT_VERSION >= 0x050300
 START_EASYLOGGINGPP(argc, argv);
 #elif QT_VERSION >= 0x040800
-_START_EASYLOGGINGPP(argc, argv);
+    _START_EASYLOGGINGPP(argc, argv);
 #endif
 
 #if defined(Q_OS_LINUX)
-//убирание привилегий рута с папки с логами
-system((std::string("sudo chmod -R 777 ") + QFileInfo(QDir::homePath() + LOG_DIRECTORY +
-        curr_datetime.toString("yyyyMMdd-hhmmss.zzz")).dir().path().toStdString()).c_str());
-
+    //убирание привилегий рута с папки с логами
+    system((std::string("sudo chmod -R 777 ") + QFileInfo(tempFolder.getFolderPath() +
+            curr_datetime.toString("/log_yyyyMMdd-hhmmss.zzz")).dir().path().toStdString()).c_str());
 #endif
 
 #if QT_VERSION >= 0x050300
     el::Loggers::reconfigureAllLoggers(el::ConfigurationType::Filename,
-                                         (LOG_DIRECTORY +
-                                          curr_datetime.toString("yyyyMMdd-hhmmss.zzz")).toStdString());
+                                         (tempFolder.getFolderPath() +
+                                          curr_datetime.toString("/log_yyyyMMdd-hhmmss.zzz")).toStdString());
 #elif QT_VERSION >= 0x040800
-
-#ifdef Q_OS_WIN
     easyloggingpp::Loggers::reconfigureAllLoggers(easyloggingpp::ConfigurationType::Filename,
-                                     (LOG_DIRECTORY +
-                                      curr_datetime.toString("yyyyMMdd-hhmmss.zzz")).toStdString());
-#elif defined(Q_OS_LINUX)
-    easyloggingpp::Loggers::reconfigureAllLoggers(easyloggingpp::ConfigurationType::Filename,
-                                     (QDir::homePath() + LOG_DIRECTORY +
-                                      curr_datetime.toString("yyyyMMdd-hhmmss.zzz")).toStdString());
+                                     (tempFolder.getFolderPath() +
+                                      curr_datetime.toString("/log_yyyyMMdd-hhmmss.zzz")).toStdString());
 #endif
-
-#endif
-
-    QCoreApplication a(argc, argv);
-
-
-    CamacServerHandler camacServerDialog;
-
-    /*
-    CamacServer *server = new CamacServer();
-    server->show();
-    */
+    CamacServerHandler camacServerHandler(&tempFolder);
 
     return a.exec();
 }

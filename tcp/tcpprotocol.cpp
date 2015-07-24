@@ -17,6 +17,36 @@ QMap<int, unsigned short> TcpProtocol::getAviableMeasuteTimes()
     return aviableMeasureTimes;
 }
 
+double TcpProtocol::madsTimeToNSecCoeff(int measureTime)
+{
+    int acquisitionTime = TcpProtocol::getAviableMeasuteTimes().lowerBound(measureTime).key();
+
+    double coeff = 1.;
+    switch (acquisitionTime)
+    {
+        case 5:
+            coeff = 1.;
+            break;
+
+        case 10:
+        case 20:
+            coeff = 2.;
+            break;
+
+        case 15:
+            coeff = 1.5;
+            break;
+
+        case 50:
+        case 100:
+        case 200:
+            coeff = 2.5;
+            break;
+    }
+    coeff = (((double)acquisitionTime)*10./coeff);
+    return coeff;
+}
+
 MachineHeader  TcpProtocol::readMachineHeader(QByteArray &message, bool *ok)
 {
     MachineHeader header;
@@ -170,9 +200,7 @@ QByteArray TcpProtocol::createMessageWithPoints(QVariantMap meta, QVector<Event>
         //сериализация данных обычным способом
         case POINT_DIRECT_BINARY:
         {
-            meta["binary_data_structure"] = QString("Direct: data(unsigned short(%1 bytes)), time(int(%2 bytes)), "
-                                             "valid(bool(%3 bytes))").arg(sizeof(unsigned short))
-                                             .arg(sizeof(int)).arg(sizeof(bool));
+            meta["format_description"] = "https://drive.google.com/open?id=1xh_SF1k2F0leS-8apDR37x7-4b-YrQMlXkL4PMH-YxM";
             for(int i = 0; i < events.size(); i++)
             {
                 ds.writeRawData((const char*)(&(events[i].data)), sizeof(unsigned short));
@@ -184,7 +212,7 @@ QByteArray TcpProtocol::createMessageWithPoints(QVariantMap meta, QVector<Event>
         //сериализация с помощью Qt
         case POINT_QDATASTREAM_BINARY:
         {
-            meta["binary_data_structure"] = "Qt4_8: QDataStream. See src 'event.h'";
+            meta["format_description"] = "https://drive.google.com/open?id=1eV-Slm44V_G50y9jMO__dSh9tZr53-VkbryoFzsWX2U";
             ds << events;
             break;
         }

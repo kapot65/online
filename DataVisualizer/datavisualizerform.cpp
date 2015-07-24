@@ -114,7 +114,7 @@ void DataVisualizerForm::updateTimeAxis(QCPRange range)
             timeAxis->setRange(range.lower / 1000., range.upper / 1000.);
             break;
         case RELATIVE_TIME:
-            timeAxis->setRange(range.lower / qPow(10,8), range.upper / qPow(10,8));
+            timeAxis->setRange(range.lower / qPow(10,9), range.upper / qPow(10,9));
             break;
         default:
             break;
@@ -500,32 +500,9 @@ void PointFileDrawer::update()
         }
 
         //коэффициент нормирования относительного времени
-        double coeff = 1.;
+        double coeff = TcpProtocol::madsTimeToNSecCoeff(acquisitionTime);
         //коэффициент перевода относительного времени в миллисекунды
-        double coeff_abs = 1.;
-        switch (acquisitionTime)
-        {
-            case 5:
-                coeff = 1.;
-                break;
-
-            case 10:
-            case 20:
-                coeff = 2.;
-                break;
-
-            case 15:
-                coeff = 1.5;
-                break;
-
-            case 50:
-            case 100:
-            case 200:
-                coeff = 2.5;
-                break;
-        }
-        coeff = (((double)acquisitionTime)/coeff);
-        coeff_abs = coeff/qPow(10,5);
+        double coeff_abs = coeff/qPow(10,6);
 
         //создание графиков с абсолютным и относительным временем
         for(int i =0; i< events.size(); i++)

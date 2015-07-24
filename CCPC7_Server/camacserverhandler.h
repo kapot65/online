@@ -2,6 +2,7 @@
 #define CAMACSERVERDIALOG_H
 
 #include "camacserver.h"
+#include <tempfolder.h>
 #include <stdio.h>
 
 class CamacServerHandler : public QObject
@@ -9,7 +10,7 @@ class CamacServerHandler : public QObject
     Q_OBJECT
 
 public:
-    explicit CamacServerHandler(QObject *parent = 0);
+    explicit CamacServerHandler(TempFolder *tempFolder, QObject *parent = 0);
     ~CamacServerHandler();
 
 private slots:

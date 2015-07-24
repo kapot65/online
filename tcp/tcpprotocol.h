@@ -174,6 +174,16 @@ public:
      * \return
      */
     static QMap<int, unsigned short> getAviableMeasuteTimes();
+
+    /*!
+     * \brief madsTimeToNSecCoeff
+     * \details Возвращает коэффициент перевода сырого времени с MADS
+     * во время в наносекундах
+     * \param measureTime Время измерения. Подгоняется под доступные времена
+     * сбора из TcpProtocol::getAviableMeasuteTimes.
+     * \return Коэффициент перевода.
+     */
+    static double madsTimeToNSecCoeff(int measureTime);
 };
 
 #endif // TCPPROTOCOL_H
