@@ -782,7 +782,7 @@ void HVMonitor::insertVoltageText(QVariantMap &message)
 {
     //запись напряжения в файл
     //обновление бинарного хедера
-    QByteArray voltageLine = tr("%1 %2 %3\n").arg(QDateTime::currentDateTime().toString("yyyy-MM-dd.hh:mm:ss.zzz"))
+    QByteArray voltageLine = tr("%1 %2 %3\n").arg(QDateTime::currentDateTime().toString(Qt::ISODate))
                                              .arg(message["block"].toInt())
                                              .arg(message["voltage"].toDouble()).toLatin1();
 

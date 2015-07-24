@@ -260,6 +260,11 @@ void OnlineForm::on_startButton_clicked()
         online->updateInfo(initialCommentInfo);
     }
 
+    QVariantMap descriptionLink;
+    descriptionLink["name"] = "format_description";
+    descriptionLink["value"] = "https://drive.google.com/open?id=1ATs4Mq3K72TjsNy-1QZvL7WtoB9h90nRpElnLXVqZX0";
+    online->updateInfo(descriptionLink);
+
     QVariantMap revisionInfo;
     revisionInfo["name"] = "programm_revision";
     revisionInfo["value"] = APP_REVISION;

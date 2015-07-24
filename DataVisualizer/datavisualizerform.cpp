@@ -674,9 +674,20 @@ void VoltageFileDrawer::update()
         unsigned long long int time;
         double value;
         //добаление значений на график
-        file->read((char*)&block, sizeof(unsigned char));
-        file->read((char*)&time, sizeof(unsigned long long int));
-        file->read((char*)(&value), sizeof(double));
+        switch(header.dataType)
+        {
+            case HV_BINARY:
+                file->read((char*)&block, sizeof(unsigned char));
+                file->read((char*)&time, sizeof(unsigned long long int));
+                file->read((char*)(&value), sizeof(double));
+            case HV_TEXT_BINARY:
+            {
+                QStringList lines = QString(file->readLine()).split(' ');
+                time = QDateTime().fromString(lines[0], Qt::ISODate).toMSecsSinceEpoch();
+                block = lines[1].toInt();
+                value = lines[2].toDouble();
+            }
+        }
 
         switch (block)
         {
