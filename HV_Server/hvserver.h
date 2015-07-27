@@ -32,6 +32,7 @@ private slots:
    void onDivider1GetVoltageDone(double voltage);
    void onInitDivider1Done();
    void onDivider1SetVoltageDone();
+   void onDivider2SetVoltageDone();
 
    void onDivider2GetVoltageDone(double voltage);
    void onInitDivider2Done();
@@ -53,6 +54,7 @@ private:
    DividerReader *divider1;
    DividerReader *divider2;
    HVControler *hvControlerDivider1;
+   HVControler *hvControlerDivider2;
 };
 
 #endif // HVSERVER_H

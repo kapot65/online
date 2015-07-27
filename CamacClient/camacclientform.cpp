@@ -5,7 +5,7 @@ void CamacClientForm::restoreSettings()
 {
     manager = new IniManager("CamacClientSettings.ini", this);
 
-    if(manager->settings->value("advanced_mode").isValid())
+    if(!manager->settings->value("advanced_mode").isValid())
         manager->settings->setValue("advanced_mode", false);
 }
 

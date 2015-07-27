@@ -13,7 +13,7 @@ _INITIALIZE_EASYLOGGINGPP
 #endif
 
 #ifdef Q_OS_WIN
-#define LOG_DIRECTORY "D:\\Logs\\HV_Server\\"
+#define LOG_DIRECTORY "E:\\Logs\\HV_Server\\"
 #elif defined(Q_OS_LINUX)
 #define LOG_DIRECTORY "/Logs/HV_server/"
 #endif

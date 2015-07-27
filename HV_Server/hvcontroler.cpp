@@ -1,24 +1,61 @@
 #include "hvcontroler.h"
 
-HVControler::HVControler(IniManager *manager, QObject *parent) : ComPort(manager, parent)
+void HVControler::processSettingError(QString setting, QString controllerName)
+{
+    LOG(ERROR) << tr("Setting \"%1\" in \"%2\" has not set.")
+                  .arg(setting)
+                  .arg(controllerName)
+                  .toStdString();
+}
+
+bool HVControler::loadSettings(QString controllerName, IniManager *manager)
+{
+    int errorCount = 0;
+
+    if(!manager->getSettingsValue(controllerName, "c0").isValid() && errorCount++)
+        processSettingError("c0", controllerName);
+    c0 = manager->getSettingsValue(controllerName, "c0").toDouble();
+
+    if(!manager->getSettingsValue(controllerName, "c1").isValid() && errorCount++)
+        processSettingError("c0", controllerName);
+    c1 = manager->getSettingsValue(controllerName, "c1").toDouble();
+
+    if(!manager->getSettingsValue(controllerName, "minTreshold").isValid() && errorCount++)
+        processSettingError("c0", controllerName);
+    minTreshold = manager->getSettingsValue(controllerName, "minTreshold").toDouble();
+
+    if(!manager->getSettingsValue(controllerName, "maxTreshold").isValid() && errorCount++)
+        processSettingError("c0", controllerName);
+    maxTreshold = manager->getSettingsValue(controllerName, "maxTreshold").toDouble();
+
+    QVariant portNameVariant = manager->getSettingsValue(controllerName, "COM");
+    if((!portNameVariant.isValid() || portNameVariant.toString() == "SET VALUE") && errorCount++)
+        processSettingError("COM", controllerName);
+    portName = portNameVariant.toString();
+
+    if(errorCount)
+        return false;
+
+    return true;
+}
+
+HVControler::HVControler(IniManager *manager, QString controllerName, QObject *parent) : ComPort(manager, parent)
 {
     busyFlag = 0;
 
-    c0 = 0.24124;
-    c1 = 0.0098257;
-
-    QVariant portName = manager->getSettingsValue("HVController", "COM");
-    if(!portName.isValid() || portName.toString() == "SET VALUE")
+    //загрузка настроек из ini файла
+    if(!loadSettings(controllerName, manager))
     {
-        LOG(ERROR) << "Setting \"COM\" in \"HVController\" has not set. Stop server.";
+        LOG(ERROR) << tr("Can't load settings for \"%1\". Stop server.")
+                      .arg(controllerName)
+                      .toStdString();
         qApp->exit(1);
-        return;
     }
-    else
-        serialPort->setPortName(portName.toString());
+
+    serialPort->setPortName(portName);
 
     if(serialPort->open(QIODevice::ReadWrite))
-        LOG(INFO) << "HV Controller connected to port " << portName.toString().toStdString();
+        LOG(INFO) << "HV Controller connected to port " << portName.toStdString();
 }
 
 void HVControler::readMessage()
@@ -34,15 +71,15 @@ void HVControler::setVoltage(double voltage)
     //преобразование напряжения;
     double voltage_normalised = c0 + c1*voltage;
 
-    if(voltage_normalised < 0.)
+    if(voltage_normalised < minTreshold)
     {
-        voltage_normalised = 0;
+        voltage_normalised = minTreshold;
         LOG(WARNING) << "Voltage " << QString().number(voltage).toStdString() << " out of range. Changed to minimal";
     }
 
-    if(voltage_normalised > 9.2)
+    if(voltage_normalised > maxTreshold)
     {
-        voltage_normalised = 9.2;
+        voltage_normalised = maxTreshold;
         LOG(WARNING) << "Voltage " << QString().number(voltage).toStdString() << " out of range. Changed to maximal";
     }
 

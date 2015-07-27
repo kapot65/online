@@ -17,6 +17,8 @@ public:
 
 protected slots:
     virtual void readMessage() = 0;
+    void onPortClose();
+    void onPortError(QSerialPort::SerialPortError error);
 
 protected:
     IniManager *manager;

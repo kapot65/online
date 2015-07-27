@@ -12,6 +12,12 @@ HVServer::HVServer(IniManager *manager, int port, QObject *parent): TcpServer(po
     connect(this, SIGNAL(getDivider1Voltage()), divider1, SLOT(getVoltage()), Qt::QueuedConnection);
     connect(divider1, SIGNAL(getVoltageDone(double)), this, SLOT(onDivider1GetVoltageDone(double)), Qt::QueuedConnection);
 
+    hvControlerDivider1 = new HVControler(manager, "HVController1");
+    hvControlerDivider1->start();
+    connect(this, SIGNAL(setDivider1Voltage(double)), hvControlerDivider1, SLOT(setVoltage(double)), Qt::QueuedConnection);
+    connect(hvControlerDivider1, SIGNAL(setVoltageDone()), this, SLOT(onDivider1SetVoltageDone()));
+
+
     divider2 = new DividerReader("Divider2", manager);
     divider2->start();
 
@@ -20,10 +26,13 @@ HVServer::HVServer(IniManager *manager, int port, QObject *parent): TcpServer(po
     connect(this, SIGNAL(getDivider2Voltage()), divider2, SLOT(getVoltage()), Qt::QueuedConnection);
     connect(divider2, SIGNAL(getVoltageDone(double)), this, SLOT(onDivider2GetVoltageDone(double)), Qt::QueuedConnection);
 
-    hvControlerDivider1 = new HVControler(manager);
-    hvControlerDivider1->start();
-    connect(this, SIGNAL(setDivider1Voltage(double)), hvControlerDivider1, SLOT(setVoltage(double)), Qt::QueuedConnection);
-    connect(hvControlerDivider1, SIGNAL(setVoltageDone()), this, SLOT(onDivider1SetVoltageDone()));
+    hvControlerDivider2 = new HVControler(manager, "HVController2");
+    hvControlerDivider2->start();
+    connect(this, SIGNAL(setDivider2Voltage(double)), hvControlerDivider2, SLOT(setVoltage(double)), Qt::QueuedConnection);
+    connect(hvControlerDivider2, SIGNAL(setVoltageDone()), this, SLOT(onDivider2SetVoltageDone()));
+
+    connect(this, SIGNAL(receiveMessage(MachineHeader,QVariantMap,QByteArray)),
+            this, SLOT(processMessage(MachineHeader,QVariantMap,QByteArray)));
 
     connect(this, SIGNAL(receiveMessage(MachineHeader,QVariantMap,QByteArray)),
             this, SLOT(processMessage(MachineHeader,QVariantMap,QByteArray)));
@@ -97,6 +106,11 @@ void HVServer::onDivider1GetVoltageDone(double voltage)
 void HVServer::onDivider1SetVoltageDone()
 {
     dividerSetVoltageDone("1");
+}
+
+void HVServer::onDivider2SetVoltageDone()
+{
+    dividerSetVoltageDone("2");
 }
 
 void HVServer::processMessage(MachineHeader header, QVariantMap meta, QByteArray data)
@@ -213,7 +227,6 @@ void HVServer::processCommand(QVariantMap message)
                 }
         }
         else
-        {
             if(commandType == "get_voltage")
             {
                 if(block == "1")
@@ -254,42 +267,53 @@ void HVServer::processCommand(QVariantMap message)
             else
                 if(commandType == "set_voltage")
                 {
-                    if(block == "1")
+                    //проверка необходимых параметров
+                    int block = message["block"].toInt();
+                    if(block != 1 && block != 2)
                     {
-                        if(hvControlerDivider1->checkBusy())
-                        {
-                            sendBusyMessage("divider1 set block");
-                            return;
-                        }
-
-                        if(!message.contains("voltage"))
-                        {
-                            QVariantMap errorParams;
-                            errorParams["error_code"] = QString("%1").arg(INCORRECT_MESSAGE_PARAMS);
-                            errorParams.insert("description", QString("voltage field incorrect").arg(commandType));
-
-                            emit error(errorParams);
-                            return;
-                        }
-                        double voltage = message.value("voltage").toDouble();
-                        emit setDivider1Voltage(voltage);
+                        sendUnknownBlockError(message["block"].toString());
+                        return;
                     }
-                    else
-                        if(block == "2")
-                        {
-                            QVariantMap errorParams;
-                            errorParams["error_code"] = QString("%1").arg(ALGORITM_ERROR);
-                            errorParams.insert("stage", "divider 2 set voltage");
-                            errorParams.insert("description", QString("%1 hasn't have set voltage option yet").arg(block));
 
-                            emit error(errorParams);
-                        }
-                        else
-                        {
-                            //создание описания ошибки
-                            sendUnknownBlockError(block);
-                            return;
-                        }
+                    if(!message.contains("voltage"))
+                    {
+                        QVariantMap errorParams;
+                        errorParams["error_code"] = QString("%1").arg(INCORRECT_MESSAGE_PARAMS);
+                        errorParams.insert("description", QString("voltage field incorrect").arg(commandType));
+
+                        emit error(errorParams);
+                        return;
+                    }
+
+                    //проверка занятости
+                    bool busy;
+                    switch(block)
+                    {
+                        case 1:
+                            busy = hvControlerDivider1->checkBusy();
+                            break;
+                        case 2:
+                            busy = hvControlerDivider2->checkBusy();
+                            break;
+                    }
+                    if(busy)
+                    {
+                        sendBusyMessage(tr("divider%1 set block").arg(block));
+                        return;
+                    }
+
+
+                    double voltage = message.value("voltage").toDouble();
+
+                    switch(block)
+                    {
+                        case 1:
+                            emit setDivider1Voltage(voltage);
+                            break;
+                        case 2:
+                            emit setDivider2Voltage(voltage);
+                            break;
+                    }
                 }
                 else
                 {
@@ -297,7 +321,6 @@ void HVServer::processCommand(QVariantMap message)
                     sendUnknownCommandError(commandType);
                     return;
                 }
-        }
 }
 
 void HVServer::processReply(QVariantMap message)
