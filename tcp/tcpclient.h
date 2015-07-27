@@ -16,6 +16,7 @@
 #include <QFile>
 #include <QTime>
 #include <tcpprotocol.h>
+#include <tcpbase.h>
 #include <easylogging++.h>
 #ifdef TEST_MODE
 #include <QDebug>
@@ -25,7 +26,7 @@
  * \brief Базовый класс для общения с Tcp сервером
  * \details Класс имеет функционал подключения, переподключения и сборки сообщений.
  * */
-class TcpClient : public QThread
+class TcpClient : public QThread, public TcpBase
 {
     Q_OBJECT
 public:

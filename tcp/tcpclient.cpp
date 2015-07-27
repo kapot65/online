@@ -2,6 +2,8 @@
 
 TcpClient::TcpClient(QString peerName, int peerPort, QObject *parent) : QThread(parent)
 {
+    continue_message = 0;
+
     networkSession = NULL;
     tcpSocket = NULL;
 
@@ -114,10 +116,6 @@ void TcpClient::sessionOpened()
 void TcpClient::readMessage()
 {
     //чтение посылки
-    static QByteArray fullMessage;
-    static bool continue_message = 0;
-    static MachineHeader header;
-
     QByteArray message;
     if(!continue_message)
     {
