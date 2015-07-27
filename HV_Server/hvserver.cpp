@@ -33,9 +33,6 @@ HVServer::HVServer(IniManager *manager, int port, QObject *parent): TcpServer(po
 
     connect(this, SIGNAL(receiveMessage(MachineHeader,QVariantMap,QByteArray)),
             this, SLOT(processMessage(MachineHeader,QVariantMap,QByteArray)));
-
-    connect(this, SIGNAL(receiveMessage(MachineHeader,QVariantMap,QByteArray)),
-            this, SLOT(processMessage(MachineHeader,QVariantMap,QByteArray)));
 }
 
 HVServer::~HVServer()

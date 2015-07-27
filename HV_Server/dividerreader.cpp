@@ -52,7 +52,7 @@ QString toDebug(const QByteArray & line)
 void DividerReader::readMessage()
 {
     curr_data += serialPort->readAll();
-    if(curr_data.endsWith("\n"));
+    if(curr_data.endsWith("\r\n"));
     {
         //LOG(INFO) <<  QString("Read port: %1").arg(toDebug(curr_data)).toStdString();
         emit receiveFinished();
@@ -72,19 +72,19 @@ void DividerReader::initVoltmeter()
     connect(&timer, SIGNAL(timeout()), &el, SLOT(quit()));
     connect(&timer, SIGNAL(timeout()), &timer, SLOT(stop()));
 
-    serialPort->write("SYST:REM\n"); // Switch voltmeter to remote control (once)
+    serialPort->write("SYST:REM\r\n"); // Switch voltmeter to remote control (once)
     timer.start(1000);
     el.exec();
-    serialPort->write("CONF:VOLT:DC 10,0.00001\n"); // 10 V, 6 1/2 digit
+    serialPort->write("CONF:VOLT:DC 10,0.00001\r\n"); // 10 V, 6 1/2 digit
     timer.start(1000);
     el.exec();
-    serialPort->write("DET:BAND 3\n"); // Slow input signal change
+    serialPort->write("DET:BAND 3\r\n"); // Slow input signal change
     timer.start(1000);
     el.exec();
-    serialPort->write("INP:IMP:AUTO ON\n"); // > 10 GOm impedance
+    serialPort->write("INP:IMP:AUTO ON\r\n"); // > 10 GOm impedance
     timer.start(3000);                      // and long delay for relay
     el.exec();
-    serialPort->write("VOLT:NPLC 100\n"); // Slow measurement
+    serialPort->write("VOLT:NPLC 100\r\n"); // Slow measurement
     timer.start(2000);
     el.exec();
 
@@ -99,7 +99,7 @@ void DividerReader::getVoltage()
 
     QEventLoop el;
     connect(this, SIGNAL(receiveFinished()), &el, SLOT(quit()));
-    serialPort->write("READ?\n");
+    serialPort->write("READ?\r\n");
     el.exec();
 
     curr_data.chop(3);
