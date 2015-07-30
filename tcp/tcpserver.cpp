@@ -4,6 +4,7 @@ TcpServer::TcpServer(int port, QObject *parent) : QObject(parent)
 {
 //Подключение сервера к порту
     networkSession = NULL;
+    clientConnection = 0;
     this->port = port;
 
     connect(this, SIGNAL(error(QVariantMap)), this, SLOT(on_error(QVariantMap)));
@@ -71,6 +72,22 @@ void TcpServer::sessionOpened()
 
 void TcpServer::processNewConnection()
 {
+    if(clientConnection && clientConnection->isOpen())
+    {
+        connect(clientConnection, SIGNAL(disconnected()), clientConnection, SLOT(deleteLater()));
+        clientConnection->disconnectFromHost();
+//        QTcpSocket *newConnection = tcpServer->nextPendingConnection();
+//        connect(newConnection, SIGNAL(disconnected()), newConnection, SLOT(deleteLater()));
+
+//        QVariantMap err;
+//        err["error_code"] = MULTIPLE_CONNECTION;
+//        err["desctiption"] = "Server already has active connection. Closing this connection";
+//        err = TcpProtocol::wrapErrorInfo(err);
+
+//        sendMessage(err, QByteArray(), NULL, newConnection);
+//        newConnection->disconnectFromHost();
+    }
+
     clientConnection = tcpServer->nextPendingConnection();
     connect(clientConnection, SIGNAL(readyRead()), this, SLOT(readMessage()));
     emit newConnection(clientConnection->peerName(), clientConnection->peerPort());
@@ -110,73 +127,37 @@ void TcpServer::sendReady()
 
 void TcpServer::readMessage()
 {
-    //чтение посылки
-    QByteArray message = clientConnection->readAll();
-
-    static QByteArray fullMessage;
-    static bool continue_message = 0;
-    static MachineHeader header;
-
+    MachineHeader header;
+    QVariantMap meta;
+    QByteArray data;
     bool ok;
-    //попытка считать бинарный заголовок
-    //попытка пробуется на каждом пакете, чтобы избежать поломки сервера
-    //в случае когда в бинарном хедере и в фактическом сообщении различаются длины
-    header = TcpProtocol::readMachineHeader(message, &ok);
+    bool hasMore;
+
+    readMessageFromStream(clientConnection, header, meta, data, ok, hasMore);
+
     if(ok)
-    {
-        fullMessage.clear();
-        continue_message = 1;
-    }
-    else
-        if(!continue_message)
-        {
-            //неподходящий формат бинарного заголовка
-            QVariantMap error_info;
-            error_info["error_code"] = QString("%1").arg(PARSE_MESSAGE_ERROR);
-            error_info["stage"] = "reading binary header";
-            error_info["description"] = "unable to read binary header";
-            emit error(error_info);
-            return;
-        }
+        emit receiveMessage(header, meta, data);
 
-    if(continue_message)
-    {
-        fullMessage.push_back(message);
-        if(fullMessage.size() >= header.metaLength + header.dataLenght + 30)
-        {
-            continue_message = 0;
-
-            QVariantMap meta;
-            QByteArray data;
-
-            //попытка распарсить сообщение
-            if(!(TcpProtocol::parceMesssage(fullMessage, meta, data)))
-            {
-                //создание описания ошибки
-                QVariantMap error_info;
-                error_info["error_code"] = QString("%1").arg(PARSE_MESSAGE_ERROR);
-                error_info["stage"] = "parsing message";
-                error_info["description"] =  "unable to parse metadata";
-                emit error(error_info);
-                return;
-            }
-            emit receiveMessage(header, meta, data);
-        }
-    }
+    if(hasMore)
+        readMessage();
 }
 
-void TcpServer::sendMessage(QVariantMap message, QByteArray binaryData,  bool *ok)
+void TcpServer::sendMessage(QVariantMap message, QByteArray binaryData,  bool *ok, QTcpSocket *socket)
 {
+    if(!socket)
+        socket = clientConnection;
+    if(!socket)
+        return;
     //    connect(tcpSocket, SIGNAL(disconnected()),
     //            tcpSocket, SLOT(deleteLater()));
 
     QByteArray prepairedMessage = TcpProtocol::createMessage(message, binaryData);
-    sendRawMessage(prepairedMessage);
+    sendRawMessage(prepairedMessage, socket);
 }
 
-void TcpServer::sendRawMessage(QByteArray message)
+void TcpServer::sendRawMessage(QByteArray message, QTcpSocket *socket)
 {
-    clientConnection->write(message);
+    socket->write(message);
     //tcpSocket->disconnectFromHost();
 }
 

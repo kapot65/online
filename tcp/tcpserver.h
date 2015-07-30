@@ -14,9 +14,10 @@
 #include <QJson/Serializer>
 #endif
 #include "tcpprotocol.h"
+#include "tcpbase.h"
 //#include <easylogging++.h>
 
-class TcpServer : public QObject
+class TcpServer : public QObject, public TcpBase
 {
     Q_OBJECT
 public:
@@ -40,8 +41,9 @@ private:
     void serverReady();
 
 public slots:
-    void sendMessage(QVariantMap message, QByteArray binaryData = QByteArray(), bool *ok = NULL);
-    void sendRawMessage(QByteArray message);
+    void sendMessage(QVariantMap message, QByteArray binaryData = QByteArray(), bool *ok = NULL,
+                     QTcpSocket *socket = 0);
+    void sendRawMessage(QByteArray message, QTcpSocket *socket);
 
 protected:
     QTcpServer *tcpServer;

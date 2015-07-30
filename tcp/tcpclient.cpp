@@ -115,64 +115,24 @@ void TcpClient::sessionOpened()
 
 void TcpClient::readMessage()
 {
-    //чтение посылки
-    QByteArray message;
-    if(!continue_message)
-    {
-        message += tcpSocket->read(30);
-        bool ok;
-        //попытка считать бинарный заголовок
-        //попытка пробуется на каждом пакете, чтобы избежать поломки сервера
-        //в случае когда в бинарном хедере и в фактическом сообщении различаются длины
-        header = TcpProtocol::readMachineHeader(message, &ok);
-        if(ok)
-        {
-            fullMessage.clear();
-            continue_message = 1;
-        }
-        else
-            if(!continue_message)
-            {
-                //поток чем-то забит
-                LOG(ERROR) << "Error parcing tcp stream: can not parse binary header. Clearing all stream.";
-                tcpSocket->readAll();
-                return;
-            }
-    }
+    MachineHeader header;
+    QVariantMap meta;
+    QByteArray data;
+    bool ok;
+    bool hasMore;
 
-    if(continue_message)
-    {
-        message += tcpSocket->read((header.metaLength + header.dataLenght + 30) -
-                                   (fullMessage.size() + message.size()));
-        fullMessage.push_back(message);
+    readMessageFromStream(tcpSocket, header, meta, data, ok, hasMore);
 
-        if(fullMessage.size() >= header.metaLength + header.dataLenght + 30)
-        {
+    if(ok)
+    {
+        emit receiveMessage(header, meta, data);
 #ifdef TEST_MODE
-            emit testReseivedMessage(fullMessage);
+        emit testReseivedMessage(TcpProtocol::createMessage(meta));
 #endif
-            continue_message = 0;
-
-            QVariantMap meta;
-            QByteArray data;
-
-            //попытка распарсить сообщение
-            if(!(TcpProtocol::parceMesssage(fullMessage, meta, data)))
-            {
-                //создание описания ошибки
-//                QVariantMap error_info;
-//                error_info["stage"] = "parsing message";
-//                error_info["description"] =  "unable to parse metadata";
-//                emit error(error_info);
-                return;
-            }
-
-            emit receiveMessage(header, meta, data);
-
-            if(tcpSocket->size())
-                readMessage();
-        }
     }
+
+    if(hasMore)
+        readMessage();
 }
 
 void TcpClient::onSocketConnected()

@@ -104,7 +104,7 @@ QByteArray TcpProtocol::createMessage(QVariantMap meta, QByteArray data, unsigne
     return prepairedMessage;
 }
 
-bool TcpProtocol::parceMesssage(QByteArray message, QVariantMap &meta, QByteArray &data, bool headerOnly)
+bool TcpProtocol::parceMessage(QByteArray message, QVariantMap &meta, QByteArray &data, bool headerOnly)
 {
     MachineHeader header = readMachineHeader(message);
 
@@ -269,7 +269,7 @@ bool TcpProtocol::parceMessageWithPoints(QByteArray message, QVariantMap &meta, 
 
     QByteArray data;
 
-    if(!TcpProtocol::parceMesssage(message, meta, data))
+    if(!TcpProtocol::parceMessage(message, meta, data))
         return false;
 
     return parceMessageWithPoints(header, meta, data, events);

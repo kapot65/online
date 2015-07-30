@@ -181,7 +181,7 @@ FileDrawer::FileDrawer(QTableWidget *table, QCustomPlot *plot, QString filename,
 
     file = new QFile(filename, this);
     file->open(QIODevice::ReadOnly);
-    TcpProtocol::parceMesssage(file->readAll(), meta, data, 1);
+    TcpProtocol::parceMessage(file->readAll(), meta, data, 1);
     file->close();
     file->open(QIODevice::ReadOnly);
 
@@ -310,7 +310,7 @@ void InfoFileDrawer::update()
     else
         curr_visibility = items[0]->visible();
     //переоткрытие сообщения
-    TcpProtocol::parceMesssage(fileBuffer, meta, data);
+    TcpProtocol::parceMessage(fileBuffer, meta, data);
 
     QVariantList comments = meta["comments"].toList();
 
@@ -662,7 +662,7 @@ void VoltageFileDrawer::update()
         //парсинг мета хедера
         QByteArray headers = rawMachineHeader + file->read(header.metaLength);
         QByteArray data;
-        TcpProtocol::parceMesssage(headers, meta, data, true);
+        TcpProtocol::parceMessage(headers, meta, data, true);
     }
 
 
@@ -773,7 +773,7 @@ void DataVisualizerForm::on_fileBrowser_clicked(const QModelIndex &index)
 
         QVariantMap meta;
         QByteArray data;
-        if(TcpProtocol::parceMesssage(fileData, meta, data, 1))
+        if(TcpProtocol::parceMessage(fileData, meta, data, 1))
         {
             //обработка точки
             if(meta["reply_type"].toString() == "aquired_point")

@@ -602,7 +602,7 @@ void Online::updateInfo(QVariant infoBlock, bool addAsComment)
     //обновление файла метаинформации
     QFile infoFile("temp/" + currSubFolder + "/meta");
     infoFile.open(QIODevice::WriteOnly);
-    infoFile.write(TcpProtocol::createMessage(info, QByteArray()));
+    infoFile.write(TcpProtocol::createMessage(info));
     infoFile.close();
 //#ifndef USE_QTJSON
 //    QJson::Serializer serializer;
@@ -702,14 +702,26 @@ HVMonitor::HVMonitor(QString subFolder, HVHandler *hvHandler):QThread(0)
     this->hvHandler = hvHandler;
     stopHvMonitorFlag = 0;
 
-    last_divider1_voltage = -1;
-    last_divider2_voltage = -1;
+    blockDone[0] = 0;
+    blockDone[1] = 0;
+
+
+    last_dividers_voltage[0] = -1;
+    last_dividers_voltage[1] = -1;
 
     connect(hvHandler, SIGNAL(getVoltageDone(QVariantMap)),
             this, SLOT(saveCurrentVoltage(QVariantMap)), Qt::QueuedConnection);
     connect(this, SIGNAL(getVoltage(int)), hvHandler, SLOT(getVoltage(int)), Qt::QueuedConnection);
 
     connect(this, SIGNAL(finished()), this, SLOT(beforeClose()));
+}
+
+double HVMonitor::getLastDividerVoltage(int block)
+{
+    if(block != 1 && block != 2)
+        return -1.;
+
+    return last_dividers_voltage[block - 1];
 }
 
 void HVMonitor::prepareVoltageFile(BINARYTYPE type)
@@ -801,11 +813,22 @@ void HVMonitor::saveCurrentVoltage(QVariantMap message)
     if(!message.contains("block") || !message.contains("voltage"))
         return;
 
-    if(message["block"].toString() == "1")
-        last_divider1_voltage = message["voltage"].toDouble();
+    int block = message["block"].toInt();
 
-    if(message["block"].toString() == "2")
-        last_divider2_voltage = message["voltage"].toDouble();
+    if(block != 1 && block != 2)
+        return;
+
+    blockDone[block - 1] = 1;
+    if(blockDone[0] && blockDone[1])
+    {
+        blockDone[0] = 0;
+        blockDone[1] = 0;
+        emit stepDone();
+    }
+
+    double voltage = message["voltage"].toDouble();
+
+    last_dividers_voltage[block - 1] = voltage;
 
     switch (hvFileMachineHeader.dataType)
     {
@@ -837,7 +860,8 @@ void HVMonitor::run()
     prepareVoltageFile();
 
     QEventLoop el;
-    connect(hvHandler, SIGNAL(getVoltageDone(QVariantMap)), &el, SLOT(quit()));
+    //connect(hvHandler, SIGNAL(getVoltageDone(QVariantMap)), &el, SLOT(quit()));
+    connect(this, SIGNAL(stepDone()), &el, SLOT(quit()));
     connect(this, SIGNAL(destroyed()), &el, SLOT(quit()));
 
     while(!stopHvMonitorFlag)
@@ -856,12 +880,11 @@ void HVMonitor::run()
         }
 
         emit getVoltage(1);
-
-        el.exec();
-        if(stopHvMonitorFlag)
-            return;
-
+        QEventLoop el2;
+        QTimer::singleShot(100, &el2, SLOT(quit()));
+        el2.exec();
         emit getVoltage(2);
+
         el.exec();
         if(stopHvMonitorFlag)
             return;

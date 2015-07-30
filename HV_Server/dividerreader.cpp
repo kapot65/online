@@ -102,16 +102,17 @@ void DividerReader::getVoltage()
     serialPort->write("READ?\r\n");
     el.exec();
 
-    curr_data.chop(3);
+    //обрезание спецсимволов
+    while(curr_data.size() && !QChar(curr_data[curr_data.size() - 1]).isDigit())
+        curr_data.chop(1);
 
     double raw_voltage = curr_data.toDouble();
 
 
-    LOG(INFO) << QString("VOLTAGE = %1 (%2 * %3)\nRaw data: %4").arg(raw_voltage * dividerNormCoeff)
-                                                  .arg(raw_voltage)
-                                                  .arg(dividerNormCoeff)
-                                                  .arg(toDebug(curr_data))
-                                                  .toStdString();
+    LOG(INFO) << QString("%1 (%2 * %3)").arg(raw_voltage * dividerNormCoeff)
+                                             .arg(raw_voltage)
+                                             .arg(dividerNormCoeff)
+                                             .toStdString();
     curr_data.clear();
 
     busy = 0;

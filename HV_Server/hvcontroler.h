@@ -12,27 +12,57 @@ class HVControler : public ComPort
 {
     Q_OBJECT
 public:
+    /*!
+     * \brief Загружает настройки и открывает порт.
+     * \param manager Менеджер настроек.
+     * \param controllerName Имя контролера HV. Используется при загрузке настроек из ini файла.
+     */
     explicit HVControler(IniManager *manager, QString controllerName,  QObject *parent = 0);
+
+    /*!
+     * \brief Проверка занятости интерфейса.
+     * \todo Извлечь метод и объединить с таким же из DividerReader.
+     * \return Флаг занятости.
+     */
     bool checkBusy(){return busyFlag;}
 
-
-    bool loadSettings(QString controllerName, IniManager *manager);
 signals:
+    /*!
+     * \brief Установка напряжения закончена.
+     * \todo Добавить проверку установленного напряжения.
+     */
     void setVoltageDone();
 
 public slots:
+    /*!
+     * \brief Устанавливает напряжение. Если напряжение выходит за границы
+     * диапазона - устанавливает граничное значение и записывает предупреждение в лог.
+     * Диапазоны устанавливаются в ini файле в полях "minTreshold" и "maxTreshold".
+     * \param voltage Напряжение в вольтах.
+     */
     void setVoltage(double voltage);
 
 protected slots:
+    /*!
+     * \brief Слот просто очищает буфер порта.
+     * \todo Сделать обработку сообщений.
+     */
     virtual void readMessage();
 
 protected:
     /*!
-     * \brief processSettingError
-     * Метод проверяет файл настроек на наличие поля setting во вкладке
+     * \brief Загружает настройки из ini файла.
+     * \param controllerName Имя HVControler.
+     * \param manager Указатель на менеджер настроек.
+     * \return Успешность загрузки параметров.
+     */
+    bool loadSettings(QString controllerName, IniManager *manager);
+
+    /*!
+     * \brief Метод проверяет файл настроек на наличие поля setting во вкладке
      * controllerName. Если поля нет, то метод пытается остановить приложение.
-     * \param setting
-     * \param controllerName
+     * \param setting Название параметра.
+     * \param controllerName Имя HVControler.
      */
     void processSettingError(QString setting, QString controllerName);
 
@@ -61,14 +91,12 @@ protected:
     double maxTreshold;
 
     /*!
-     * \brief portName
-     * Имя COM порта, к которому подключен контроллер.
+     * \brief Имя COM порта, к которому подключен контроллер.
      */
     QString portName;
 
     /*!
-     * \brief busyFlag
-     * Флаг занятости контроллера.
+     * \brief Флаг занятости контроллера.
      */
     bool busyFlag;
 };

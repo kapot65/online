@@ -15,36 +15,42 @@
 #include "event.h"
 
 /*!
- * \brief The ERROR_TYPE enum
- * \details коды ошибок
+ * \brief Коды ошибок серверов.
  */
 enum ERROR_TYPE
 {
     CLIENT_NO_ERROR = 0,
     UNKNOWN_ERROR = 1,
-    SERVER_INIT_ERROR = 2, //сервер не ицициализирован
-    CLIENT_DISCONNECT = 3, //сервер отключиля или не подключен
-    PARSE_MESSAGE_ERROR = 4, //ошибка при парсинге сообщения
-    TIMEOUT_ERROR = 5, //превышение времени обработки запроса
-    ALGORITM_ERROR = 6, //ошибка в алгоритме исполнения команды
-    UNKNOWN_MESSAGE_ERROR = 7, //у сервера нету действия для данного сообщения
-    SERVER_BUSY_ERROR = 8, //сервер сейчас занят
-    INCORRECT_MESSAGE_PARAMS = 9 //неправильные параметры в сообщении
+    SERVER_INIT_ERROR = 2, ///сервер не ицициализирован
+    CLIENT_DISCONNECT = 3, ///сервер отключиля или не подключен
+    PARSE_MESSAGE_ERROR = 4, ///ошибка при парсинге сообщения
+    TIMEOUT_ERROR = 5, ///превышение времени обработки запроса
+    ALGORITM_ERROR = 6, ///ошибка в алгоритме исполнения команды
+    UNKNOWN_MESSAGE_ERROR = 7, ///у сервера нету действия для данного сообщения
+    SERVER_BUSY_ERROR = 8, ///сервер сейчас занят
+    INCORRECT_MESSAGE_PARAMS = 9, ///неправильные параметры в сообщении
+    MULTIPLE_CONNECTION = 10 ///попытка подключится к серверу, у которого уже есть активное соединение
 };
 
+/*!
+ * \brief Форматы метаданных.
+ */
 enum METATYPE
 {
-    UNDEFINED_METATYPE = 0x00000000,
-    JSON_METATYPE = 0x00010000
+    UNDEFINED_METATYPE = 0x00000000, ///Неизвестный формат метаданных
+    JSON_METATYPE = 0x00010000 ///Формат Json
 };
 
+/*!
+ * \brief Формат записи бинарных данных.
+ */
 enum BINARYTYPE
 {
-    UNDEFINED_BINARY = 0x00000000,
-    POINT_DIRECT_BINARY = 0x00000100,
-    POINT_QDATASTREAM_BINARY = 0x00000107,
-    HV_BINARY = 0x00000200, //Бинарный формат HV
-    HV_TEXT_BINARY = 0x00000201, //тексовый формат HV
+    UNDEFINED_BINARY = 0x00000000, ///Неопределенный формат
+    POINT_DIRECT_BINARY = 0x00000100, ///Точка в обычной сериализации
+    POINT_QDATASTREAM_BINARY = 0x00000107, ///Точка в сериализации через QDataStream
+    HV_BINARY = 0x00000200, ///Бинарный формат HV
+    HV_TEXT_BINARY = 0x00000201, ///тексовый формат HV
 };
 
 /*!
@@ -70,8 +76,7 @@ class TcpProtocol
 {
 public:
     /*!
-     * \brief readMachineHeader
-     * \details Метод считывает бинарный хедер.
+     * \brief Метод считывает бинарный хедер.
      * \param message
      * \param ok
      * \return
@@ -79,37 +84,34 @@ public:
     static MachineHeader readMachineHeader(QByteArray &message, bool *ok = 0);
 
     /*!
-     * \brief createMessage
-     * \details метод создает сообщение в соотвествии с форматом протокола
+     * \brief Метод создает сообщение в соотвествии с форматом протокола
      * http://elog.mass.inr.ru/online/1 .
      * \param meta
      * \param data
      * \return
      */
-    static QByteArray createMessage(QVariantMap meta, QByteArray data,
+    static QByteArray createMessage(QVariantMap meta, QByteArray data = QByteArray(),
                                     unsigned int metaType = JSON_METATYPE,
                                     unsigned int binaryType = UNDEFINED_BINARY);
 
     /*!
-     * \brief parceMesssage
-     * \details метод пытается считать сообщение в соотвествии с форматом протокола
+     * \brief Метод пытается считать сообщение в соотвествии с форматом протокола
      * \param message
      * \param meta
      * \param data
      * \return в случае успешного парсинга возвращает 1, в противном случае возвращает 0
      */
-    static bool parceMesssage(QByteArray message, QVariantMap &meta, QByteArray &data, bool headerOnly = 0);
+    static bool parceMessage(QByteArray message, QVariantMap &meta, QByteArray &data, bool headerOnly = 0);
 
     /*!
-     * \brief функция создает бинарный хедер в соответсвии с форматом
+     * \brief Функция создает бинарный хедер в соответсвии с форматом
      * \param header
      * \return
      */
     static QByteArray writeMachineHeader(MachineHeader header);
 
     /*!
-     * \brief wrapErrorInfo
-     * \details метод оборертывает описание ошибки, добавляя поля, по которым метод TcpProtocol::checkMessageForError
+     * \brief Метод оборертывает описание ошибки, добавляя поля, по которым метод TcpProtocol::checkMessageForError
      * может опознать сообщение как ошибку
      * \param error_info
      * \return
@@ -117,8 +119,7 @@ public:
     static QVariantMap wrapErrorInfo(QVariantMap error_info);
 
     /*!
-     * \brief unwrapErrorInfo
-     * \details убирает из сообщения поля, созданные TcpProtocol::wrapErrorInfo
+     * \brief Убирает из сообщения поля, созданные TcpProtocol::wrapErrorInfo
      * \param error_info
      * \return
      */
@@ -126,8 +127,7 @@ public:
 
 
     /*!
-     * \brief checkMessageForError
-     * \details Проверяет, является ли сообщение, сообщением об ошибке.
+     * \brief Проверяет, является ли сообщение, сообщением об ошибке.
      * Чтобы фунция работала, нужно оборачивать описание ошибок методом TcpProtocol::wrapErrorInfo
      * \param message
      * \return
@@ -135,8 +135,7 @@ public:
     static bool checkMessageForError(QVariantMap message);
 
     /*!
-     * \brief createMessageWithPoints
-     * \details сериализация сообщения содержащего события точек
+     * \brief Сериализация сообщения содержащего события точек
      * \param meta метаданные
      * \param events вектор событий
      * \param metaType тип метаданных
@@ -147,8 +146,7 @@ public:
                                               unsigned int metaType = JSON_METATYPE, unsigned int binaryType = UNDEFINED_BINARY);
 
     /*!
-     * \brief parceMessageWithPoints
-     * \details метод парсит сообщение с бинарными данными точки, создаваемое методом
+     * \brief Метод парсит сообщение с бинарными данными точки, создаваемое методом
      * TcpProtocol::createMessageWithPoints. На вход принимается уже разобранное сообщение.
      * \param messageHeader
      * \param messageMeta
@@ -158,8 +156,7 @@ public:
      */
     static bool parceMessageWithPoints(MachineHeader messageHeader, QVariantMap messageMeta, QByteArray messageData, QVector<Event> &events);
     /*!
-     * \brief parceMessageWithPoints
-     * \details метод парсит сообщение с бинарными данными точки, создаваемое методом
+     * \brief Метод парсит сообщение с бинарными данными точки, создаваемое методом
      * TcpProtocol::createMessageWithPoints. На вход принимается неразобранное сообщение.
      * \param message
      * \param meta
@@ -169,15 +166,13 @@ public:
     static bool parceMessageWithPoints(QByteArray message, QVariantMap &meta, QVector<Event> &events);
 
     /*!
-     * \brief getAviableMeasuteTimes
-     * \details Метод выдает список доступных времен сбора для CAMAC.
+     * \brief Метод выдает список доступных времен сбора для CAMAC.
      * \return
      */
     static QMap<int, unsigned short> getAviableMeasuteTimes();
 
     /*!
-     * \brief madsTimeToNSecCoeff
-     * \details Возвращает коэффициент перевода сырого времени с MADS
+     * \brief Возвращает коэффициент перевода сырого времени с MADS
      * во время в наносекундах
      * \param measureTime Время измерения. Подгоняется под доступные времена
      * сбора из TcpProtocol::getAviableMeasuteTimes.
