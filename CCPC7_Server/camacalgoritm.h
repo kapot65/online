@@ -19,17 +19,9 @@
 #include <tcpprotocol.h>
 #include <event.h>
 
-/*
-#if QT_VERSION >= 0x040800
-class Sleeper: public QThread
-{
-public:
-    static void ssleep(unsigned int sec) {return sleep(sec);}
-    static void mSleep(unsigned int sec) {return msleep(sec);}
-};
-#endif
-*/
-
+/*!
+ * \brief Класс содержит алгоритмы для работы с камаком.
+ */
 class CamacAlgoritm : public QObject
 {
     Q_OBJECT
@@ -37,50 +29,174 @@ public:
     explicit CamacAlgoritm(QObject *parent = 0);
 
 protected slots:
+    /*!
+     * \brief Слот, вызываемый при ручной остановке набора.
+     * Выставляет параметр CamacAlgoritm::breakFlag.
+     */
     void on_breakAcquisition();
-    //ручная запись и считывание из MADC
+
+    /*!
+     * \brief Ручная запись в MADC и чтение из нее.
+     * \warning Функция для тестирования.
+     */
     void testMADC();
 
 signals:
+    /*!
+     * \brief Испускается в процессе набора точки.
+     * \param Текущее количество набраных событий.
+     */
     void currentEventCount(int count);
 
 protected:
+    ///Указатель на класс для взаимодействия с устройством.
     ccpc::CamacImplCCPC7 *camac;
+
+    ///Указатель на сенеджер настроек сервера.
     CamacServerSettings *settings;
 
+    /*!
+     * \brief Проведение набора точки, с заданным временем набора.
+     * \param measureTime Время набора.
+     * \param [out] manuallyBreak Флаг прерывания программы пользователем.
+     * \return Вектор набранных событий в формате Event.
+     */
     QVector<Event> acquirePoint(unsigned short measureTime, bool *manuallyBreak = NULL);
+
+    /*!
+     * \brief Обнуление каунтеров.
+     */
     void resetCounters();
+
+    /*!
+     * \brief Получение значения на каунтере.
+     * \param counterNum Номер каунтера (1 или 2).
+     * \param channelNum Номер канала на каунтере (0 - 3).
+     * \param withReset Обнулить каунтер после считывания.
+     * \return Значение на каунтере.
+     */
     unsigned int getCounterValue(int counterNum, int channelNum, bool withReset);
 
-    //функции CAMAC
+    /*!
+     * \brief Проведения цикла C
+     */
     void C();
+
+    /*!
+     * \brief Проведение цикла Z
+     */
     void Z();
+
+    /*!
+     * \brief Проведение операции NAF
+     * \param n N
+     * \param a A
+     * \param f F
+     * \param [in, out]data Данные.
+     * \return Результат операции.
+     */
     ccpc::CamacOp NAF(int n, int a, int f, unsigned short &data);
 
 private:
+    /*!
+     * \brief Флаг ручного прерывания алгоритма.
+     */
     bool breakFlag;
 
 #if QT_VERSION >= 0x040800
+    /*!
+     * \brief Таймер для установки задержек.
+     */
     QTimer *timer;
+    /*!
+     * \brief QEventLoop для ожидания во время задержек.
+     */
     QEventLoop *eventLoop;
 #endif
 
+    /*!
+     * \brief Отключение возможности измерений.
+     * \details Выполняет на блоке MADC команду с параметрами A = 0, F = 12.
+     */
     void disableMeasurement();
+
+    /*!
+     * \brief Включение возможности измерений.
+     * \details Выполняет на блоке MADC команду с параметрами A = 0, F = 11.
+     */
     void enableMeasurement();
 
-    //функции MADS
+    /*!
+     * \brief Пишет событие в MADC.
+     * \param [in] data Канал события.
+     * \param [in] time Время события.
+     * \warning Функция нигде не используется. Возможно она не работает.
+     */
     void writeMADC(unsigned short &data, long &time);
-    void readMADC(unsigned short &data, long &time, bool &valid); //READ 12 BIT DATA & 28 BIT TIME & VALID BIT FROM THE MEMORY AND INCREMENT ADDRESS
-    void readMADCData(unsigned short &data, long &time, bool &valid); //READ 12 BIT DATA & VALID BIT FROM THE MEMORY AND INCREMENT ADDRESS
-    void setMADCAddr(long &addr, unsigned short &measureTime); //SET 18 BIT ADDRESS AND MEASUREMENT TIME IN SEC
+
+    /*!
+     * \brief Считывает время и канал событие с MADC.
+     * \details Считывает 12 бит данных, 28 бит времени, 1 бит валидности и прибавляет инкремент к адресу.
+     * \param [out] data Канал события.
+     * \param [out] time Время события.
+     * \param [out] valid Валидность события.
+     */
+    void readMADC(unsigned short &data, long &time, bool &valid);
+
+    /*!
+     * \brief Считывает канал события с MADC.
+     * \details Считывает 12 бит данных,1 бит валидности и прибавляет инкремент к адресу.
+     * \param [out] data Канал события.
+     * \param [out] time Время события.
+     * \param [out] valid Валидность события.
+     * \warning Функция нигде не используется. Возможно она не работает.
+     */
+    void readMADCData(unsigned short &data, long &time, bool &valid);
+
+    /*!
+     * \brief Устанавливает адрес (18 бит) и время набора в MADC.
+     * \param [in] addr Адрес.
+     * \param [in] measureTime Код времени измерений. Берется из TcpProtocol::getAviableMeasuteTimes.
+     */
+    void setMADCAddr(long &addr, unsigned short &measureTime);
+
+    /*!
+     * \brief Считывает текущий адрес, флаг переполнения и флаг окончания измерений с MADC.
+     * \param [out] addr Адрес.
+     * \param [out] addrOverflow Флаг переполнения адреса.
+     * \param [out] endOfMeasurement Флаг окончания измерений.
+     */
     void getMADCAddr(long &addr, bool &addrOverflow, bool &endOfMeasurement);//GET ADDRESS, ADDRESS-OVERFLOW AND END-OF-MEASURE BITS
 
     //вспомогательные функции
+    /*!
+     * \brief Выдает значение бита в байте.
+     * \param Рассматриваемый байт.
+     * \param Позиция бита в байте.
+     * \return Значение бита.
+     */
     bool checkBit(unsigned short var, int pos);
+
+    /*!
+     * \brief Изменяет значение бита в байте.
+     * \param Рассматриваемый байт.
+     * \param Позиция заменяемого бита в байте.
+     * \param Значение заменяемого бита.
+     */
     void replaceBit(long &var, int pos, bool bit);
+
+    /*!
+     * \brief Изменяет значение бита в байте.
+     * \param Рассматриваемый байт.
+     * \param Позиция заменяемого бита в байте.
+     * \param Значение заменяемого бита.
+     */
     void replaceBit(unsigned short &var, int pos, bool bit);
 
-    //доступные времена сбора
+    /*!
+     * \brief Доступные времена сбора.
+     * Создается с помощью TcpProtocol::getAviableMeasuteTimes
+     */
     QMap<int, unsigned short> aviableMeasureTimes;
 };
 

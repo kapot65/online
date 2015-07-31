@@ -3,7 +3,6 @@
 CamacServerSettings::CamacServerSettings(QObject *parent) : QObject(parent)
 {
     iniManager = NULL;
-
 }
 
 inline void CamacServerSettings::checkAndWriteErr(QString group, QString field, QString &err)
@@ -73,19 +72,6 @@ bool CamacServerSettings::loadSettings(QString fileName)
                 logLevel = el::LevelHelper::convertFromString(logLevelStr.toStdString().c_str());
             */
 #endif
-        }
-
-
-        identMode = QJson::IndentNone;
-        if(getSettingsValue("General", "JSonIdent").isValid())
-        {
-            QString identModeString = getSettingsValue("General", "JSonIdent").toString();
-
-            if(identModeString == "IndentNone")
-                identMode = QJson::IndentNone;
-
-            if(identModeString == "IndentFull")
-                identMode = QJson::IndentFull;
         }
 
         return 0;

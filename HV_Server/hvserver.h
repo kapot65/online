@@ -69,7 +69,7 @@ private slots:
     * ответы - методом HVServer::processReply.
     * \param header Машинный заголовок сообщения.
     * \param meta Метаданные сообщения.
-    * \param data Бинарнык данные сообщения.
+    * \param data Бинарные данные сообщения.
     */
    void processMessage(MachineHeader header, QVariantMap meta, QByteArray data);
 

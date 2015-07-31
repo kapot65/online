@@ -6,6 +6,11 @@
 #include <inimanager.h>
 #include <easylogging++.h>
 
+/*!
+ * \brief Класс для работы с настройками сервера.
+ * Обеспечивает предварительный парсинг настроек из ini файла
+ * и быстрый доступ к ним.
+ */
 class CamacServerSettings : public QObject
 {
     Q_OBJECT
@@ -14,22 +19,78 @@ public:
     ~CamacServerSettings();
 
     //проверяет наличие необходимых настроек
+    /*!
+     * \brief Загружает настройки из ini файла и осуществляет предварительный парсинг.
+     * Если каких-то настроек нету, то функция испустит сигнал CamacServerSettings::error c описанием
+     * недостающих настроек.
+     * \param fileName
+     * \return true - все настройки найдены,  0 - некоторых настроек не хватает.
+     */
     bool loadSettings(QString fileName);
 
-    //оберточные функции
+    /*!
+     * \brief Оберточная функция. Копирует IniManager::getSettingsValue
+     */
     QVariant getSettingsValue(QString group, QString fieldName);
+
+    /*!
+     * \brief Оберточная функция. Копирует IniManager::setSettingsValue
+     */
     void setSettingaValue(QString group, QString fieldName, QVariant value);
 
+    /*!
+     * \brief Возвращает положение блока ADC_CRATE.
+     * \return Положение блока ADC_CRATE.
+     */
     int getADC_CRATE(){ return ADC_CRATE; }
+
+    /*!
+     * \brief Возвращает положение блока MADC.
+     * \return Положение блока MADC.
+     */
     int getMADC(){ return MADC; }
+
+    /*!
+     * \brief Возвращает положение блока TG1.
+     * \return Положение блока TG1.
+     */
     int getTG1(){ return TG1; }
+
+    /*!
+     * \brief Возвращает положение блока OV1.
+     * \return Положение блока OV1.
+     */
     int getOV1(){ return OV1; }
+
+    /*!
+     * \brief Возвращает положение блока TTL_NIM.
+     * \return Положение блока TTL_NIM.
+     */
     int getTTL_NIM(){ return TTL_NIM; }
+
+    /*!
+     * \brief Возвращает положение блока COUNTER1.
+     * \return Положение блока COUNTER1.
+     */
     int getCOUNTER1(){ return COUNTER1; }
+
+    /*!
+     * \brief Возвращает положение блока COUNTER2.
+     * \return Положение блока COUNTER2.
+     */
     int getCOUNTER2(){ return COUNTER2; }
+
+    /*!
+     * \brief Возвращает положение блока TERMINAL1.
+     * \return Положение блока TERMINAL1.
+     */
     int getTERMINAL1(){ return TERMINAL1; }
+
+    /*!
+     * \brief Возвращает положение блока TERMINAL2.
+     * \return Положение блока TERMINAL2.
+     */
     int getTERMINAL2(){ return TERMINAL2; }
-    QJson::IndentMode getIdentMode(){ return identMode;}
 
 #ifdef Q_OS_WIN
 #if QT_VERSION >= 0x050300
@@ -41,24 +102,52 @@ public:
 
 
 signals:
+    /*!
+     * \brief Сигнал испускается при ошибке парсинга.
+     * \param err Текстовое описание ошибки.
+     */
     void error(QString err);
 
 private:
+    /*!
+     * \brief Проверяет наличие поля в файле с настройкми, и если его нету -
+     * дополняет сообщение об ошибке соотвествующей записью.
+     * \param group Группа настроек, к которой содержится поле.
+     * \param field Название проверяемого поля.
+     * \param [in, out] err Сообщение об ошибке.
+     */
     void checkAndWriteErr(QString group, QString field, QString &err);
+
+    ///Указатеь на менеджер настроек
     IniManager *iniManager;
 
-    //индексы блоков (парсятся заранее для увеличения скорости)
+    ///индекс ADC_CRATE
     int ADC_CRATE;
+
+    ///индекс MADC
     int MADC;
+
+    ///индекс TG1
     int TG1;
+
+    ///индекс OV1
     int OV1;
+
+    ///индекс TTL_NIM
     int TTL_NIM;
+
+    ///индекс COUNTER1
     int COUNTER1;
+
+    ///индекс COUNTER2
     int COUNTER2;
+
+    ///индекс TERMINAL1
     int TERMINAL1;
+
+    ///индекс TERMINAL2
     int TERMINAL2;
 
-    QJson::IndentMode identMode;
 #ifdef Q_OS_WIN
 #if QT_VERSION >= 0x050300
     el::Level logLevel;

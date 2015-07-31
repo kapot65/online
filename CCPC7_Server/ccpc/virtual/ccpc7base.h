@@ -10,6 +10,9 @@ namespace ccpc
 typedef enum { DN, DR0, DR16, DR24, DW0, DW16, DW24 } CamacDataDir;
 typedef enum { Zcycle, Ccycle, Single, QStop, QRepeat, Auto } CamacMode;
 
+/*!
+ * \brief Описание операции Камака для стандартного API CCPC7.
+ */
 class CamacOp
 {
   public:

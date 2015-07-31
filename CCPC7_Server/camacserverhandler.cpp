@@ -19,7 +19,6 @@ CamacServerHandler::CamacServerHandler(TempFolder *tempFolder, QObject *parent) 
 
     connect(server, SIGNAL(serverReady(QString,int)), this, SLOT(onServerReady(QString,int)));
 
-    connect(server, SIGNAL(serverError(QString)), this, SLOT(showMessage(QString)));
     connect(server, SIGNAL(newConnection(QString,int)), this, SLOT(showNewConnection(QString,int)));
     }
 
