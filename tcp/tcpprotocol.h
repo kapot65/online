@@ -71,6 +71,7 @@ struct MachineHeader
  * \brief The TcpProtocol class
  * \details В этом классе инкапсулированны все методы, которые относятся к протоколу общения между TcpClient
  * и ТcpServer
+ * \todo Переместить все методы, не относящиеся к протоколу в другое место.
  */
 class TcpProtocol
 {
@@ -179,6 +180,25 @@ public:
      * \return Коэффициент перевода.
      */
     static double madsTimeToNSecCoeff(int measureTime);
+
+#ifdef TEST_MODE
+    /*!
+     * \brief Преобразует QByteArray в корректную QString
+     * \warning тестовая функция.
+     * \param line Исходная строка.
+     * \return Преобразованный текст.
+     */
+    static QString toDebug(const QByteArray &line);
+#endif
+
+    /*!
+     * \brief Вспомогательный метод. Устанавливет флаг в
+     * ok, если указатель на него не равен нулю, в противном случае
+     * ничего не делает.
+     * \param answer Устанавливаемое значение.
+     * \param ok Указатель на флаг.
+     */
+    static void setOk(bool answer, bool *ok);
 };
 
 #endif // TCPPROTOCOL_H

@@ -16,15 +16,9 @@ public:
      * \brief Загружает настройки и открывает порт.
      * \param manager Менеджер настроек.
      * \param controllerName Имя контролера HV. Используется при загрузке настроек из ini файла.
+     * \param ok Успешность создания класса. Если происходят ошибки при создании - они записываются в лог.
      */
-    explicit HVControler(IniManager *manager, QString controllerName,  QObject *parent = 0);
-
-    /*!
-     * \brief Проверка занятости интерфейса.
-     * \todo Извлечь метод и объединить с таким же из DividerReader.
-     * \return Флаг занятости.
-     */
-    bool checkBusy(){return busyFlag;}
+    explicit HVControler(IniManager *manager, QString controllerName, bool *ok = 0,  QObject *parent = 0);
 
 signals:
     /*!
@@ -41,13 +35,6 @@ public slots:
      * \param voltage Напряжение в вольтах.
      */
     void setVoltage(double voltage);
-
-protected slots:
-    /*!
-     * \brief Слот просто очищает буфер порта.
-     * \todo Сделать обработку сообщений.
-     */
-    virtual void readMessage();
 
 protected:
     /*!
@@ -94,11 +81,6 @@ protected:
      * \brief Имя COM порта, к которому подключен контроллер.
      */
     QString portName;
-
-    /*!
-     * \brief Флаг занятости контроллера.
-     */
-    bool busyFlag;
 };
 
 #endif // HVCONTROLER_H

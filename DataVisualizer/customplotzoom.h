@@ -8,6 +8,13 @@ class QRubberBand;
 class QMouseEvent;
 class QWidget;
 
+/*!
+ * \brief Виджет QCustomPlot с поддержкой увеличения по окну.
+ * \details Для увеличения по окну в данном виджете необходимо зажав правую кнопку мыши,
+ * выделить нужный участок и затем отпустить правую кнопку.
+ *
+ * Реализация взята с http://www.qcustomplot.com/index.php/support/forum/227
+ */
 class CustomPlotZoom : public QCustomPlot
 {
     Q_OBJECT
@@ -16,6 +23,10 @@ public:
     CustomPlotZoom(QWidget * parent = 0);
     virtual ~CustomPlotZoom();
 
+    /*!
+     * \brief Установить тип увеличения.
+     * \param mode Тип увеличения. 1 - увеличение по окну, 0 - стандартный QCustomPlot.
+     */
     void setZoomMode(bool mode);
 
 private slots:

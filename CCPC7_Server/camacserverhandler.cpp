@@ -33,26 +33,11 @@ CamacServerHandler::~CamacServerHandler()
     delete server;
 }
 
-QString CamacServerHandler::toDebug(const QByteArray & line)
-{
-
-    QString s;
-    uchar c;
-
-    for ( int i=0 ; i < line.size() ; i++ ){
-        c = line[i];
-        if ( c >= 0x20 and c <= 126 ) {
-            s.append(c);
-        } else {
-            s.append(QString("<%1>").arg(c, 2, 16, QChar('0')));
-        }
-    }
-    return s;
-}
-
 void CamacServerHandler::showMessage(QByteArray message)
 {
-    printf((toDebug(message) + "\n").toStdString().c_str());
+#ifdef TEST_MODE
+    printf((TcpProtocol::toDebug(message) + "\n").toStdString().c_str());
+#endif
 }
 
 void CamacServerHandler::showNewConnection(QString peerName, int peerPort)

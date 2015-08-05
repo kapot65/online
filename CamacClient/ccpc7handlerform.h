@@ -28,9 +28,8 @@ class CCPC7HandlerForm;
 }
 
 /*!
- * \brief Виджет для CCPC7 сервера
+ * \brief Виджет для CCPC7Handler.
  * \details Класс дает возможность ручного управления сервером CCPC7.
- * \todo заменить класс IniManager на стандартный QSettings
  */
 class CCPC7HandlerForm : public QWidget
 {
@@ -54,13 +53,6 @@ public:
     bool ccpc7HaveWarning(){return haveWarning;}
 
 signals:
-    /*
-    void sendTextOutput(QByteArray text);
-    void sendGraphicOutput(QVector<int> hist);
-
-    void sendPointToSave(QByteArray data);
-    */
-
     /*!
      * \brief Сигнал посылает предупреждение.
      * \details Сигнал также связан с формой.
@@ -68,6 +60,7 @@ signals:
      * \param warning текст предупреждения
      */
     void sendWarning(QString warning);
+
     /*!
      * \brief Сигнал вырабатывается при изменении параметров на форме.
      */

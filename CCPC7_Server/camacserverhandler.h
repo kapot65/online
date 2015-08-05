@@ -48,15 +48,6 @@ private slots:
     void onServerReady(QString ip, int port);
 
 private:
-    /*!
-     * \brief Преобразует QByteArray в корректную QString
-     * \warning тестовая функция.
-     * \param line Исходная строка.
-     * \return Преобразованный текст.
-     * \todo Перенести в TcpProtocol.
-     */
-    QString toDebug(const QByteArray & line);
-
     ///Указатель на обрабатываемый сервер.
     CamacServer *server;
 };

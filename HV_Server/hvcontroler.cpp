@@ -1,4 +1,5 @@
 #include "hvcontroler.h"
+#include <tcpprotocol.h>
 
 void HVControler::processSettingError(QString setting, QString controllerName)
 {
@@ -39,7 +40,7 @@ bool HVControler::loadSettings(QString controllerName, IniManager *manager)
     return true;
 }
 
-HVControler::HVControler(IniManager *manager, QString controllerName, QObject *parent) : ComPort(manager, parent)
+HVControler::HVControler(IniManager *manager, QString controllerName, bool *ok, QObject *parent) : ComPort(manager, parent)
 {
     busyFlag = 0;
 
@@ -49,19 +50,41 @@ HVControler::HVControler(IniManager *manager, QString controllerName, QObject *p
         LOG(ERROR) << tr("Can't load settings for \"%1\". Stop server.")
                       .arg(controllerName)
                       .toStdString();
-        qApp->exit(1);
+        TcpProtocol::setOk(false, ok);
+        return;
     }
 
     serialPort->setPortName(portName);
 
-    if(serialPort->open(QIODevice::ReadWrite))
-        LOG(INFO) << "HV Controller connected to port " << portName.toStdString();
-}
+    if(!serialPort->open(QIODevice::ReadWrite))
+    {
+        LOG(INFO) << "Can not connect to port " << portName.toStdString();
+        TcpProtocol::setOk(false, ok);
+        return;
+    }
 
-void HVControler::readMessage()
-{
-    QByteArray data = serialPort->readAll();
-    //LOG(DEBUG) << QString(data).toStdString();
+    //Проверка подключенности порта
+    serialPort->write("$012\r");
+
+    if(waitForMessageReady(5000) &&
+       curr_data.startsWith('!') && //проверка доступности команды
+       curr_data.size()) //проверка длины ответа
+    {
+        curr_data.clear();
+        TcpProtocol::setOk(true, ok);
+        LOG(INFO) << "HV Controller connected to port " << portName.toStdString();
+        return;
+    }
+    else
+    {
+        //если проверка порта не пройдена
+        LOG(ERROR)<<tr("Com port has not pass answer checking: '%1' -> '%2'")
+                    .arg("$012\r").arg(QString(curr_data)).toStdString();
+
+        TcpProtocol::setOk(false, ok);
+        curr_data.clear();
+        return;
+    }
 }
 
 void HVControler::setVoltage(double voltage)
@@ -88,7 +111,12 @@ void HVControler::setVoltage(double voltage)
 
     serialPort->write(command);
 
-    emit setVoltageDone();
+    if(waitForMessageReady() && curr_data == ">")
+        emit setVoltageDone();
+    else
+        LOG(WARNING) << tr("Cant set voltage: receive error answer - %1")
+                        .arg(QString(curr_data)).toStdString();
 
+    curr_data.clear();
     busyFlag = 0;
 }

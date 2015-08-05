@@ -2,6 +2,8 @@
 
 ComPort::ComPort(IniManager *manager, QObject *parent) : QThread(parent)
 {
+    busyFlag = 0;
+
     this->manager = manager;
     serialPort = new QSerialPort(this);
 
@@ -27,4 +29,36 @@ void ComPort::onPortError(QSerialPort::SerialPortError error)
 
     LOG(INFO) << tr("port %1 has error: %2").arg(serialPort->portName())
                  .arg(serialPort->errorString()).toStdString();
+}
+
+bool ComPort::waitForMessageReady(int timeout)
+{
+    QEventLoop el;
+    connect(this, SIGNAL(receiveFinished()), &el, SLOT(quit()));
+    QTimer timer;
+    connect(&timer, SIGNAL(timeout()), &el, SLOT(quit()));
+
+    timer.start(timeout);
+    el.exec();
+
+    if(timer.isActive())
+    {
+        timer.stop();
+        return true;
+    }
+    else
+        return false;
+}
+
+void ComPort::readMessage()
+{
+    curr_data += serialPort->readAll();
+    if(curr_data.endsWith("\r") || curr_data.endsWith("\n"))
+    {
+        //обрезание спецсимволов
+        while(curr_data.size() && !QChar(curr_data[curr_data.size() - 1]).isDigit())
+            curr_data.chop(1);
+
+        emit receiveFinished();
+    }
 }

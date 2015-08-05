@@ -14,11 +14,21 @@ namespace Ui {
 class HVHandlerForm;
 }
 
+/*!
+ * \brief Виджет для HVHandler.
+ * \details Класс дает возможность ручного управления сервером HV.
+ * \warning Визуализация этого виджета конфликтует с OnlineForm.
+ */
 class HVHandlerForm : public QWidget
 {
     Q_OBJECT
 
 public:
+    /*!
+     * \param Указатель на обработчик сервера HV.
+     * \param Менеджер настроек.
+     * \param Указатель на визуализатор
+     */
     explicit HVHandlerForm(HVHandler *hvHandler, IniManager *settingsManager,
                            DataVisualizerForm *dataVisualizerForm, QWidget *parent = 0);
     ~HVHandlerForm();
@@ -26,28 +36,16 @@ public:
     //bool haveError(){return haveError;}
     //bool haveWarning(){return haveWarning;}
 signals:
-
-    void sendTextOutput(QByteArray text);
-    void sendGraphicOutput(QVector<int> hist);
-
-    void sendTestJsonMessage(QByteArray message);
-
-    void sendPointToSave(QByteArray data);
-
-    void sendReady();
-    void sendError(QString error);
+    /*!
+     * \brief Испускается при появлении предупреждения.
+     * \param warning Текст предупреждения.
+     */
     void sendWarning(QString warning);
 
+    /*!
+     * \brief Испускается при изменениях параметров на интерфейсе.
+     */
     void serverSettingsChanged();
-
-    /*
-    public slots:
-    void receiveTestJson(QByteArray message);
-
-    private slots:
-    void processMessage(QByteArray message);
-    */
-
 
 private slots:
     void on_ipEdit_editingFinished();
@@ -66,16 +64,26 @@ private slots:
 
     void on_monitorVoltmeterBox_clicked(bool checked);
     void on_monitorCheckVoltage();
+
+    /*!
+     * \brief В режиме мониторинга HV, слот подключается к HVHandler::getVoltageDone.
+     * и проводит визуализацию напряжения.
+     * \param message Метаданные сообщения.
+     * \todo Обновить функцию.
+     */
     void on_monitorDrawVoltage(QVariantMap message);
 
 private:
+    ///\brief Менеджер настроек.
     IniManager *settingsManager;
 
+    ///\brief Указатель на класс для визуализации данных.
     DataVisualizerForm *dataVisualizerForm;
-    int currPointNum;
 
+    ///\brief Флаг предупреждения.
     bool haveWarning;
 
+    ///\brief Указатель на обработчик сервера HV.
     HVHandler *hvHandler;
 
     Ui::HVHandlerForm *ui;

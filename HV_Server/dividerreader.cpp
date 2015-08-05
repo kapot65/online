@@ -2,7 +2,6 @@
 
 DividerReader::DividerReader(QString DividerName, IniManager *manager, QObject *parent) : ComPort(manager, parent)
 {
-    busy = 0;
     inited = 0;
 
     if(!manager->getSettingsValue(DividerName, "NormingCoefficient").isValid())
@@ -29,46 +28,12 @@ DividerReader::DividerReader(QString DividerName, IniManager *manager, QObject *
         LOG(INFO) << "DividerReader Controller connected to port " << portName.toString().toStdString();
 }
 
-QString toDebug(const QByteArray & line)
-{
-
-    QString s;
-    uchar c;
-
-    for ( int i=0 ; i < line.size() ; i++ ){
-        c = line[i];
-        if ( c == '\n' || c >= 0x20 && c <= 126 )
-        {
-            s.append(c);
-        }
-        else
-        {
-            s.append(QString("<%1>").arg(c, 2, 16, QChar('0')));
-        }
-    }
-    return s;
-}
-
-void DividerReader::readMessage()
-{
-    curr_data += serialPort->readAll();
-    if(curr_data.endsWith("\r\n"));
-    {
-        //LOG(INFO) <<  QString("Read port: %1").arg(toDebug(curr_data)).toStdString();
-        emit receiveFinished();
-    }
-}
-
 void DividerReader::initVoltmeter()
 {
-    busy = 1;
-
-    // Note that '0' actually means 1 stop bit.  "1" would be for 1.5 stop bits
-    // Read documentation, use SB_1 constant instead of '0'
+    busyFlag = 1;
 
     QEventLoop el;
     QTimer timer;
-    //connect(serialPort, SIGNAL(readyRead()), &el, SLOT(quit()));
     connect(&timer, SIGNAL(timeout()), &el, SLOT(quit()));
     connect(&timer, SIGNAL(timeout()), &timer, SLOT(stop()));
 
@@ -90,21 +55,18 @@ void DividerReader::initVoltmeter()
 
     inited = 1;
     emit initVoltmeterDone();
-    busy = 0;
+    busyFlag = 0;
 }
 
 void DividerReader::getVoltage()
 {
-    busy = 1;
+    busyFlag = 1;
 
     QEventLoop el;
     connect(this, SIGNAL(receiveFinished()), &el, SLOT(quit()));
+
     serialPort->write("READ?\r\n");
     el.exec();
-
-    //обрезание спецсимволов
-    while(curr_data.size() && !QChar(curr_data[curr_data.size() - 1]).isDigit())
-        curr_data.chop(1);
 
     double raw_voltage = curr_data.toDouble();
 
@@ -115,7 +77,7 @@ void DividerReader::getVoltage()
                                              .toStdString();
     curr_data.clear();
 
-    busy = 0;
+    busyFlag = 0;
 
     emit getVoltageDone(raw_voltage * dividerNormCoeff);
 }

@@ -17,6 +17,31 @@ QMap<int, unsigned short> TcpProtocol::getAviableMeasuteTimes()
     return aviableMeasureTimes;
 }
 
+#ifdef TEST_MODE
+QString TcpProtocol::toDebug(const QByteArray & line)
+{
+    QString s;
+    uchar c;
+
+    for ( int i=0 ; i < line.size() ; i++ ){
+        c = line[i];
+        if ( c >= 0x20 and c <= 126 ) {
+            s.append(c);
+        } else {
+            s.append(QString("<%1>").arg(c, 2, 16, QChar('0')));
+        }
+    }
+    return s;
+}
+#endif
+
+void TcpProtocol::setOk(bool answer, bool *ok)
+{
+    if(ok)
+        ok[0] = answer;
+}
+
+
 double TcpProtocol::madsTimeToNSecCoeff(int measureTime)
 {
     int acquisitionTime = TcpProtocol::getAviableMeasuteTimes().lowerBound(measureTime).key();

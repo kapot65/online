@@ -394,12 +394,6 @@ QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> > Online::constructReverseScenari
    return reverse_scenario;
 }
 
-void Online::setOk(bool answer, bool *ok)
-{
-    if(ok)
-        ok[0] = answer;
-}
-
 QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> > Online::parseScenario(QString scenario_string, bool *ok)
 {
     QStringList elements = scenario_string.split(QRegExp("\\s+"));
@@ -417,7 +411,7 @@ QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> > Online::parseScenario(QString s
             {
                 LOG(ERROR) << tr("Error in command #%1 (%2): not enough arguments")
                               .arg(command_number).arg(elements[i]).toStdString();
-                setOk(0, ok);
+                TcpProtocol::setOk(0, ok);
                 return QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> >();
             }
 
@@ -431,7 +425,7 @@ QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> > Online::parseScenario(QString s
                 LOG(ERROR) << tr("Error in command #%1 (%2): can not interpretate"
                                  "'%3' as int")
                               .arg(command_number).arg(elements[i]).arg(elements[i+1]).toStdString();
-                setOk(0, ok);
+                TcpProtocol::setOk(0, ok);
                 return QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> >();
             }
             //проверка правильности блока
@@ -440,7 +434,7 @@ QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> > Online::parseScenario(QString s
                 LOG(ERROR) << tr("Error in command #%1 (%2): block number is not correct."
                                  "Aviable block numbers: 1,2")
                               .arg(command_number).arg(elements[i]).toStdString();
-                setOk(0, ok);
+                TcpProtocol::setOk(0, ok);
                 return QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> >();
             }
 
@@ -450,7 +444,7 @@ QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> > Online::parseScenario(QString s
                 LOG(ERROR) << tr("Error in command #%1 (%2): can not interpretate"
                                  "'%3' as double")
                               .arg(command_number).arg(elements[i]).arg(elements[i+2]).toStdString();
-                setOk(0, ok);
+                TcpProtocol::setOk(0, ok);
                 return QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> >();
             }
 
@@ -470,7 +464,7 @@ QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> > Online::parseScenario(QString s
             {
                 LOG(ERROR) << tr("Error in command #%1 (%2): not enough arguments")
                               .arg(command_number).arg(elements[i]).toStdString();
-                setOk(0, ok);
+                TcpProtocol::setOk(0, ok);
                 return QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> >();
             }
 
@@ -485,7 +479,7 @@ QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> > Online::parseScenario(QString s
                 LOG(ERROR) << tr("Error in command #%1 (%2): can not interpretate"
                                  "'%3' as int")
                               .arg(command_number).arg(elements[i]).arg(elements[i+1]).toStdString();
-                setOk(0, ok);
+                TcpProtocol::setOk(0, ok);
                 return QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> >();
             }
 
@@ -501,7 +495,7 @@ QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> > Online::parseScenario(QString s
             {
                 LOG(ERROR) << tr("Error in command #%1 (%2): not enough arguments")
                               .arg(command_number).arg(elements[i]).toStdString();
-                setOk(0, ok);
+                TcpProtocol::setOk(0, ok);
                 return QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> >();
             }
 
@@ -514,7 +508,7 @@ QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> > Online::parseScenario(QString s
                 LOG(ERROR) << tr("Error in command #%1 (%2): can not interpretate"
                                  "'%3' as int")
                               .arg(command_number).arg(elements[i]).arg(elements[i+1]).toStdString();
-                setOk(0, ok);
+                TcpProtocol::setOk(0, ok);
                 return QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> >();
             }
 
@@ -535,11 +529,11 @@ QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> > Online::parseScenario(QString s
                          "This error may be caused by incorrect arguments number in"
                          "previous commands")
                       .arg(command_number).arg(elements[i]).toStdString();
-        setOk(0, ok);
+        TcpProtocol::setOk(0, ok);
         return QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> >();
     }
 
-    setOk(1, ok);
+    TcpProtocol::setOk(1, ok);
     return scenario;
 }
 

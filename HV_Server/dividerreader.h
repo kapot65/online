@@ -21,24 +21,12 @@ public:
     ~DividerReader();
 
     /*!
-     * \brief Проверяет, занят ли интерфейс.
-     * \return Флаг занятости.
-     */
-    bool checkBusy(){return busy;}
-
-    /*!
      * \brief Проверяет, инициализирован ли вольтметр.
      * \return Флаг инициализации.
      */
     bool checkInited(){return inited;}
 
 signals:
-    /*!
-     * \brief Испускается, когда вольтметр заканчивает писать ответ. Конец ответа
-     * определяется наличием символов "\r\n" на конце.
-     */
-    void receiveFinished();
-
     /*!
      * \brief Вольтметр прошел инициализацию.
      */
@@ -53,7 +41,6 @@ signals:
 public slots:
     /*!
      * \brief Проводит инициализацию вольтметра.
-     * \todo Добавить дополнительные проверки.
      */
     void initVoltmeter();
 
@@ -64,18 +51,8 @@ public slots:
     void getVoltage();
 
 protected slots:
-    /*!
-     * \brief Читает сообщение с порта. После каждого прочитанного сообщения
-     * испускает сигнал DividerReader::receiveFinished
-     */
-    virtual void readMessage();
 
 private:
-    /*!
-     * \brief Флаг текущей занятости интерфейса.
-     */
-    bool busy;
-
     /*!
      * \brief Флаг инициализации вольтметра.
      */
@@ -85,12 +62,6 @@ private:
      * \brief Коэфициент делителя.
      */
     double dividerNormCoeff;
-
-    /*!
-     * \brief Текущее сообщение с порта.
-     * \warning Является законченным, только после испускания сигнала DividerReader::receiveFinished.
-     */
-    QByteArray curr_data;
 };
 
 #endif // DIVIDERREADER_H

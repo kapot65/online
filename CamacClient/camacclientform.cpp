@@ -135,35 +135,13 @@ void CamacClientForm::closeEvent(QCloseEvent *e)
         close();
 }
 
-#ifdef TEST_MODE
-QString CamacClientForm::toDebug(const QByteArray & line)
-{
-
-    QString s;
-    uchar c;
-
-    for ( int i=0 ; i < line.size() ; i++ ){
-        c = line[i];
-        if ( c == '\n' || c >= 0x20 && c <= 126 )
-        {
-            s.append(c);
-        }
-        else
-        {
-            s.append(QString("<%1>").arg(c, 2, 16, QChar('0')));
-        }
-    }
-    return s;
-}
-#endif
-
 
 #ifdef TEST_MODE
 void CamacClientForm::showTextOutput(QByteArray output)
 {
     ui->output->insertPlainText(QString("%1\n%2\n")
                                 .arg(QTime::currentTime().toString())
-                                .arg(toDebug(output)));
+                                .arg(TcpProtocol::toDebug(output)));
 }
 #endif
 

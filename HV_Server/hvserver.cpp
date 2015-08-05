@@ -12,7 +12,14 @@ HVServer::HVServer(IniManager *manager, int port, QObject *parent): TcpServer(po
     connect(this, SIGNAL(getDivider1Voltage()), divider1, SLOT(getVoltage()), Qt::QueuedConnection);
     connect(divider1, SIGNAL(getVoltageDone(double)), this, SLOT(onDivider1GetVoltageDone(double)), Qt::QueuedConnection);
 
-    hvControlerDivider1 = new HVControler(manager, "HVController1");
+    bool ok;
+    hvControlerDivider1 = new HVControler(manager, "HVController1", &ok);
+    if(!ok)
+    {
+        this->deleteLater();
+        qApp->exit(1);
+    }
+
     hvControlerDivider1->start();
     connect(this, SIGNAL(setDivider1Voltage(double)), hvControlerDivider1, SLOT(setVoltage(double)), Qt::QueuedConnection);
     connect(hvControlerDivider1, SIGNAL(setVoltageDone()), this, SLOT(onDivider1SetVoltageDone()));
@@ -26,7 +33,13 @@ HVServer::HVServer(IniManager *manager, int port, QObject *parent): TcpServer(po
     connect(this, SIGNAL(getDivider2Voltage()), divider2, SLOT(getVoltage()), Qt::QueuedConnection);
     connect(divider2, SIGNAL(getVoltageDone(double)), this, SLOT(onDivider2GetVoltageDone(double)), Qt::QueuedConnection);
 
-    hvControlerDivider2 = new HVControler(manager, "HVController2");
+    hvControlerDivider2 = new HVControler(manager, "HVController2", &ok);
+    if(!ok)
+    {
+        this->deleteLater();
+        qApp->exit(1);
+    }
+
     hvControlerDivider2->start();
     connect(this, SIGNAL(setDivider2Voltage(double)), hvControlerDivider2, SLOT(setVoltage(double)), Qt::QueuedConnection);
     connect(hvControlerDivider2, SIGNAL(setVoltageDone()), this, SLOT(onDivider2SetVoltageDone()));

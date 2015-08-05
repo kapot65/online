@@ -23,16 +23,19 @@
 #endif
 
 /*!
- * \brief Базовый класс для общения с Tcp сервером
+ * \brief Базовый класс для общения с Tcp сервером TcpServer.
  * \details Класс имеет функционал подключения, переподключения и сборки сообщений.
- * */
+ */
 class TcpClient : public QThread, public TcpBase
 {
     Q_OBJECT
 public:
     /*!
-     * \details При указании адресса и порта клиент автоматически подключается к серверу
-     * */
+     * \param peerName Адресс сервера.
+     * \param peerPort Порт сервера.
+     * \details При указании адресса и порта клиент автоматически подключается к серверу.
+     * \param parent
+     */
     explicit TcpClient(QString peerName = QString(), int peerPort = -1, QObject *parent = 0);
     ~TcpClient();
 
@@ -95,8 +98,7 @@ private slots:
     void onSocketDisconnected();
 
     /*!
-     * \brief saveLastMessage
-     * \details Сохраняет метаданные последнего полученного сообщения в TcpClient::lastMessage
+     * \brief Сохраняет метаданные последнего полученного сообщения в TcpClient::lastMessage
      * подключено к сигналу TcpClient::receiveMessage c помощью Qt::DirectConnection
      * \param machineHeader
      * \param metaData

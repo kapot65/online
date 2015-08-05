@@ -134,14 +134,6 @@ private:
      */
     void setHVHandlerForm();
 
-#ifdef TEST_MODE
-    /*!
-     * \brief Преобразует байтовую строку в строку, которую можно вывести в текстовое окошко
-     * \warning тестовая функция
-     */
-    QString toDebug(const QByteArray & line);
-#endif
-
     /*!
      * \brief Объект для работы с настройками
      * \todo Заменить на обычный QSettings, т.к. IniManager использовать незачем

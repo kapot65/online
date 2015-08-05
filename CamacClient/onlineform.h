@@ -20,6 +20,11 @@ namespace Ui {
 class OnlineForm;
 }
 
+/*!
+ * \brief Окно для проведения набора в режиме Онлайн.
+ * \todo Сделать уведомление об инициализации вольтметров.
+ * \todo Центрировать текущий шаг в таблице.
+ */
 class OnlineForm : public QWidget
 {
     Q_OBJECT

@@ -4,8 +4,7 @@
 #include <tcpprotocol.h>
 
 /*!
- * \brief The TcpBase class
- * В этом классе находятся реализации методов, общих для
+ * \brief В этом классе находятся реализации методов, общих для
  * TcpClient и TcpServer
  */
 class TcpBase

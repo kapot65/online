@@ -88,11 +88,6 @@ void HVHandlerForm::on_voltageBox_editingFinished()
 void HVHandlerForm::on_monitorDrawVoltage(QVariantMap message)
 {
     double value = message.value("voltage").toDouble();
-
-    QVector<QPointF> point;
-    point.push_back(QPointF(currPointNum++, value));
-
-    //currGraphUnit->addPoints(point);
 }
 
 void HVHandlerForm::on_monitorCheckVoltage()
@@ -121,15 +116,6 @@ void HVHandlerForm::on_monitorVoltmeterBox_clicked(bool checked)
 
     if(checked)
     {
-        /*
-        currGraphUnit = graphViewer->createGraph(QString("Voltage_%1").arg(QTime::currentTime().toString()),
-                                                 GRAPH);
-        currGraphUnit->addDescription(QString("Voltage monitoring graph.\n"
-                                              "  Start time: %1\n").arg(QTime::currentTime().toString()));
-        */
-
-        currPointNum = 0;
-
         timer.start(ui->monitorIntervalBox->value() * 1000);
         connect(hvHandler, SIGNAL(getVoltageDone(QVariantMap)),
                 this, SLOT(on_monitorDrawVoltage(QVariantMap)));
@@ -140,7 +126,5 @@ void HVHandlerForm::on_monitorVoltmeterBox_clicked(bool checked)
                 this, SLOT(on_monitorDrawVoltage(QVariantMap)));
 
         timer.stop();
-
-        //currGraphUnit->markForManualDelete(true);
     }
 }

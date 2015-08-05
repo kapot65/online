@@ -17,12 +17,27 @@
 #include "tcpbase.h"
 //#include <easylogging++.h>
 
+/*!
+ * \brief Класс Tcp сервера, работающего по протоколу, реуализованному в TcpProtocol.
+ * \details Класс обрабатывает сообщения, приходящие на сервер, производит их парсинг и
+ * преобразует в сигналы. Также сервер имеет функции для отправления сообщений обратно.
+ * \warning Сервер может работать одновременно только с одним подключением. При новом подключении
+ * старое обрывается.
+ */
 class TcpServer : public QObject, public TcpBase
 {
     Q_OBJECT
 public:
+    /*!
+     * \param port Порт, который будет прослушивать сервер.
+     */
     explicit TcpServer(int port, QObject *parent = 0);
     //void setPort(int port){this->port = port;}
+
+    /*!
+     * \brief Получить текущий порт.
+     * \return Текущий порт.
+     */
     int getPort(){return port;}
 
 signals:

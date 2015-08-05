@@ -21,11 +21,26 @@ public:
     ComPort(IniManager *manager, QObject *parent = 0);
     ~ComPort();
 
+    /*!
+     * \brief Проверка занятости интерфейса.
+     * \return Флаг занятости.
+     */
+    bool checkBusy(){return busyFlag;}
+
+signals:
+    /*!
+     * \brief Испускается, когда вольтметр заканчивает писать ответ. Конец ответа
+     * определяется наличием символов "\r\n" на конце.
+     */
+    void receiveFinished();
+
 protected slots:
     /*!
-     * \brief Прикреплен к сигналу QSerialPort::readyRead
+     * \brief Читает сообщение с порта. После каждого прочитанного сообщения
+     * испускает сигнал DividerReader::receiveFinished.
+     * Прикреплен к сигналу QSerialPort::readyRead.
      */
-    virtual void readMessage() = 0;
+    virtual void readMessage();
 
     /*!
      * \brief Вызывается при закрытии порта. Пишет в консоль сообщение о закрытии.
@@ -38,6 +53,13 @@ protected slots:
     void onPortError(QSerialPort::SerialPortError error);
 
 protected:
+    /*!
+     * \brief Ожидание готовности сообщения
+     * \param timeout Таймаут в миллисекундах.
+     * \return true - сообщение получено. false - выход по таймауту.
+     * \todo добавить таймауты в DividerReder.
+     */
+    bool waitForMessageReady(int timeout = 1000);
 
     /*!
      * \brief Указатель на менеджер настроек.
@@ -48,6 +70,17 @@ protected:
      * \brief Указатель на класс порта.
      */
     QSerialPort *serialPort;
+
+    /*!
+     * \brief Флаг занятости контроллера.
+     */
+    bool busyFlag;
+
+    /*!
+     * \brief Текущее сообщение с порта.
+     * \warning Является законченным, только после испускания сигнала DividerReader::receiveFinished.
+     */
+    QByteArray curr_data;
 };
 
 #endif // COMPORT_H
