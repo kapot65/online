@@ -26,7 +26,7 @@
  * \brief Базовый класс для общения с Tcp сервером TcpServer.
  * \details Класс имеет функционал подключения, переподключения и сборки сообщений.
  */
-class TcpClient : public QThread, public TcpBase
+class TcpClient : public TcpBase
 {
     Q_OBJECT
 public:
@@ -39,10 +39,6 @@ public:
     explicit TcpClient(QString peerName = QString(), int peerPort = -1, QObject *parent = 0);
     ~TcpClient();
 
-    /*!
-     * \brief Ручная проверка подключения к серверу.
-     * */
-    bool isSocketConnected(){return connectedToPeer;}
     /*!
      * \brief Указание параметров подключения к серверу.
      * \detais После установки параметров, для переподключения
@@ -61,22 +57,6 @@ signals:
      * \brief Вырабатывается при отключении от сервера.
      * */
     void socketDisconnected();
-    /*!
-     * \brief Вырабатывается успешной сборке сообщения от сервера.
-     * \param machineHeader машинный хедер
-     * \param metaData преобразованные метаданные
-     * \param binaryData бинарные данные
-     * */
-    void receiveMessage(MachineHeader machineHeader, QVariantMap metaData, QByteArray binaryData);
-
-#ifdef TEST_MODE
-    /*!
-     * \brief Сигнал предназначен для тестовой визуализации пересылаемых пакетов
-     * \warning сигнал только для тестового режима программы
-     * \param machineHeader машинный хедер
-     * */
-    void testReseivedMessage(QByteArray message);
-#endif
 
 public slots:
     /*!
@@ -98,18 +78,9 @@ private slots:
     void onSocketDisconnected();
 
     /*!
-     * \brief Сохраняет метаданные последнего полученного сообщения в TcpClient::lastMessage
-     * подключено к сигналу TcpClient::receiveMessage c помощью Qt::DirectConnection
-     * \param machineHeader
-     * \param metaData
-     * \param binaryData
-     */
-    void saveLastMessage(MachineHeader machineHeader, QVariantMap metaData, QByteArray binaryData);
-
-
-    /*!
      * \brief Обработка ошибки сокета
      * \warning функция ничего не делает
+     * \todo Добавить реализацию.
      * \param err
      */
     void processError(QAbstractSocket::SocketError err){}
@@ -120,38 +91,8 @@ private slots:
      */
     void sessionOpened();
 
-    /*!
-     * \brief Чтение сообщение от сервера
-     * \details в этой фунции происходит склеивание сообщения и вызов сигнала
-     * TcpClient::receiveMessage
-     * Если сообщение не соответсвует формату, то оно игнорируется
-     */
-    void readMessage();
-
-protected:
-    /*!
-     * \brief Последнее полученное письмо
-     */
-    QVariantMap lastMessage;
-    /*!
-     * \brief lastError
-     */
-
 private:
-    /*!
-     * \brief tcpSocket
-     */
-    QTcpSocket *tcpSocket;
-
-    /*!
-     * \brief networkSession
-     */
     QNetworkSession *networkSession;
-
-    /*!
-     * \brief Флаг подключения к серверу
-     */
-    bool connectedToPeer;
 
     /*!
      * \brief ip адрес сервера

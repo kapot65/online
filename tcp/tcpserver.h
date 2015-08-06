@@ -24,7 +24,7 @@
  * \warning Сервер может работать одновременно только с одним подключением. При новом подключении
  * старое обрывается.
  */
-class TcpServer : public QObject, public TcpBase
+class TcpServer : public TcpBase
 {
     Q_OBJECT
 public:
@@ -43,12 +43,10 @@ public:
 signals:
     void error(QVariantMap info);
     void serverReady(QString ip, int port);
-    void receiveMessage(MachineHeader machineHeader, QVariantMap metaData, QByteArray binaryData);
     void newConnection(QString peerName, int peerPort);
 
 private slots:
     void sessionOpened();
-    void readMessage();
     void processNewConnection();
     void sendReady();
 
@@ -63,7 +61,7 @@ public slots:
 protected:
     QTcpServer *tcpServer;
     QNetworkSession *networkSession;
-    QTcpSocket *clientConnection;
+
     int port;
 
 protected slots:

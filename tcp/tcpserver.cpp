@@ -1,10 +1,10 @@
 #include "tcpserver.h"
 
-TcpServer::TcpServer(int port, QObject *parent) : QObject(parent)
+TcpServer::TcpServer(int port, QObject *parent) : TcpBase(parent)
 {
 //Подключение сервера к порту
     networkSession = NULL;
-    clientConnection = 0;
+    connection = 0;
     this->port = port;
 
     connect(this, SIGNAL(error(QVariantMap)), this, SLOT(on_error(QVariantMap)));
@@ -72,10 +72,10 @@ void TcpServer::sessionOpened()
 
 void TcpServer::processNewConnection()
 {
-    if(clientConnection && clientConnection->isOpen())
+    if(haveOpenedConnection())
     {
-        connect(clientConnection, SIGNAL(disconnected()), clientConnection, SLOT(deleteLater()));
-        clientConnection->disconnectFromHost();
+        connect(connection, SIGNAL(disconnected()), connection, SLOT(deleteLater()));
+        connection->disconnectFromHost();
 //        QTcpSocket *newConnection = tcpServer->nextPendingConnection();
 //        connect(newConnection, SIGNAL(disconnected()), newConnection, SLOT(deleteLater()));
 
@@ -88,9 +88,9 @@ void TcpServer::processNewConnection()
 //        newConnection->disconnectFromHost();
     }
 
-    clientConnection = tcpServer->nextPendingConnection();
-    connect(clientConnection, SIGNAL(readyRead()), this, SLOT(readMessage()));
-    emit newConnection(clientConnection->peerName(), clientConnection->peerPort());
+    connection = tcpServer->nextPendingConnection();
+    connect(connection, SIGNAL(readyRead()), this, SLOT(readMessage()));
+    emit newConnection(connection->peerName(), connection->peerPort());
 }
 
 void TcpServer::serverReady()
@@ -125,31 +125,12 @@ void TcpServer::sendReady()
     emit serverReady(ipAddress, port);
 }
 
-void TcpServer::readMessage()
-{
-    MachineHeader header;
-    QVariantMap meta;
-    QByteArray data;
-    bool ok;
-    bool hasMore;
-
-    readMessageFromStream(clientConnection, header, meta, data, ok, hasMore);
-
-    if(ok)
-        emit receiveMessage(header, meta, data);
-
-    if(hasMore)
-        readMessage();
-}
-
 void TcpServer::sendMessage(QVariantMap message, QByteArray binaryData,  bool *ok, QTcpSocket *socket)
 {
     if(!socket)
-        socket = clientConnection;
+        socket = connection;
     if(!socket)
         return;
-    //    connect(tcpSocket, SIGNAL(disconnected()),
-    //            tcpSocket, SLOT(deleteLater()));
 
     QByteArray prepairedMessage = TcpProtocol::createMessage(message, binaryData);
     sendRawMessage(prepairedMessage, socket);
@@ -158,7 +139,6 @@ void TcpServer::sendMessage(QVariantMap message, QByteArray binaryData,  bool *o
 void TcpServer::sendRawMessage(QByteArray message, QTcpSocket *socket)
 {
     socket->write(message);
-    //tcpSocket->disconnectFromHost();
 }
 
 void TcpServer::on_error(QVariantMap info)

@@ -1,9 +1,16 @@
 #include "tcpbase.h"
 #include <easylogging++.h>
+#include <QEventLoop>
+#include <QTimer>
 
-TcpBase::TcpBase()
+TcpBase::TcpBase(QObject *parent): QObject(parent)
 {
     continue_message = 0;
+    connection = 0;
+
+    connect(this, SIGNAL(receiveMessage(MachineHeader,QVariantMap,QByteArray)),
+            this, SLOT(saveLastMessage(MachineHeader,QVariantMap,QByteArray)),
+            Qt::DirectConnection);
 }
 
 void TcpBase::readMessageFromStream(QIODevice *dev,
@@ -64,4 +71,74 @@ void TcpBase::readMessageFromStream(QIODevice *dev,
             header = this->header;
         }
     }
+}
+
+void TcpBase::readMessage()
+{
+    MachineHeader header;
+    QVariantMap meta;
+    QByteArray data;
+    bool ok;
+    bool hasMore;
+
+    readMessageFromStream(connection, header, meta, data, ok, hasMore);
+
+    if(ok)
+    {
+        emit receiveMessage(header, meta, data);
+#ifdef TEST_MODE
+        emit testReseivedMessage(TcpProtocol::createMessage(meta));
+#endif
+    }
+
+    if(hasMore)
+        readMessage();
+}
+
+bool TcpBase::waitForMessage(int timeout)
+{
+    QEventLoop el;
+    connect(this, SIGNAL(receiveMessage(MachineHeader,QVariantMap,QByteArray)), &el, SLOT(quit()));
+    QTimer timer;
+    connect(&timer, SIGNAL(timeout()), &el, SLOT(quit()));
+
+    timer.setSingleShot(true);
+    timer.start(timeout);
+    el.exec();
+
+    if(timer.isActive())
+    {
+        timer.stop();
+        return true;
+    }
+    else
+        return false;
+}
+
+bool TcpBase::waitForConnect(int timeout)
+{
+    if(haveOpenedConnection())
+        return true;
+
+    QEventLoop el;
+    connect(connection, SIGNAL(connected()), &el, SLOT(quit()));
+    QTimer timer;
+    connect(&timer, SIGNAL(timeout()), &el, SLOT(quit()));
+
+    timer.setSingleShot(true);
+    timer.start(timeout);
+    el.exec();
+
+    if(timer.isActive())
+    {
+        timer.stop();
+        return true;
+    }
+    else
+        return false;
+}
+
+void TcpBase::saveLastMessage(MachineHeader machineHeader, QVariantMap metaData, QByteArray binaryData)
+{
+    lastMessage = metaData;
 }

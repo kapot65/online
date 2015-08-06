@@ -45,33 +45,28 @@ void CCPC7Handler::processMessage(MachineHeader mashineHeader, QVariantMap metaD
                     }
 }
 
-void CCPC7Handler::initServer()
+void CCPC7Handler::initServer(bool *ok)
 {
-    if(hasError())
-        return;
-
     //создание посылки
     QVariantMap message;
-#ifdef TEST_MODE
-    #ifndef USE_QTJSON
-    QJson::Serializer serializer;
-    serializer.setIndentMode(QJson::IndentFull); // в настройки
-    #endif
-#endif
-
     message.insert("type", "command");
     message.insert("command_type", "init");
 
-#ifdef TEST_MODE
-    #ifdef USE_QTJSON
-    QByteArray serializedMessage = QJsonDocument::fromVariant(message).toJson();
-    #else
-    QByteArray serializedMessage = serializer.serialize(message);
-    #endif
-    emit sendTestJsonMessage(serializedMessage);
-#endif
-
     sendMessage(message);
+    if(!waitForMessage())
+    {
+        TcpProtocol::setOk(false, ok);
+        return;
+    }
+
+    if(!(lastMessage["status"].toString() == "ok" &&
+         lastMessage["reply_type"].toString() == "init"))
+    {
+        TcpProtocol::setOk(false, ok);
+        return;
+    }
+
+    TcpProtocol::setOk(true, ok);
 }
 
 void CCPC7Handler::acquirePoint(int time, QVariant external_meta)

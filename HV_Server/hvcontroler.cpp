@@ -112,7 +112,10 @@ void HVControler::setVoltage(double voltage)
     serialPort->write(command);
 
     if(waitForMessageReady() && curr_data == ">")
+    {
+        LOG(INFO) << tr("Set voltage %1").arg(voltage).toStdString();
         emit setVoltageDone();
+    }
     else
         LOG(WARNING) << tr("Cant set voltage: receive error answer - %1")
                         .arg(QString(curr_data)).toStdString();

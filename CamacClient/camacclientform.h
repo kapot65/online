@@ -59,8 +59,6 @@ private slots:
 #endif
 //    void showGraphicOutput(QVector<int> hist);
 
-    void on_testProgrammBox_clicked(bool checked);
-
     /*!
      * \brief camacMarkError
      * \details При вызове, слот окрасит язычок вкладки CCPC7 в красный цвет

@@ -18,7 +18,11 @@ void CamacClientForm::setGraphWidget()
 void CamacClientForm::setCCPC7Handler()
 {
     ccpc7Handler = new CCPC7Handler;
-    ccpc7Handler->start();
+
+    QThread *ccpcThread = new QThread(this);
+    connect(ccpcThread, SIGNAL(finished()), ccpc7Handler, SLOT(deleteLater()));
+    ccpc7Handler->moveToThread(ccpcThread);
+    ccpcThread->start();
 
     connect(ccpc7Handler, SIGNAL(ready()), this, SLOT(camacMarkReady()));
     connect(ccpc7Handler, SIGNAL(error(QVariantMap)), this, SLOT(camacMarkError()));
@@ -31,18 +35,17 @@ void CamacClientForm::setCCPC7HandlerForm()
 {
     ccpc7HandlerForm =  new CCPC7HandlerForm(ccpc7Handler, dataVisualizerForm, manager, this);
     ui->tabWidget->widget(1)->layout()->addWidget(ccpc7HandlerForm);
-    //ui->tabWidget->tabBar()->setTabTextColor(1,Qt::red);
 
     connect(ccpc7HandlerForm, SIGNAL(sendWarning(QString)), this, SLOT(camacMarkWarning()));
-
-    //connect(ccpc7HandlerForm, SIGNAL(sendTestJsonMessage(QByteArray)), this, SLOT(receiveTestJsonCommand(QByteArray)));
-    //connect(ccpc7HandlerForm, SIGNAL(sendGraphicOutput(QVector<int>)), this, SLOT(showGraphicOutput(QVector<int>)));
 }
 
 void CamacClientForm::setHVHandler()
 {
     hvHandler = new HVHandler();
-    hvHandler->start();
+    QThread *hvThread = new QThread(this);
+    connect(hvThread, SIGNAL(finished()), hvHandler, SLOT(deleteLater()));
+    hvHandler->moveToThread(hvThread);
+    hvThread->start();
 
     connect(hvHandler, SIGNAL(ready()), this, SLOT(HVMarkReady()));
     connect(hvHandler, SIGNAL(error(QVariantMap)), this, SLOT(HVMarkError()));
@@ -111,12 +114,6 @@ CamacClientForm::~CamacClientForm()
 {
     manager->deleteLater();
 
-    ccpc7Handler->exit();
-    ccpc7Handler->deleteLater();
-
-    hvHandler->exit();
-    hvHandler->deleteLater();
-
     delete ui;
 }
 
@@ -144,19 +141,6 @@ void CamacClientForm::showTextOutput(QByteArray output)
                                 .arg(TcpProtocol::toDebug(output)));
 }
 #endif
-
-void CamacClientForm::on_testProgrammBox_clicked(bool checked)
-{
-     manager->setSettingsValue("General", "testingProgram", checked);
-
-     /*
-     if(checked)
-         connect(this, SIGNAL(sendTestCamacMessage(QByteArray)), ccpc7HandlerForm, SLOT(receiveTestJson(QByteArray)));
-     else
-         disconnect(this, SIGNAL(sendTestCamacMessage(QByteArray)), ccpc7HandlerForm, SLOT(receiveTestJson(QByteArray)));
-    */
-}
-
 
 void CamacClientForm::camacMarkError()
 {

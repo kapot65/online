@@ -62,11 +62,10 @@ void DividerReader::getVoltage()
 {
     busyFlag = 1;
 
-    QEventLoop el;
-    connect(this, SIGNAL(receiveFinished()), &el, SLOT(quit()));
-
     serialPort->write("READ?\r\n");
-    el.exec();
+
+    if(!waitForMessageReady(8000))
+        return;
 
     double raw_voltage = curr_data.toDouble();
 

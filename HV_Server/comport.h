@@ -59,7 +59,7 @@ protected:
      * \return true - сообщение получено. false - выход по таймауту.
      * \todo добавить таймауты в DividerReder.
      */
-    bool waitForMessageReady(int timeout = 1000);
+    bool waitForMessageReady(int timeout = 5000);
 
     /*!
      * \brief Указатель на менеджер настроек.

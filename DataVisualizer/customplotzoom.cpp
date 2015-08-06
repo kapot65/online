@@ -47,10 +47,10 @@ void CustomPlotZoom::mouseReleaseEvent(QMouseEvent * event)
         const QRect & zoomRect = mRubberBand->geometry();
         int xp1, yp1, xp2, yp2;
         zoomRect.getCoords(&xp1, &yp1, &xp2, &yp2);
-        auto x1 = xAxis->pixelToCoord(xp1);
-        auto x2 = xAxis->pixelToCoord(xp2);
-        auto y1 = yAxis->pixelToCoord(yp1);
-        auto y2 = yAxis->pixelToCoord(yp2);
+        double x1 = xAxis->pixelToCoord(xp1);
+        double x2 = xAxis->pixelToCoord(xp2);
+        double y1 = yAxis->pixelToCoord(yp1);
+        double y2 = yAxis->pixelToCoord(yp2);
 
         xAxis->setRange(x1, x2);
         yAxis->setRange(y1, y2);

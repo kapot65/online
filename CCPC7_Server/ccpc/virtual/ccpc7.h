@@ -82,7 +82,7 @@ class CamacImplCCPC7 : public QObject
 
   private:
     ///\brief Класс сокета.
-    QTcpSocket *tcpSocket;
+    QTcpSocket *connection;
 
     ///\brief Класс сеанса.
     QNetworkSession *networkSession;

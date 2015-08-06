@@ -38,7 +38,9 @@ bool ComPort::waitForMessageReady(int timeout)
     QTimer timer;
     connect(&timer, SIGNAL(timeout()), &el, SLOT(quit()));
 
+    timer.setSingleShot(true);
     timer.start(timeout);
+
     el.exec();
 
     if(timer.isActive())
@@ -47,7 +49,10 @@ bool ComPort::waitForMessageReady(int timeout)
         return true;
     }
     else
+    {
+        LOG(WARNING) << "waitForMessageReady : Timeout.";
         return false;
+    }
 }
 
 void ComPort::readMessage()
@@ -56,7 +61,8 @@ void ComPort::readMessage()
     if(curr_data.endsWith("\r") || curr_data.endsWith("\n"))
     {
         //обрезание спецсимволов
-        while(curr_data.size() && !QChar(curr_data[curr_data.size() - 1]).isDigit())
+        while(curr_data.size() &&
+              QChar(curr_data[curr_data.size() - 1]).isSpace())
             curr_data.chop(1);
 
         emit receiveFinished();

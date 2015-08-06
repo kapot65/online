@@ -60,68 +60,73 @@ bool Online::prepareFolder(QString session, QString group, int iteration, bool a
 
 bool Online::init(QString ccpcIp, int ccpcPort, QString HVIp, int HVPort)
 {
-    if(!ccpcHandler->isSocketConnected() || ccpcHandler->hasError())
+    //Переподключение к CCPC
+    emit sendInfoMessage("Reconnecting to CCPC server.\n");
+
+    if(!ccpcHandler->haveOpenedConnection() || ccpcHandler->hasError())
     {
         ccpcHandler->reconnect(ccpcIp, ccpcPort);
-
-        QEventLoop el;
-        connect(ccpcHandler, SIGNAL(socketConnected(QString,int)), &el, SLOT(quit()));
-        connect(ccpcHandler, SIGNAL(error(QVariantMap)), &el, SLOT(quit()));
-        el.exec();
-
-        if(!ccpcHandler->isSocketConnected())
+        if(!ccpcHandler->waitForConnect())
         {
             lastCCPCError = CLIENT_DISCONNECT;
+
             LOG(ERROR) << "Failed to connect to ccpc server";
+            emit sendInfoMessage("Failed to connect to ccpc server.\n");
+
             return false;
         }
     }
+
+    //Инициализация CCPC
+    emit sendInfoMessage("Initializing CCPC server.\n");
 
     if(!ccpcHandler->hasInited())
     {
-        QEventLoop el;
         bool ok;
-        ok = connect(ccpcHandler, SIGNAL(serverInited()), &el, SLOT(quit()));
-        ok = connect(ccpcHandler, SIGNAL(error(QVariantMap)), &el, SLOT(quit()));
-
-        ccpcHandler->initServer();
-        el.exec();
-
-        if(ccpcHandler->hasError())
+        ccpcHandler->initServer(&ok);
+        if(!ok || ccpcHandler->hasError())
         {
             lastCCPCError = SERVER_INIT_ERROR;
+
+            emit sendInfoMessage("Failed to initialize CCPC server.\n");
+
             return false;
         }
     }
 
+    //Переподключение HV
+    emit sendInfoMessage("Reconnecting to HV server.\n");
 
-    if(!hvHandler->isSocketConnected() || hvHandler->hasError())
+    if(!hvHandler->haveOpenedConnection() || hvHandler->hasError())
     {
-        QEventLoop el;
-        connect(hvHandler, SIGNAL(socketConnected(QString,int)), &el, SLOT(quit()));
-        connect(hvHandler, SIGNAL(error(QVariantMap)), &el, SLOT(quit()));
-
         hvHandler->reconnect(HVIp, HVPort);
-
-        el.exec();
-        if(!hvHandler->isSocketConnected())
+        if(!hvHandler->waitForConnect())
         {
             LOG(ERROR) << "Failed to connect to hv server";
+            emit sendInfoMessage("Failed to connect to hv server.\n");
+
             lastHVError = CLIENT_DISCONNECT;
             return false;
         }
     }
 
+    //Инициализация HV
+    emit sendInfoMessage("Initializing HV server.\n");
+
     if(!hvHandler->hasInited())
     {
-        hvHandler->initServer();
-        if(hvHandler->hasError())
+        bool ok;
+        hvHandler->initServer(&ok);
+
+        if(!ok || hvHandler->hasError())
         {
             lastHVError = SERVER_INIT_ERROR;
+
+            emit sendInfoMessage("Failed to initialize HV server.\n");
+
             return false;
         }
     }
-
     return true;
 }
 
@@ -159,13 +164,10 @@ bool Online::processScenario(QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> > sc
     updateInfo();
 
 
-#ifdef TEST_MODE
-    qDebug()<<QThread::currentThreadId();
-#endif
-
     //подготовка файла с напряжением
     HVMonitor *hvMonitor = new HVMonitor(currSubFolder, hvHandler);
     connect(hvMonitor, SIGNAL(finished()), hvMonitor, SLOT(deleteLater()));
+
 #ifndef VIRTUAL_MODE
     hvMonitor->start();
 #endif

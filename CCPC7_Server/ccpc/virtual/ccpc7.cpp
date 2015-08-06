@@ -10,11 +10,11 @@ CamacImplCCPC7::CamacImplCCPC7(QString ip, int host, QObject *parent) : QObject(
     errorCounter = 0;
 
     networkSession = NULL;
-    tcpSocket = new QTcpSocket(this);
-    connect(tcpSocket, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(processError()));
-    connect(tcpSocket, SIGNAL(connected()), this, SIGNAL(connected()));
+    connection = new QTcpSocket(this);
+    connect(connection, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(processError()));
+    connect(connection, SIGNAL(connected()), this, SIGNAL(connected()));
 
-    //connect(tcpSocket, SIGNAL(readyRead()), this, SLOT(readMessage()));
+    //connect(connection, SIGNAL(readyRead()), this, SLOT(readMessage()));
 
     QNetworkConfigurationManager manager;
     if (manager.capabilities() & QNetworkConfigurationManager::NetworkSessionRequired)
@@ -38,7 +38,7 @@ CamacImplCCPC7::CamacImplCCPC7(QString ip, int host, QObject *parent) : QObject(
 
         networkSession->open();
     }
-    tcpSocket->connectToHost(ip, host);
+    connection->connectToHost(ip, host);
 
     QTimer timer;
     connect(&timer, SIGNAL(timeout()), &timer, SLOT(deleteLater()));
@@ -47,8 +47,8 @@ CamacImplCCPC7::CamacImplCCPC7(QString ip, int host, QObject *parent) : QObject(
 }
 CamacImplCCPC7::~CamacImplCCPC7()
 {
-    tcpSocket->abort();
-    tcpSocket->disconnectFromHost();
+    connection->abort();
+    connection->disconnectFromHost();
     if(networkSession)
         networkSession->close();
 }
@@ -89,15 +89,15 @@ void CamacImplCCPC7::exec(CamacOp &op)
     QByteArray machineHeader = TcpProtocol::writeMachineHeader(header);
 
     QEventLoop pause;
-    connect(tcpSocket, SIGNAL(readyRead()), &pause, SLOT(quit()));
+    connect(connection, SIGNAL(readyRead()), &pause, SLOT(quit()));
 
-    tcpSocket->write(machineHeader + serializedMessage);
+    connection->write(machineHeader + serializedMessage);
 
     //ожидание ответа
     pause.exec();
 
     QJson::Parser parser;
-    QByteArray answer = tcpSocket->readAll();
+    QByteArray answer = connection->readAll();
 
     if(answer.startsWith("#!"))
     {
@@ -109,7 +109,7 @@ void CamacImplCCPC7::exec(CamacOp &op)
     op =  CommandHandler::messageToCamacOp(parsedMessage);
     /*
     //считывание ответа
-    QDataStream in(tcpSocket);
+    QDataStream in(connection);
     in.setVersion(QDataStream::Qt_4_0);
 
     in >> op_message;
@@ -120,7 +120,7 @@ void CamacImplCCPC7::exec(CamacOp &op)
 void CamacImplCCPC7::processError()
 {
     errorCounter++;
-    error = tcpSocket->errorString();
+    error = connection->errorString();
     emit have_error("CAMAC Client:" + error);
 }
 void CamacImplCCPC7::sessionOpened()
@@ -162,5 +162,5 @@ void CamacImplCCPC7::init()
 
     QByteArray machineHeader = TcpProtocol::writeMachineHeader(header);
 
-    tcpSocket->write(machineHeader + serializedMessage);
+    connection->write(machineHeader + serializedMessage);
 }

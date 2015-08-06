@@ -1,29 +1,23 @@
 #include "tcpclient.h"
 
-TcpClient::TcpClient(QString peerName, int peerPort, QObject *parent) : QThread(parent)
+TcpClient::TcpClient(QString peerName, int peerPort, QObject *parent) : TcpBase(parent)
 {
     continue_message = 0;
-
     networkSession = NULL;
-    tcpSocket = NULL;
-
-    connectedToPeer = 0;
 
     if(peerName != QString() && peerPort != -1)
     {
         setPeer(peerName, peerPort);
         connectToServer();
     }
-
-    connect(this, SIGNAL(receiveMessage(MachineHeader,QVariantMap,QByteArray)),
-            this, SLOT(saveLastMessage(MachineHeader,QVariantMap,QByteArray)),
-            Qt::DirectConnection);
 }
 
 TcpClient::~TcpClient()
 {
-    delete networkSession;
-    delete tcpSocket;
+    if(networkSession)
+        networkSession->deleteLater();
+    if(connection)
+        connection->deleteLater();
 }
 
 void TcpClient::setPeer(QString peerName, int peerPort)
@@ -36,13 +30,13 @@ void TcpClient::connectToServer()
 {
     if(networkSession)
         delete networkSession;
-    if(tcpSocket)
-        delete tcpSocket;
+    if(connection)
+        delete connection;
 
-    tcpSocket = new QTcpSocket(this);
-    connect(tcpSocket, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(processError(QAbstractSocket::SocketError)));
-    connect(tcpSocket, SIGNAL(connected()), this, SLOT(onSocketConnected()));
-    connect(tcpSocket, SIGNAL(disconnected()), this, SLOT(onSocketDisconnected()));
+    connection = new QTcpSocket;
+    connect(connection, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(processError(QAbstractSocket::SocketError)));
+    connect(connection, SIGNAL(connected()), this, SLOT(onSocketConnected()));
+    connect(connection, SIGNAL(disconnected()), this, SLOT(onSocketDisconnected()));
 
     QNetworkConfigurationManager manager;
     if (manager.capabilities() & QNetworkConfigurationManager::NetworkSessionRequired)
@@ -67,8 +61,8 @@ void TcpClient::connectToServer()
         networkSession->open();
     }
 
-    tcpSocket->connectToHost(peerName, peerPort);
-    connect(tcpSocket, SIGNAL(readyRead()), this, SLOT(readMessage()));
+    connection->connectToHost(peerName, peerPort);
+    connect(connection, SIGNAL(readyRead()), this, SLOT(readMessage()));
 }
 
 void TcpClient::sessionOpened()
@@ -109,67 +103,38 @@ void TcpClient::sessionOpened()
         networkSession->open();
     }
 
-    tcpSocket->connectToHost(this->peerName, this->peerPort);
-    connect(tcpSocket, SIGNAL(readyRead()), this, SLOT(readMessage()));
-}
-
-void TcpClient::readMessage()
-{
-    MachineHeader header;
-    QVariantMap meta;
-    QByteArray data;
-    bool ok;
-    bool hasMore;
-
-    readMessageFromStream(tcpSocket, header, meta, data, ok, hasMore);
-
-    if(ok)
-    {
-        emit receiveMessage(header, meta, data);
-#ifdef TEST_MODE
-        emit testReseivedMessage(TcpProtocol::createMessage(meta));
-#endif
-    }
-
-    if(hasMore)
-        readMessage();
+    connection->connectToHost(this->peerName, this->peerPort);
+    connect(connection, SIGNAL(readyRead()), this, SLOT(readMessage()));
 }
 
 void TcpClient::onSocketConnected()
 {
-    peerName = tcpSocket->peerName();
-    peerPort = tcpSocket->peerPort();
-
-    connectedToPeer = 1;
+    peerName = connection->peerName();
+    peerPort = connection->peerPort();
 
     emit socketConnected(peerName, peerPort);
 }
 
 void TcpClient::onSocketDisconnected()
 {
-    connectedToPeer = 0;
     emit socketDisconnected();
-}
-
-void TcpClient::saveLastMessage(MachineHeader machineHeader, QVariantMap metaData, QByteArray binaryData)
-{
-    lastMessage = metaData;
 }
 
 void TcpClient::sendMessage(QVariantMap message, QByteArray binaryData,  bool *ok)
 {
-    if(!connectedToPeer)
+    if(!haveOpenedConnection())
     {
-        if(ok)
-            ok[0] = 0;
+        TcpProtocol::setOk(0, ok);
         return;
     }
 
     QByteArray preparedMessage = TcpProtocol::createMessage(message, binaryData);
 
-    //    connect(tcpSocket, SIGNAL(disconnected()),
-    //            tcpSocket, SLOT(deleteLater()));
+    if(connection->write(preparedMessage) == -1)
+    {
+        TcpProtocol::setOk(0, ok);
+        return;
+    }
 
-    tcpSocket->write(preparedMessage);
-    //tcpSocket->disconnectFromHost();
+    TcpProtocol::setOk(1, ok);
 }

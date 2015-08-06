@@ -50,7 +50,7 @@ public slots:
      * испускаются сигналы ServerHandler::ready и ServerHandler::serverInited.
      * \warning Метод может занимать до 20 секунд.
      */
-    virtual void initServer();
+    virtual void initServer(bool *ok = 0);
 
     /*!
      * \brief Установить напряжение на блоке.

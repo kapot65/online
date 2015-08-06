@@ -4,85 +4,52 @@ HVHandler::HVHandler(QString ip, int port, QObject *parent) : ServerHandler(ip, 
 {
 }
 
-void HVHandler::initServer()
+void HVHandler::initServer(bool *ok)
 {
     if(hasError())
+    {
+        TcpProtocol::setOk(0, ok);
         return;
-
-#ifdef TEST_MODE
-    #ifndef USE_QTJSON
-    QJson::Serializer serializer;
-    serializer.setIndentMode(QJson::IndentFull); // в настройки
-    #endif
-#endif
-
-    //инструмент для ожидания ответа
-    QEventLoop el;
-    connect(this, SIGNAL(receiveMessage(MachineHeader,QVariantMap,QByteArray)),
-            &el, SLOT(quit()));
-
-    //создание посылки
-    QVariantMap message;
-    message.insert("type", "command");
-    message.insert("block", "1");
-
-    //проверка, инициализирован ли уже вольтметр
-    message["command_type"] = "check_init";
-
-#ifdef TEST_MODE
-    #ifdef USE_QTJSON
-    QByteArray serializedMessage = QJsonDocument::fromVariant(message).toJson();
-    #else
-    QByteArray serializedMessage = serializer.serialize(message);
-    #endif
-    emit sendTestJsonMessage(serializedMessage);
-#endif
-    sendMessage(message);
-    el.exec();
-
-    if(!lastMessage["inited"].toBool())
-    {
-        message["command_type"] = "init";
-#ifdef TEST_MODE
-        #ifdef USE_QTJSON
-        serializedMessage = QJsonDocument::fromVariant(message).toJson();
-        #else
-        serializedMessage = serializer.serialize(message);
-        #endif
-        emit sendTestJsonMessage(serializedMessage);
-#endif
-        sendMessage(message);
-            el.exec();
     }
 
-    message.insert("type", "command");
-    message["block"] = "2";
-    message["command_type"] = "check_init";
-#ifdef TEST_MODE
-    #ifdef USE_QTJSON
-    serializedMessage = QJsonDocument::fromVariant(message).toJson();
-    #else
-    serializedMessage = serializer.serialize(message);
-    #endif
-    emit sendTestJsonMessage(serializedMessage);
-#endif
-    sendMessage(message);
-        el.exec();
-
-    if(!lastMessage["inited"].toBool())
+    for(int i = 1; i <= 2; i++)
     {
-        message["command_type"] =  "init";
-#ifdef TEST_MODE
-        #ifdef USE_QTJSON
-        serializedMessage = QJsonDocument::fromVariant(message).toJson();
-        #else
-        serializedMessage = serializer.serialize(message);
-        #endif
-        emit sendTestJsonMessage(serializedMessage);
-#endif
+        //создание посылки
+        QVariantMap message;
+        message["type"] = "command";
+        message["block"] = tr("%1").arg(i);
+
+        //проверка, инициализирован ли уже вольтметр
+        message["command_type"] = "check_init";
+
         sendMessage(message);
-        el.exec();
+
+        if(!waitForMessage())
+        {
+            TcpProtocol::setOk(0, ok);
+            return;
+        }
+
+        if(!lastMessage["inited"].toBool())
+        {
+            message["command_type"] = "init";
+            sendMessage(message);
+            if(!waitForMessage(20000))
+            {
+                TcpProtocol::setOk(0, ok);
+                return;
+            }
+
+            //проверка ответа
+            if(lastMessage["status"] != "ok")
+            {
+                TcpProtocol::setOk(0, ok);
+                return;
+            }
+        }
     }
+
+    TcpProtocol::setOk(true, ok);
 
     emit serverInited();
     emit ready();
@@ -90,10 +57,10 @@ void HVHandler::initServer()
 
 void HVHandler::setVoltage(int block, double value)
 {
-    if(block != 1 && block != 2)
+    if(hasError())
         return;
 
-    if(hasError())
+    if(block != 1 && block != 2)
         return;
 
     QString divider;
@@ -130,6 +97,9 @@ void HVHandler::setVoltage(int block, double value)
 
 void HVHandler::getVoltage(int block)
 {
+    if(hasError())
+        return;
+
     if(!hasInited())
     {
         QVariantMap error_info;
@@ -139,9 +109,6 @@ void HVHandler::getVoltage(int block)
     }
 
     if(block != 1 && block != 2)
-        return;
-
-    if(hasError())
         return;
 
     QString divider;

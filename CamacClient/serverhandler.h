@@ -22,7 +22,7 @@ public:
     /*!
      * \brief ручная проверка на ошибку
      */
-    inline bool hasError(){return errorFlag;}
+    bool hasError();
 
     /*!
      * \brief getLastError
@@ -65,8 +65,9 @@ signals:
 public slots:
     /*!
      * \brief Виртуальная функция инициализации сервера
+     * \param ok Флаг успешности инициализации.
      */
-    virtual void initServer() = 0;
+    virtual void initServer(bool *ok = 0) = 0;
 
     /*!
      * \brief Функция переподключения сервера
@@ -87,19 +88,11 @@ private slots:
     void checkMessageForError(MachineHeader machineHeader, QVariantMap metaData, QByteArray binaryData);
 
 private:
-    /*!
-     * \brief описание последней ошибки
-     */
+    ///\brief описание последней ошибки
     QVariantMap lastError;
 
-    /*!
-     * \brief флаг наличия ошибки
-     */
-    bool errorFlag;
 
-    /*!
-     * \brief флаг прохождения инициализации
-     */
+    ///\brief флаг прохождения инициализации
     bool initFlag;
 };
 #endif // SERVERHANDLER_H

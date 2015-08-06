@@ -55,7 +55,6 @@ HEADERS  += \
 contains(QT_MAJOR_VERSION, 5){
 LIBS += D:/SDK/qjson/lib/libqjson.dll.a
 INCLUDEPATH += D:/SDK/qjsonsrc/include \
-               ../CCPC7_Server/easylogging \
                ../CCPC7_Server/ccpc/virtual
 
 CONFIG += c++11
@@ -67,7 +66,6 @@ SOURCES += \
 HEADERS  += \
         ccpc/virtual/ccpc7.h \
         ccpc/virtual/ccpc7base.h \
-        easylogging/easylogging++.h
 }
 }
 

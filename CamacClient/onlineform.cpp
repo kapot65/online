@@ -48,7 +48,8 @@ OnlineForm::OnlineForm(CCPC7Handler *ccpc7Handler, HVHandler *hvHandler,
     ui->finishOnThisIterationBox->setVisible(false);
 
     qRegisterMetaType<QVector<Event>>("QVector<Event>");
-    connect(online, SIGNAL(sendInfoMessage(QString)), ui->infoLabel, SLOT(setText(QString)));
+    connect(online, SIGNAL(sendInfoMessage(QString)),
+            ui->infoLabel, SLOT(setText(QString)), Qt::QueuedConnection);
     connect(ui->pauseButton, SIGNAL(clicked()), online, SLOT(pause()));
     connect(ui->resumeButton, SIGNAL(clicked()), online, SLOT(resume()));
 
@@ -207,6 +208,8 @@ bool OnlineForm::copyRecursively(const QString &srcFilePath,
 
 void OnlineForm::on_startButton_clicked()
 {
+    ui->infoLabel->clear();
+
     dataVisualizerForm->clear();
     QString curr_session = ui->sessionEdit->text();
     QString curr_group = ui->groupEdit->text();

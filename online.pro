@@ -8,9 +8,9 @@ win32{
 				  CCPC7_Server/CCPC7_Server.pro  \
 	}
 	contains(QT_MAJOR_VERSION, 5){
-		SUBDIRS = CamacClient/CamacClient.pro \
-				  CCPC7_Server/CCPC7_Server.pro  \
-				  DataVisualizer/DataVisualizer.pro  \
-				  HV_Server/HV_Server.pro
+                SUBDIRS = CamacClient/CamacClient.pro \
+                                  #CCPC7_Server/CCPC7_Server.pro  \
+                                  #DataVisualizer/DataVisualizer.pro  \
+                                  HV_Server/HV_Server.pro
 	}
 }
