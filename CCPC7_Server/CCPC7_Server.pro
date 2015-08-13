@@ -15,8 +15,9 @@ CONFIG   -= app_bundle
 TARGET = CCPC7_Server
 TEMPLATE = app
 
-DEFINES += VIRTUAL_MODE\
-           TEST_MODE
+DEFINES += \
+    #VIRTUAL_MODE\
+    #TEST_MODE
 
 include(../revision_info.pri )
 include(../easylogging.pri )

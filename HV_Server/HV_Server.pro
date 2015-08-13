@@ -33,8 +33,8 @@ INCLUDEPATH += D:/SDK/qjsonsrc/include
 contains(QT_MAJOR_VERSION, 5){
 
 DEFINES += USE_QTJSON \
-           TEST_MODE \
-           VIRTUAL_MODE
+#           TEST_MODE \
+#           VIRTUAL_MODE
 
 CONFIG += c++11
 

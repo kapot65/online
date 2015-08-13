@@ -30,7 +30,7 @@ DividerReader::DividerReader(QString DividerName, IniManager *manager, QObject *
 #ifndef VIRTUAL_MODE
         serialPort->setPortName(portName.toString());
         if(serialPort->open(QIODevice::ReadWrite))
-            LOG(INFO) << tr("%1 Controller connected to port %2").arg(divierReaderName).arg(portName).toStdString();
+            LOG(INFO) << tr("%1 Controller connected to port %2").arg(divierReaderName).arg(portName.toString()).toStdString();
 #else
         if(serialPort->open(QIODevice::ReadWrite))
             LOG(INFO) << tr("%1 Controller working in virtual mode").arg(divierReaderName).toStdString();
