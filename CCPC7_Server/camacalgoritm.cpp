@@ -1,8 +1,5 @@
 #include "camacalgoritm.h"
 
-
-
-
 CamacAlgoritm::CamacAlgoritm(QObject *parent) : QObject(parent)
 {
     breakFlag = 0;
@@ -18,9 +15,22 @@ CamacAlgoritm::CamacAlgoritm(QObject *parent) : QObject(parent)
     aviableMeasureTimes = TcpProtocol::getAviableMeasuteTimes();
 }
 
+void CamacAlgoritm::waitMSec(int msec)
+{
+    #if QT_VERSION >= 0x050300
+            QThread::msleep(msec);
+    #elif QT_VERSION >= 0x040800
+        timer->start(msec);
+        eventLoop->exec();
+    #endif
+}
+
 void CamacAlgoritm::on_breakAcquisition()
 {
     breakFlag = 1;
+#ifdef VIRTUAL_MODE
+    emit breakAcquisition();
+#endif
 }
 
 void CamacAlgoritm::resetCounters()
@@ -63,6 +73,7 @@ unsigned int CamacAlgoritm::getCounterValue(int counterNum, int channelNum, bool
 
     long fullData = 0;
 
+#ifndef VIRTUAL_MODE
     unsigned short data = 0;
     NAF(counter, channelNum, f, data);
     LOG(DEBUG) << QString("Counter: %1, A: %2, data: %3").arg(counter)
@@ -74,7 +85,9 @@ unsigned int CamacAlgoritm::getCounterValue(int counterNum, int channelNum, bool
     LOG(DEBUG) << QString("Counter: %1, A: %2, data: %3").arg(counter)
                   .arg(channelNum).arg(data).toStdString();
     fullData += 65536 * data;
-
+#else
+    fullData = qrand() % 4096;
+#endif
 
     return fullData;
 }
@@ -88,22 +101,29 @@ QVector<Event> CamacAlgoritm::acquirePoint(unsigned short measureTime, bool *man
     //LOG(DEBUG) << "Disabling Test generator signals";
     //NAF(TG1, 0, 16, none);
 
+
     //установка TLL_NIM  в состояние
     LOG(DEBUG) << "Disabling TTL";
     unsigned short data = 0xFFFF;
+#ifndef VIRTUAL_MODE
     NAF(settings->getTTL_NIM(), 0, 17, data);
 
     //отключение измерений
     disableMeasurement();
+#endif
 
     //установка MADC в режим измерения
     LOG(DEBUG) << "Setting MADS to measuring mode";
     long MADCaddr = 0;
+#ifndef VIRTUAL_MODE
     setMADCAddr(MADCaddr, measureTime);
+#endif
 
     //обнуление всех счетчиков
     LOG(DEBUG) << "Reseting counters";
     none  = 0;
+
+#ifndef VIRTUAL_MODE
     for(int j = 0; j < 7; j++)
     {
         NAF(settings->getCOUNTER1(), j, 2,none);
@@ -111,29 +131,32 @@ QVector<Event> CamacAlgoritm::acquirePoint(unsigned short measureTime, bool *man
     }
     //включение измерений
     enableMeasurement();
+#endif
 
     //задержка 10 мс (нужна?)
-#if QT_VERSION >= 0x050300
-        QThread::msleep(10);
-#elif QT_VERSION >= 0x040800
-    timer->start(10);
-    eventLoop->exec();
-#endif
+    waitMSec(10);
 
     unsigned short NONE  = 0;
     // Enable all outputs in OV1, Up Channel
     LOG(DEBUG) << "Enable all outputs in OV1, Up Channel";
+#ifndef VIRTUAL_MODE
     data = 0x1F;
     NAF(settings->getOV1(), 0, 16, data);
+#endif
     // Enable all outputs in OV1, Down Channel
     LOG(DEBUG) << "Enable all outputs in OV1, Down Channel";
+#ifndef VIRTUAL_MODE
     data = 0x0F;
     NAF(settings->getOV1(), 1, 16, data);
+#endif
     // "Start" pulse
     LOG(DEBUG) << "\"Start\" pulse";
+#ifndef VIRTUAL_MODE
     NAF(settings->getOV1(), 0, 25, NONE);
+#endif
 
     //цикл сбора
+#ifndef VIRTUAL_MODE
     long addr;
     bool addrOverflow;
     bool endOfMeasurement;
@@ -141,12 +164,7 @@ QVector<Event> CamacAlgoritm::acquirePoint(unsigned short measureTime, bool *man
     do
     {
         //задержка 1 сек
-#if QT_VERSION >= 0x050300
-        QThread::sleep(1);
-#elif QT_VERSION >= 0x040800
-        timer->start(1000);
-        eventLoop->exec();
-#endif
+        waitMSec(1000);
         getMADCAddr(addr, addrOverflow, endOfMeasurement);
         //количество зафиксированных частиц на текущий момент
         total_events = addr;
@@ -154,6 +172,21 @@ QVector<Event> CamacAlgoritm::acquirePoint(unsigned short measureTime, bool *man
         emit currentEventCount(total_events);
     }
     while(!addrOverflow && !endOfMeasurement && !breakFlag);
+#else
+    //Ожидание времени сбора или флага остановки.
+
+    //определение времени в секундах.
+    int seconds = 5;
+    QMap<int, unsigned short>::iterator it;
+    for(it = aviableMeasureTimes.begin(); it != aviableMeasureTimes.end(); it++)
+        if(it.value() == measureTime)
+        {
+            seconds = it.key();
+            break;
+        }
+    waitMSec(seconds * 1000);
+
+#endif
 
     if(manuallyBreak)
         if(breakFlag)
@@ -163,6 +196,19 @@ QVector<Event> CamacAlgoritm::acquirePoint(unsigned short measureTime, bool *man
 
     breakFlag = 0;
 
+#ifdef VIRTUAL_MODE
+    //Имитация набранных событий
+    QVector<Event> events;
+    for(int i = 0; i < 100; i++)
+    {
+        Event e;
+        e.data = 500 + qrand() % 2000;
+        e.time = i * qPow(10, 6);
+        e.valid = true;
+
+        events.push_back(e);
+    }
+#else
     //считывание данных
     //отключение измерения
     disableMeasurement();
@@ -302,7 +348,7 @@ QVector<Event> CamacAlgoritm::acquirePoint(unsigned short measureTime, bool *man
 
         }
 */
-
+#endif
     return events;
 }
 

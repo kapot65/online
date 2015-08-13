@@ -4,6 +4,12 @@ DividerReader::DividerReader(QString DividerName, IniManager *manager, QObject *
 {
     inited = 0;
 
+    this->divierReaderName = DividerName;
+
+#ifdef TEST_MODE
+    qDebug() << tr("%1 working in thread: ").arg(DividerName) << QThread::currentThreadId();
+#endif
+
     if(!manager->getSettingsValue(DividerName, "NormingCoefficient").isValid())
     {
         LOG(ERROR) << QString("Parameter <NormingCoefficient> in %1 not set").arg(DividerName).toStdString();
@@ -20,12 +26,16 @@ DividerReader::DividerReader(QString DividerName, IniManager *manager, QObject *
         return;
     }
     else
+    {
+#ifndef VIRTUAL_MODE
         serialPort->setPortName(portName.toString());
-
-
-
-    if(serialPort->open(QIODevice::ReadWrite))
-        LOG(INFO) << "DividerReader Controller connected to port " << portName.toString().toStdString();
+        if(serialPort->open(QIODevice::ReadWrite))
+            LOG(INFO) << tr("%1 Controller connected to port %2").arg(divierReaderName).arg(portName).toStdString();
+#else
+        if(serialPort->open(QIODevice::ReadWrite))
+            LOG(INFO) << tr("%1 Controller working in virtual mode").arg(divierReaderName).toStdString();
+#endif
+    }
 }
 
 void DividerReader::initVoltmeter()
@@ -37,6 +47,7 @@ void DividerReader::initVoltmeter()
     connect(&timer, SIGNAL(timeout()), &el, SLOT(quit()));
     connect(&timer, SIGNAL(timeout()), &timer, SLOT(stop()));
 
+#ifndef VIRTUAL_MODE
     serialPort->write("SYST:REM\r\n"); // Switch voltmeter to remote control (once)
     timer.start(1000);
     el.exec();
@@ -52,16 +63,28 @@ void DividerReader::initVoltmeter()
     serialPort->write("VOLT:NPLC 100\r\n"); // Slow measurement
     timer.start(2000);
     el.exec();
+#else
+    timer.start(3000);
+    el.exec();
+#endif
 
     inited = 1;
     emit initVoltmeterDone();
+
+
     busyFlag = 0;
 }
 
 void DividerReader::getVoltage()
 {
+#ifdef TEST_MODE
+    qDebug() << QThread::currentThreadId() << tr("%1: getting voltage.")
+                                                .arg(divierReaderName);
+#endif
+
     busyFlag = 1;
 
+#ifndef VIRTUAL_MODE
     serialPort->write("READ?\r\n");
 
     if(!waitForMessageReady(8000))
@@ -75,10 +98,20 @@ void DividerReader::getVoltage()
                                              .arg(dividerNormCoeff)
                                              .toStdString();
     curr_data.clear();
+#else
+    QEventLoop el;
+    QTimer::singleShot(2000, &el, SLOT(quit()));
+    el.exec();
+    double raw_voltage = -0.05;
+#endif
 
     busyFlag = 0;
-
     emit getVoltageDone(raw_voltage * dividerNormCoeff);
+
+#ifdef TEST_MODE
+    qDebug() << QThread::currentThreadId() << tr("%1: getting voltage done.")
+                                                .arg(divierReaderName);
+#endif
 }
 
 DividerReader::~DividerReader()

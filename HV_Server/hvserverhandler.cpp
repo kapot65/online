@@ -3,6 +3,10 @@
 HVServerHandler::HVServerHandler(QObject *parent) :
     QObject(parent)
 {
+#ifdef TEST_MODE
+    qDebug() << "HVServerHandler thread:" << QThread::currentThreadId();
+#endif
+
     manager = new IniManager("HVServerSettings.ini", this);
 
     hvServer = new HVServer(manager, 33669, this);

@@ -875,13 +875,19 @@ void HVMonitor::run()
 #endif
         }
 
+#ifdef TEST_MODE
+        qDebug()<<"Sending get_voltage messages.";
+#endif
         emit getVoltage(1);
-        QEventLoop el2;
-        QTimer::singleShot(100, &el2, SLOT(quit()));
-        el2.exec();
         emit getVoltage(2);
 
+#ifdef TEST_MODE
+        qDebug()<<"Start wait for get_volatge messages.";
+#endif
         el.exec();
+#ifdef TEST_MODE
+        qDebug()<<"Stop wait for get_volatge messages.";
+#endif
         if(stopHvMonitorFlag)
             return;
     }

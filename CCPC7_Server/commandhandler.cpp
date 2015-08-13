@@ -3,7 +3,11 @@
 bool CommandHandler::checkInit()
 {
     //инициализация проверяется по указателю на камак
+#ifdef VIRTUAL_MODE
+    if(!initFlag)
+#else
     if(camac == NULL)
+#endif
     {
         busyFlag = 0;
         //создание описания ошибки
@@ -168,12 +172,21 @@ ccpc::CamacOp CommandHandler::messageToCamacOp(QVariantMap message)
 
 void CommandHandler::processInit(QVariantMap message)
 {
+#ifdef TEST_MODE
+    qDebug() << "processing Init";
+#endif
+
+#ifdef VIRTUAL_MODE
+    initFlag = 1;
+#endif
+
     busyFlag = 1;
     // Инициализация Камака
     bool reset = (bool)(!camac);
     if(!camac)
         delete camac;
 
+#ifndef VIRTUAL_MODE
 #ifdef Q_OS_WIN
 
     if((!settings->getSettingsValue("vCamac", "ip").isValid()) || (!settings->getSettingsValue("vCamac", "port").isValid()))
@@ -199,13 +212,14 @@ void CommandHandler::processInit(QVariantMap message)
 
     camac->init();
 #elif defined(Q_OS_LINUX)
-
     camac = new ccpc::CamacImplCCPC7();
-
+#endif
 #endif
 
+#ifndef VIRTUAL_MODE
     Z();
     C();
+#endif
 
     //проталкивание созданного объекта в главный поток
     //camac->moveToThread(QApplication::instance()->thread());
@@ -248,7 +262,10 @@ void CommandHandler::processAcquirePoint(QVariantMap message)
     bool manuallyBreak;
     QDate acqDate = QDate::currentDate();
     QTime acqTimeStart = QTime::currentTime();
+
+    //сбор точки
     QVector<Event> events = acquirePoint(acqisitionTime, &manuallyBreak);
+
     QTime acqTimeEnd = QTime::currentTime();
 
     //создание сообщения
@@ -308,6 +325,11 @@ CommandHandler::CommandHandler(CamacServerSettings *settings, QObject *parent): 
 {
     camac = 0;
     busyFlag = 0;
+
+#ifdef VIRTUAL_MODE
+    bool initFlag = 0;
+#endif
+
     this->settings = settings;
 
     tempFolder = settings->getSettingsValue("tempFolder", "dirPath").toString();

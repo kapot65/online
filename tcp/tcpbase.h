@@ -2,14 +2,14 @@
 #define TCPBASE_H
 
 #include <tcpprotocol.h>
-#include <QObject>
+#include <QThread>
 #include <QTcpSocket>
 
 /*!
  * \brief В этом классе находятся реализации методов, общих для
  * TcpClient и TcpServer
  */
-class TcpBase : public QObject
+class TcpBase : public QThread
 {
     Q_OBJECT
 public:

@@ -1,6 +1,7 @@
 #include "camacserverhandler.h"
 #include "camacserversettings.h"
 
+
 CamacServerHandler::CamacServerHandler(TempFolder *tempFolder, QObject *parent) :
     QObject(parent)
 {
@@ -33,9 +34,6 @@ CamacServerHandler::~CamacServerHandler()
 
 void CamacServerHandler::showMessage(QByteArray message)
 {
-#ifdef TEST_MODE
-    printf((TcpProtocol::toDebug(message) + "\n").toStdString().c_str());
-#endif
 }
 
 void CamacServerHandler::showNewConnection(QString peerName, int peerPort)

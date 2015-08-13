@@ -19,17 +19,19 @@
  */
 enum ERROR_TYPE
 {
-    CLIENT_NO_ERROR = 0,
-    UNKNOWN_ERROR = 1,
-    SERVER_INIT_ERROR = 2, ///сервер не ицициализирован
-    CLIENT_DISCONNECT = 3, ///сервер отключиля или не подключен
-    PARSE_MESSAGE_ERROR = 4, ///ошибка при парсинге сообщения
-    TIMEOUT_ERROR = 5, ///превышение времени обработки запроса
-    ALGORITM_ERROR = 6, ///ошибка в алгоритме исполнения команды
-    UNKNOWN_MESSAGE_ERROR = 7, ///у сервера нету действия для данного сообщения
-    SERVER_BUSY_ERROR = 8, ///сервер сейчас занят
-    INCORRECT_MESSAGE_PARAMS = 9, ///неправильные параметры в сообщении
-    MULTIPLE_CONNECTION = 10 ///попытка подключится к серверу, у которого уже есть активное соединение
+    CLIENT_NO_ERROR = 0, ///< ошибки нету
+    UNKNOWN_ERROR = 1, ///< неизвестная ошибка
+    SERVER_INIT_ERROR = 2, ///< сервер не ицициализирован
+    CLIENT_DISCONNECT = 3, ///< сервер отключиля или не подключен
+    PARSE_MESSAGE_ERROR = 4, ///< ошибка при парсинге сообщения
+    TIMEOUT_ERROR = 5, ///< превышение времени обработки запроса
+    ALGORITM_ERROR = 6, ///< ошибка в алгоритме исполнения команды
+    UNKNOWN_MESSAGE_ERROR = 7, ///< у сервера нету действия для данного сообщения
+    SERVER_BUSY_ERROR = 8, ///< сервер сейчас занят
+    INCORRECT_MESSAGE_PARAMS = 9, ///< неправильные параметры в сообщении
+    ///попытка подключится к серверу, у которого уже есть активное соединение
+    ///\warning не используется
+    MULTIPLE_CONNECTION = 10
 };
 
 /*!
@@ -37,8 +39,8 @@ enum ERROR_TYPE
  */
 enum METATYPE
 {
-    UNDEFINED_METATYPE = 0x00000000, ///Неизвестный формат метаданных
-    JSON_METATYPE = 0x00010000 ///Формат Json
+    UNDEFINED_METATYPE = 0x00000000, ///< Неизвестный формат метаданных
+    JSON_METATYPE = 0x00010000 ///< Формат Json
 };
 
 /*!
@@ -46,11 +48,11 @@ enum METATYPE
  */
 enum BINARYTYPE
 {
-    UNDEFINED_BINARY = 0x00000000, ///Неопределенный формат
-    POINT_DIRECT_BINARY = 0x00000100, ///Точка в обычной сериализации
-    POINT_QDATASTREAM_BINARY = 0x00000107, ///Точка в сериализации через QDataStream
-    HV_BINARY = 0x00000200, ///Бинарный формат HV
-    HV_TEXT_BINARY = 0x00000201, ///тексовый формат HV
+    UNDEFINED_BINARY = 0x00000000, ///< Неопределенный формат
+    POINT_DIRECT_BINARY = 0x00000100, ///< Точка в обычной сериализации
+    POINT_QDATASTREAM_BINARY = 0x00000107, ///< Точка в сериализации через QDataStream
+    HV_BINARY = 0x00000200, ///< Бинарный формат HV
+    HV_TEXT_BINARY = 0x00000201, ///< тексовый формат HV
 };
 
 /*!
@@ -60,12 +62,12 @@ enum BINARYTYPE
 struct MachineHeader
 {
     MachineHeader();
-    unsigned int time;
-    unsigned int type;
-    unsigned int metaType;
-    unsigned int metaLength;
-    unsigned int dataType;
-    unsigned int dataLenght;
+    unsigned int time; ///< Время прихода сообщения в секундах с начала эпохи.
+    unsigned int type; ///< Тип сообщения.
+    unsigned int metaType; ///< Тип метаданных.
+    unsigned int metaLength; ///< Длина метаданных.
+    unsigned int dataType; ///< Тип бинарных данных.
+    unsigned int dataLenght; ///< Длина бинарных данных.
 };
 /*!
  * \brief The TcpProtocol class

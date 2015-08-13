@@ -17,6 +17,14 @@ int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
 
+#ifdef TEST_MODE
+    LOG(INFO) << "Programm run in test mode";
+#endif
+
+#ifdef VIRTUAL_MODE
+    LOG(INFO) << "Programm run in virtual mode";
+#endif
+
     //создание временной папки
     TempFolder tempFolder("temp/CCPC7Server", 200);
     QDateTime curr_datetime = QDateTime::currentDateTime();

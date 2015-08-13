@@ -1,4 +1,4 @@
-#include "mainwindow.h"
+#include "DataVisualizerWindow.h"
 #include <QApplication>
 
 #include <easylogging++.h>
@@ -53,7 +53,7 @@ system((std::string("sudo chmod -R 777 ") + QFileInfo(QDir::homePath() + LOG_DIR
 #endif
 
     QApplication a(argc, argv);
-    MainWindow w;
+    DataVisualizerWindow w;
     w.show();
 
     return a.exec();

@@ -1,10 +1,10 @@
-#include "mainwindow.h"
-#include "ui_mainwindow.h"
+#include "DataVisualizerWindow.h"
+#include "ui_DataVisualizerWindow.h"
 
 
-MainWindow::MainWindow(QWidget *parent) :
+DataVisualizerWindow::DataVisualizerWindow(QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::MainWindow)
+    ui(new Ui::DataVisualizerWindow)
 {
     ui->setupUi(this);
     form = new DataVisualizerForm(1, settings, this);
@@ -13,12 +13,12 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->clearButton, SIGNAL(clicked()), form, SLOT(clear()));
 }
 
-MainWindow::~MainWindow()
+DataVisualizerWindow::~DataVisualizerWindow()
 {
     delete ui;
 }
 
-void MainWindow::on_openFolderButton_clicked()
+void DataVisualizerWindow::on_openFolderButton_clicked()
 {
     this->settings = new QSettings("DataVisualizerSettings.ini",
                                    QSettings::IniFormat);

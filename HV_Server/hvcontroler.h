@@ -81,6 +81,10 @@ protected:
      * \brief Имя COM порта, к которому подключен контроллер.
      */
     QString portName;
+
+
+    /// \brief Название контролера.
+    QString controllerName;
 };
 
 #endif // HVCONTROLER_H

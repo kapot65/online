@@ -20,6 +20,14 @@ _INITIALIZE_EASYLOGGINGPP
 
 int main(int argc, char *argv[])
 {
+#ifdef TEST_MODE
+    LOG(INFO) << "Programm run in test mode";
+#endif
+
+#ifdef VIRTUAL_MODE
+    LOG(INFO) << "Programm run in virtual mode";
+#endif
+
     QCoreApplication a(argc, argv);
 
     QDateTime curr_datetime = QDateTime::currentDateTime();

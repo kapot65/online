@@ -4,6 +4,10 @@
 #include "comport.h"
 #include <QObject>
 
+#ifdef TEST_MODE
+    #include <QDebug>
+#endif
+
 /*!
  * \brief Интерфейс взаимодействия с вольтметром <a href="http://www.keysight.com/en/pd-1000001295:epsg:pro-pn-34401A/digital-multimeter-6-digit?&cc=RU&lc=rus">Aligent 34401A</a>
  * через COM порт.
@@ -62,6 +66,9 @@ private:
      * \brief Коэфициент делителя.
      */
     double dividerNormCoeff;
+
+    /// \brief Имя текущего вольтметра.
+    QString divierReaderName;
 };
 
 #endif // DIVIDERREADER_H

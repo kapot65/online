@@ -1,4 +1,7 @@
 #include "camacserver.h"
+#ifdef TEST_MODE
+    #include <QDebug>
+#endif
 
 CamacServer::CamacServer(int port, CamacServerSettings *settings): TcpServer(port)
 {
@@ -67,7 +70,13 @@ void CamacServer::processCommand(QVariantMap message)
     QString commandType = message.value("command_type").toString();
 
     if(commandType == "break_acquisition")
+    {
+#ifdef TEST_MODE
+        qDebug() << tr("receive break_acquisition message");
+#endif
+
         emit breakAcquisition(message);
+    }
     else
         if(cmdHandler->checkBusy())
         {
@@ -83,8 +92,12 @@ void CamacServer::processCommand(QVariantMap message)
         }
         else
         {
+#ifdef TEST_MODE
+            qDebug() << tr("receive %1 message").arg(commandType);
+#endif
             if(commandType == "NAF")
             {
+
                 emit NAF(message);
             }
             else

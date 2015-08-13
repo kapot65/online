@@ -17,12 +17,8 @@ void CamacClientForm::setGraphWidget()
 
 void CamacClientForm::setCCPC7Handler()
 {
-    ccpc7Handler = new CCPC7Handler;
-
-    QThread *ccpcThread = new QThread(this);
-    connect(ccpcThread, SIGNAL(finished()), ccpc7Handler, SLOT(deleteLater()));
-    ccpc7Handler->moveToThread(ccpcThread);
-    ccpcThread->start();
+    ccpc7Handler = new CCPC7Handler(QString(), -1, this);
+    ccpc7Handler->start();
 
     connect(ccpc7Handler, SIGNAL(ready()), this, SLOT(camacMarkReady()));
     connect(ccpc7Handler, SIGNAL(error(QVariantMap)), this, SLOT(camacMarkError()));
@@ -41,11 +37,8 @@ void CamacClientForm::setCCPC7HandlerForm()
 
 void CamacClientForm::setHVHandler()
 {
-    hvHandler = new HVHandler();
-    QThread *hvThread = new QThread(this);
-    connect(hvThread, SIGNAL(finished()), hvHandler, SLOT(deleteLater()));
-    hvHandler->moveToThread(hvThread);
-    hvThread->start();
+    hvHandler = new HVHandler(QString(), -1, this);
+    hvHandler->start();
 
     connect(hvHandler, SIGNAL(ready()), this, SLOT(HVMarkReady()));
     connect(hvHandler, SIGNAL(error(QVariantMap)), this, SLOT(HVMarkError()));

@@ -19,10 +19,12 @@ include (datavisualizer.pri)
 include(../easylogging.pri)
 include(../tcp/tcp.pri)
 
-SOURCES += main.cpp\
-        mainwindow.cpp
+SOURCES += main.cpp \
+    DataVisualizerWindow.cpp
 
-HEADERS  += mainwindow.h
+HEADERS  += \
+    DataVisualizerWindow.h
 
-FORMS    += mainwindow.ui \
-    datavisualizerform.ui
+FORMS    += \
+    DataVisualizerForm.ui \
+    DataVisualizerWindow.ui

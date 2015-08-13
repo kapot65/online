@@ -21,6 +21,7 @@
 
 /*!
  * \brief Класс содержит алгоритмы для работы с камаком.
+ * \todo Поменять LOG(DEBUG) на TEST_MODE
  */
 class CamacAlgoritm : public QObject
 {
@@ -48,6 +49,14 @@ signals:
      */
     void currentEventCount(int count);
 
+#ifdef VIRTUAL_MODE
+    /*!
+     * \brief Испускается при ручной остановке сбора.
+     * \note работает только в режиме VIRTUAL_MODE.
+     */
+    void breakAcquisition();
+#endif
+
 protected:
     ///Указатель на класс для взаимодействия с устройством.
     ccpc::CamacImplCCPC7 *camac;
@@ -57,7 +66,7 @@ protected:
 
     /*!
      * \brief Проведение набора точки, с заданным временем набора.
-     * \param measureTime Время набора.
+     * \param measureTime Код времени набора.
      * \param [out] manuallyBreak Флаг прерывания программы пользователем.
      * \return Вектор набранных событий в формате Event.
      */
@@ -67,6 +76,13 @@ protected:
      * \brief Обнуление каунтеров.
      */
     void resetCounters();
+
+    /*!
+     * \brief Ожидание.
+     * \param Время ожидания в милисекундах.
+     */
+    void waitMSec(int msec);
+
 
     /*!
      * \brief Получение значения на каунтере.

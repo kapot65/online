@@ -42,7 +42,13 @@ bool HVControler::loadSettings(QString controllerName, IniManager *manager)
 
 HVControler::HVControler(IniManager *manager, QString controllerName, bool *ok, QObject *parent) : ComPort(manager, parent)
 {
+    this->controllerName = controllerName;
+
     busyFlag = 0;
+
+#ifdef TEST_MODE
+    qDebug() << tr("%1 working in thread: ").arg(controllerName) << QThread::currentThreadId();
+#endif
 
     //загрузка настроек из ini файла
     if(!loadSettings(controllerName, manager))
@@ -54,6 +60,7 @@ HVControler::HVControler(IniManager *manager, QString controllerName, bool *ok, 
         return;
     }
 
+#ifndef VIRTUAL_MODE
     serialPort->setPortName(portName);
 
     if(!serialPort->open(QIODevice::ReadWrite))
@@ -68,12 +75,11 @@ HVControler::HVControler(IniManager *manager, QString controllerName, bool *ok, 
 
     if(waitForMessageReady(5000) &&
        curr_data.startsWith('!') && //проверка доступности команды
-       curr_data.size()) //проверка длины ответа
+       curr_data.size()) ///\bug проверка длины ответа
     {
         curr_data.clear();
         TcpProtocol::setOk(true, ok);
-        LOG(INFO) << "HV Controller connected to port " << portName.toStdString();
-        return;
+        LOG(INFO) << tr("%1 Controller connected to port %2").arg(controllerName).arg(portName).toStdString();
     }
     else
     {
@@ -85,10 +91,19 @@ HVControler::HVControler(IniManager *manager, QString controllerName, bool *ok, 
         curr_data.clear();
         return;
     }
+#else
+    TcpProtocol::setOk(true, ok);
+    LOG(INFO) << tr("%1 Controller working in virtual mode").arg(controllerName).toStdString();
+#endif
 }
 
 void HVControler::setVoltage(double voltage)
 {
+#ifdef TEST_MODE
+    qDebug() << QThread::currentThreadId() << tr("%1: setting %2 volts on block.")
+                                                .arg(controllerName).arg(voltage);
+#endif
+
     busyFlag = 1;
 
     //преобразование напряжения;
@@ -106,6 +121,7 @@ void HVControler::setVoltage(double voltage)
         LOG(WARNING) << "Voltage " << QString().number(voltage).toStdString() << " out of range. Changed to maximal";
     }
 
+#ifndef VIRTUAL_MODE
     QByteArray command;
     command.push_back(QString("#01%1\r").arg(voltage_normalised, 6, 'f', 3, '0').toLatin1());
 
@@ -121,5 +137,15 @@ void HVControler::setVoltage(double voltage)
                         .arg(QString(curr_data)).toStdString();
 
     curr_data.clear();
+#else
+    LOG(INFO) << tr("Set voltage %1").arg(voltage).toStdString();
+    emit setVoltageDone();
+#endif
+
     busyFlag = 0;
+
+#ifdef TEST_MODE
+    qDebug() << QThread::currentThreadId() << tr("%1: setting %2 volts on block done.")
+                                                .arg(controllerName).arg(voltage);
+#endif
 }

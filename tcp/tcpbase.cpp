@@ -3,8 +3,11 @@
 #include <QEventLoop>
 #include <QTimer>
 
-TcpBase::TcpBase(QObject *parent): QObject(parent)
+TcpBase::TcpBase(QObject *parent): QThread(parent)
 {
+#ifdef TEST_MODE
+    qDebug() << "TcpBase working in " << QThread::currentThreadId() <<" thread.";
+#endif
     continue_message = 0;
     connection = 0;
 

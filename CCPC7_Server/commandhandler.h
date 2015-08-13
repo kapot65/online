@@ -72,6 +72,7 @@ public slots:
     /*!
      * \brief Сбор точки.
      * \param message Метаданные команды.
+     * \todo VIRTUAL_MODE сделать обработку флага manually_break
      */
     void processAcquirePoint(QVariantMap message);
 
@@ -105,6 +106,14 @@ private:
 
     ///Флаг занятости устройства.
     bool busyFlag;
+
+#ifdef VIRTUAL_MODE
+    ///
+    /// \brief Флаг инициализированности сервера.
+    /// \note работает только в режиме VIRTUAL_MODE
+    ///
+    bool initFlag;
+#endif
 };
 
 

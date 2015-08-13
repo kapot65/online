@@ -78,6 +78,7 @@ protected:
 
     /*!
      * \brief Текущее сообщение с порта.
+     * \note После каждой команды нужно очищать.
      * \warning Является законченным, только после испускания сигнала DividerReader::receiveFinished.
      */
     QByteArray curr_data;

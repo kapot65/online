@@ -56,7 +56,7 @@ private:
 public slots:
     void sendMessage(QVariantMap message, QByteArray binaryData = QByteArray(), bool *ok = NULL,
                      QTcpSocket *socket = 0);
-    void sendRawMessage(QByteArray message, QTcpSocket *socket);
+    void sendRawMessage(QByteArray message, QTcpSocket *socket = 0);
 
 protected:
     QTcpServer *tcpServer;

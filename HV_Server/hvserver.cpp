@@ -1,5 +1,9 @@
 #include "hvserver.h"
 
+#ifdef TEST_MODE
+    #include <QDebug>
+#endif
+
 HVServer::HVServer(IniManager *manager, int port, QObject *parent): TcpServer(port, parent)
 {
     this->manager = manager;
@@ -68,6 +72,10 @@ void HVServer::dividerGetVoltageDone(QString dividerName, double voltage)
     message.insert("answer_type", "get_voltage");
     message.insert("voltage", QString("%1").arg(voltage));
 
+#ifdef TEST_MODE
+    qDebug() << QThread::currentThreadId() << tr("Send message get_voltage: divider - %1, voltage - %2.")
+                                                .arg(dividerName).arg(voltage);
+#endif
     sendMessage(message);
 }
 
@@ -90,6 +98,10 @@ void HVServer::dividerSetVoltageDone(QString dividerName)
     message.insert("answer_type", "set_voltage");
     message.insert("status", "ok");
 
+#ifdef TEST_MODE
+    qDebug() << QThread::currentThreadId() << tr("Send message set_voltage: divider - %1.")
+                                                .arg(dividerName);
+#endif
     sendMessage(message);
 }
 
@@ -196,6 +208,10 @@ void HVServer::processCommand(QVariantMap message)
 
     if(commandType == "check_init")
     {
+#ifdef TEST_MODE
+        qDebug() << "Receive check_init message.";
+#endif
+
         QVariantMap answer;
         answer.insert("block", block);
         answer.insert("type", "reply");
@@ -224,6 +240,9 @@ void HVServer::processCommand(QVariantMap message)
     else
         if(commandType == "init")
         {
+#ifdef TEST_MODE
+            qDebug() << "Receive init message.";
+#endif
             if(block == "1")
                 emit initDivider1();
             else
@@ -239,6 +258,9 @@ void HVServer::processCommand(QVariantMap message)
         else
             if(commandType == "get_voltage")
             {
+#ifdef TEST_MODE
+                qDebug() << "Receive get_voltage message.";
+#endif
                 if(block == "1")
                 {
                     if(divider1->checkBusy())
@@ -277,6 +299,9 @@ void HVServer::processCommand(QVariantMap message)
             else
                 if(commandType == "set_voltage")
                 {
+#ifdef TEST_MODE
+                    qDebug() << "Receive set_voltage message.";
+#endif
                     //проверка необходимых параметров
                     int block = message["block"].toInt();
                     if(block != 1 && block != 2)

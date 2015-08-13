@@ -138,6 +138,11 @@ void TcpServer::sendMessage(QVariantMap message, QByteArray binaryData,  bool *o
 
 void TcpServer::sendRawMessage(QByteArray message, QTcpSocket *socket)
 {
+    if(!socket)
+        socket = connection;
+    if(!socket)
+        return;
+
     socket->write(message);
 }
 
