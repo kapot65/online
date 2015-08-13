@@ -16,8 +16,8 @@ TARGET = CCPC7_Server
 TEMPLATE = app
 
 DEFINES += \
-    #VIRTUAL_MODE\
-    #TEST_MODE
+    VIRTUAL_MODE\
+    TEST_MODE
 
 include(../revision_info.pri )
 include(../easylogging.pri )
@@ -57,9 +57,9 @@ HEADERS  += \
 }
 
 contains(QT_MAJOR_VERSION, 5){
-LIBS += D:/SDK/qjson/lib/libqjson.dll.a
-INCLUDEPATH += D:/SDK/qjsonsrc/include \
-               ../CCPC7_Server/ccpc/virtual
+INCLUDEPATH += ccpc/virtual
+
+DEFINES += USE_QTJSON
 
 CONFIG += c++11
 

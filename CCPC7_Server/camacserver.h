@@ -6,8 +6,6 @@
 #include <QtNetwork>
 #include <stdlib.h>
 #include <QCoreApplication>
-#include <QJson/Parser>
-#include <QJson/Serializer>
 
 #include "camacalgoritm.h"
 #include "commandhandler.h"

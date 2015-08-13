@@ -1,6 +1,6 @@
 #include <QTcpSocket>
 #include <QNetworkSession>
-#include <QJson/Serializer>
+#include <tcpprotocol.h>
 #include "tcpserver.h"
 #include "ccpc7base.h"
 #include <tcpprotocol.h>
@@ -18,7 +18,7 @@ namespace ccpc {
  * \warning Класс имеет отличие с оригинальным API при инициализации: для иниализации виртуального устройства
  * необходимо дополнительно вызывать функцию CamacImplCCPC7::init()
  * \warning Класс не имеет никаких проверок соединения и обработчиков ошибок.
- * \todo Обновить класс.
+ * \todo Обновить класс. Поменять базу на TcpClient.
  */
 class CamacImplCCPC7 : public QObject
 {

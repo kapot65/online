@@ -73,49 +73,20 @@ void CamacImplCCPC7::exec(CamacOp &op)
     out.device()->seek(0);
     */
     QVariantMap message = CommandHandler::camacOpToMessage(op);
-
-    QJson::Serializer serializer;
-    serializer.setIndentMode(QJson::IndentFull); // в настройки
-    QByteArray serializedMessage = serializer.serialize(message);
-
-    //создание бинарного хедера
-    MachineHeader header;
-    header.type = 0;
-    header.metaType = 0;
-    header.metaLength = serializedMessage.size();
-    header.dataType = 0;
-    header.dataLenght = 0;
-
-    QByteArray machineHeader = TcpProtocol::writeMachineHeader(header);
+    QByteArray fullMessage = TcpProtocol::createMessage(message);
 
     QEventLoop pause;
     connect(connection, SIGNAL(readyRead()), &pause, SLOT(quit()));
 
-    connection->write(machineHeader + serializedMessage);
+    connection->write(fullMessage);
 
     //ожидание ответа
     pause.exec();
 
-    QJson::Parser parser;
     QByteArray answer = connection->readAll();
-
-    if(answer.startsWith("#!"))
-    {
-        answer.remove(0, 30);
-    }
-
-    QVariantMap parsedMessage = parser.parse(answer).toMap();
-
-    op =  CommandHandler::messageToCamacOp(parsedMessage);
-    /*
-    //считывание ответа
-    QDataStream in(connection);
-    in.setVersion(QDataStream::Qt_4_0);
-
-    in >> op_message;
-
-    op = op_message.toCamacOp();
-    */
+    QByteArray data;
+    TcpProtocol::parceMessage(answer, message, data);
+    op =  CommandHandler::messageToCamacOp(message);
 }
 void CamacImplCCPC7::processError()
 {
@@ -144,23 +115,10 @@ void CamacImplCCPC7::init()
 {
     //создание посылки
     QVariantMap message;
-    QJson::Serializer serializer;
-    serializer.setIndentMode(QJson::IndentFull); // в настройки
-
     message.insert("type", "command");
     message.insert("command_type", "init");
 
-    QByteArray serializedMessage = serializer.serialize(message);
+    QByteArray fullMessage = TcpProtocol::createMessage(message);
 
-    //создание бинарного хедера
-    MachineHeader header;
-    header.type = 0;
-    header.metaType = 0;
-    header.metaLength = serializedMessage.size();
-    header.dataType = 0;
-    header.dataLenght = 0;
-
-    QByteArray machineHeader = TcpProtocol::writeMachineHeader(header);
-
-    connection->write(machineHeader + serializedMessage);
+    connection->write(fullMessage);
 }

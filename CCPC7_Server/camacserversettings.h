@@ -2,7 +2,6 @@
 #define CAMACSERVERSETTINGS_H
 
 #include <QObject>
-#include <QJson/Serializer>
 #include <inimanager.h>
 #include <easylogging++.h>
 

@@ -18,6 +18,8 @@
 #include <QJsonDocument>
 #include <QColorDialog>
 
+#include <vector>
+
 namespace Ui {
 class DataVisualizerForm;
 }
@@ -131,6 +133,30 @@ protected slots:
      * \warning метод не проверяет границы таблицы.
      */
     void setMetaTableText(int col, int row, QString text);
+};
+
+/// \brief Класс для визуализации APD файлов.
+class APDFileDrawer : public FileDrawer
+{
+    Q_OBJECT
+public:
+    APDFileDrawer(QTableWidget *table, QCustomPlot *plot, QString filename, QObject *parent = 0);
+    ~APDFileDrawer();
+
+public slots:
+    virtual void setMetaDataToTable();
+    virtual void setVisible(bool visible, GraphMode graphMode);
+    virtual void setColor(QColor color);
+    virtual void update();
+
+private slots:
+    void drawPart(QCPRange range);
+
+private:
+    bool loaded = 0;
+
+    QCPGraph *graph;
+    std::vector<int*> data;
 };
 
 /*!

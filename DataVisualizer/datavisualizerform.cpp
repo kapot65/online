@@ -765,52 +765,62 @@ void DataVisualizerForm::on_fileBrowser_clicked(const QModelIndex &index)
 
     if(!(opened_files.contains(filepath)))
     {
-        //определение типа файла
-        QFile file(filepath);
-        file.open(QIODevice::ReadOnly);
-        QByteArray fileData = file.readAll();
-        file.close();
-
-        QVariantMap meta;
-        QByteArray data;
-        if(TcpProtocol::parceMessage(fileData, meta, data, 1))
+        //определение APD файла
+        /// \todo Изменить проверку на APD файл.
+        if(index.data().toString() == "APD_126_10_ev")
         {
-            //обработка точки
-            if(meta["reply_type"].toString() == "aquired_point")
-            {
-                PointFileDrawer *pfd = new PointFileDrawer(ui->metaTable, plot, filepath, this);
-                opened_files[filepath] = pfd;
-            }
-            else
-                if(meta["type"] == "info_file")
-                {
-                    InfoFileDrawer *ifd = new InfoFileDrawer(ui->metaTable, plot, filepath, this);
-                    opened_files[filepath] = ifd;
+            APDFileDrawer *apdfd = new APDFileDrawer(ui->metaTable, plot, filepath, this);
+            opened_files[filepath] = apdfd;
+        }
+        else
+        {
+            //определение типа файла
+            QFile file(filepath);
+            file.open(QIODevice::ReadOnly);
+            QByteArray fileData = file.readAll();
+            file.close();
 
-                    //настройка автообновления файла
-                    if(interactive)
-                    {
-                        QTimer *timer = new QTimer(ifd);
-                        connect(timer, SIGNAL(timeout()), ifd, SLOT(update()), Qt::QueuedConnection);
-                        timer->start(5000); // в настройки
-                    }
+            QVariantMap meta;
+            QByteArray data;
+            if(TcpProtocol::parceMessage(fileData, meta, data, 1))
+            {
+                //обработка точки
+                if(meta["reply_type"].toString() == "aquired_point")
+                {
+                    PointFileDrawer *pfd = new PointFileDrawer(ui->metaTable, plot, filepath, this);
+                    opened_files[filepath] = pfd;
                 }
                 else
-                    if(meta["type"] == "voltage")
+                    if(meta["type"] == "info_file")
                     {
-                        VoltageFileDrawer *vfd = new VoltageFileDrawer(ui->metaTable, plot, filepath, this);
-                        opened_files[filepath] = vfd;
+                        InfoFileDrawer *ifd = new InfoFileDrawer(ui->metaTable, plot, filepath, this);
+                        opened_files[filepath] = ifd;
+
+                        //настройка автообновления файла
                         if(interactive)
                         {
-                            QTimer *timer = new QTimer(vfd);
-                            connect(timer, SIGNAL(timeout()), vfd, SLOT(update()), Qt::QueuedConnection);
+                            QTimer *timer = new QTimer(ifd);
+                            connect(timer, SIGNAL(timeout()), ifd, SLOT(update()), Qt::QueuedConnection);
                             timer->start(5000); // в настройки
                         }
                     }
                     else
-                        //файл не подошел ни под один
-                        //из распознаемых типов
-                        return;
+                        if(meta["type"] == "voltage")
+                        {
+                            VoltageFileDrawer *vfd = new VoltageFileDrawer(ui->metaTable, plot, filepath, this);
+                            opened_files[filepath] = vfd;
+                            if(interactive)
+                            {
+                                QTimer *timer = new QTimer(vfd);
+                                connect(timer, SIGNAL(timeout()), vfd, SLOT(update()), Qt::QueuedConnection);
+                                timer->start(5000); // в настройки
+                            }
+                        }
+                        else
+                            //файл не подошел ни под один
+                            //из распознаемых типов
+                            return;
+            }
         }
     }
 
@@ -818,4 +828,101 @@ void DataVisualizerForm::on_fileBrowser_clicked(const QModelIndex &index)
     if(opened_files.contains(filepath))
         opened_files[filepath]->setMetaDataToTable();
     return;
+}
+
+
+APDFileDrawer::APDFileDrawer(QTableWidget *table, QCustomPlot *plot, QString filename, QObject *parent)
+: FileDrawer(table, plot, filename, parent)
+{
+    loaded = 0;
+
+    connect(plot->xAxis, SIGNAL(rangeChanged(QCPRange)), this, SLOT(drawPart(QCPRange)));
+    update();
+}
+
+APDFileDrawer::~APDFileDrawer()
+{
+    for(int i = 0; i < data.size(); i++)
+    {
+        delete[] data[i];
+    }
+}
+
+void APDFileDrawer::setMetaDataToTable()
+{
+    table->clearContents();
+    table->setRowCount(1);
+    table->setColumnCount(2);
+    setMetaTableText(0, 0, tr("тип файла"));
+    setMetaTableText(1, 0, tr("файл APD"));
+}
+
+void APDFileDrawer::setVisible(bool visible, GraphMode graphMode)
+{
+}
+
+void APDFileDrawer::setColor(QColor color)
+{
+}
+
+void APDFileDrawer::update()
+{
+    //считывается только один раз
+    if(!loaded)
+    {
+        //парсинг файла
+        QTextStream ts(file);
+
+
+        QString buf;
+        while(!ts.atEnd())
+        {
+            int *point = new int[3];
+            //считывание времени
+            ts >> buf;
+            point[0] = buf.toInt();
+
+            //считывание амплитуды
+            ts >> buf;
+            point[1] = buf.toInt();
+
+            //пропуск интервала
+            ts >> buf;
+
+            //считывание ширины
+            ts >> buf;
+            point[2] = buf.toInt();
+
+            //записывание события на график
+            data.push_back(point);
+        }
+    }
+}
+
+void APDFileDrawer::drawPart(QCPRange range)
+{
+    if(data.size())
+        return;
+
+    int min = range.minRange;
+    int max = range.maxRange;
+    //определение нужной части графика
+    int positions[3] = {data[0][0], data[data.size()/2][0], data[data.size()][0]};
+    while(1)
+    {
+        if(min < positions[1]);
+        {
+            positions[2] = positions[1];
+            positions[1] = positions[2]/2;
+        }
+        else
+        {
+            positions[0] = positions[1];
+            positions[1] = positions[0] + (positions[2] - positions[0])/2;
+
+        }
+
+    }
+    //for(int i = 0; i < )
+
 }

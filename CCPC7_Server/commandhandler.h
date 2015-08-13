@@ -7,8 +7,6 @@
 #include <QEventLoop>
 #include <stdlib.h>
 #include <QCoreApplication>
-#include <QJson/Parser>
-#include <QJson/Serializer>
 #include <QDate>
 #include <QTime>
 
