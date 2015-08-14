@@ -837,15 +837,13 @@ APDFileDrawer::APDFileDrawer(QTableWidget *table, QCustomPlot *plot, QString fil
     loaded = 0;
 
     connect(plot->xAxis, SIGNAL(rangeChanged(QCPRange)), this, SLOT(drawPart(QCPRange)));
+
     update();
 }
 
 APDFileDrawer::~APDFileDrawer()
 {
-    for(int i = 0; i < data.size(); i++)
-    {
-        delete[] data[i];
-    }
+    plot->removeGraph(graph);
 }
 
 void APDFileDrawer::setMetaDataToTable()
@@ -859,10 +857,22 @@ void APDFileDrawer::setMetaDataToTable()
 
 void APDFileDrawer::setVisible(bool visible, GraphMode graphMode)
 {
+    isVisible = visible;
+    switch(graphMode)
+    {
+        case RELATIVE_TIME:
+            graph->setVisible(visible);
+            break;
+        default:
+            graph->setVisible(false);
+            break;
+    }
 }
 
 void APDFileDrawer::setColor(QColor color)
 {
+    this->color = color;
+    graph->setPen(QPen(color));
 }
 
 void APDFileDrawer::update()
@@ -873,56 +883,67 @@ void APDFileDrawer::update()
         //парсинг файла
         QTextStream ts(file);
 
-
         QString buf;
         while(!ts.atEnd())
         {
-            int *point = new int[3];
             //считывание времени
             ts >> buf;
-            point[0] = buf.toInt();
+            time.push_back(buf.toInt());
 
             //считывание амплитуды
             ts >> buf;
-            point[1] = buf.toInt();
+            val.push_back(buf.toInt());
 
             //пропуск интервала
             ts >> buf;
 
             //считывание ширины
             ts >> buf;
-            point[2] = buf.toInt();
-
-            //записывание события на график
-            data.push_back(point);
+            width.push_back(buf.toInt());
         }
+
+        graph = plot->addGraph();
+        graph->setPen(QPen(color));
+        graph->setLineStyle(QCPGraph::lsStepLeft);
     }
 }
 
 void APDFileDrawer::drawPart(QCPRange range)
 {
-    if(data.size())
+    if(!time.size())
         return;
 
-    int min = range.minRange;
-    int max = range.maxRange;
-    //определение нужной части графика
-    int positions[3] = {data[0][0], data[data.size()/2][0], data[data.size()][0]};
-    while(1)
+    //определение максимального количества точек, которые могут быть отображены на экране
+    int maxPoints = plot->width();
+
+
+    int min = range.lower;
+    int max = range.upper;
+
+    //получение индекса точек, попадающих в границу
+    std::vector<int>::iterator itMin = std::lower_bound(time.begin(), time.end(), min);
+    std::vector<int>::iterator itMax = std::upper_bound(time.begin(), time.end(), max);
+
+    int minInd = itMin - time.begin();
+    int maxInd = itMax - time.begin();
+
+    int step = qMax(1, (maxInd - minInd)/maxPoints);
+
+    QVector<double> x, y;
+
+    x.push_back(0);
+    y.push_back(0);
+    for(int i = minInd; i < maxInd; i+= step)
     {
-        if(min < positions[1]);
-        {
-            positions[2] = positions[1];
-            positions[1] = positions[2]/2;
-        }
-        else
-        {
-            positions[0] = positions[1];
-            positions[1] = positions[0] + (positions[2] - positions[0])/2;
+        x.push_back(time[i]);
+        y.push_back(val[i]);
 
-        }
-
+        x.push_back(time[i] + width[i]);
+        y.push_back(0);
     }
-    //for(int i = 0; i < )
+    x.push_back(time[time.size() - 1]);
+    y.push_back(0);
 
+    graph->setData(x, y);
+    plot->replot();
 }

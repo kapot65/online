@@ -136,6 +136,10 @@ protected slots:
 };
 
 /// \brief Класс для визуализации APD файлов.
+/// \details Оптимизирован под вывод больших данных.
+/// \todo Добавить обработку метаданных.
+/// \todo Сделать корректное время.
+/// \todo Добавить описание.
 class APDFileDrawer : public FileDrawer
 {
     Q_OBJECT
@@ -153,10 +157,18 @@ private slots:
     void drawPart(QCPRange range);
 
 private:
+    /// \brief Флаг загрузки файла.
     bool loaded = 0;
 
+    /// \указатель на график
     QCPGraph *graph;
-    std::vector<int*> data;
+
+    ///\brief Вектор времени
+    std::vector<int> time;
+    ///\brief Вектор времени
+    std::vector<int> val;
+    ///\brief Вектор ширины
+    std::vector<int> width;
 };
 
 /*!
