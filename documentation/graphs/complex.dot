@@ -1,0 +1,69 @@
+graph Online
+{
+	splines=polyline
+	node [shape=box];
+	esep=20;
+
+	
+
+	subgraph cluster_0
+	{
+		label="Пользовалели";
+		User;
+		Programmer;	
+	}
+	
+
+	User -- OnlineForm[label="Управление"]
+	Programmer -- OnlineForm[label="Управление"]
+	Programmer -- HVHandlerForm[label="Управление"]
+	Programmer -- CCPCHandlerForm[label="Управление"]
+
+
+	subgraph cluster_1
+	{
+		rankDir = "TB"
+		label="CamacClient";
+
+		OnlineForm;
+		HVHandlerForm;
+		CCPCHandlerForm;
+		DatavisualizerForm;
+
+		Online;
+
+		CCPC7Handler;
+		HVHandler;
+
+		{rank=same OnlineForm HVHandlerForm CCPCHandlerForm DatavisualizerForm}
+		{rank=same HVHandler CCPC7Handler}
+		 
+	} 
+	Online -- OnlineForm[label="Управление\nходом набора"]
+	Online -- DatavisualizerForm[label="Визуализация\nнабранных\nданных"];
+	Online -- CCPC7Handler[label="Управление\nCamac"];
+	Online -- HVHandler[label="Управление\nвысоким\nнапряжением"];
+	HVHandlerForm -- HVHandler [label="Ручное управление\nвысоким\nнапряжением"];
+	CCPCHandlerForm -- CCPC7Handler [label="Ручное\nуправление\nCamac"];
+	
+	CCPC7Handler -- CCPC7Server[label="Общение через Tcp", style="dashed"];
+	
+	subgraph cluster_2
+	{
+		label="CCPC_Server";
+		CCPC7Server -- TempFolder[label="Хранение\nпоследних\nнабранных\nфайлов"];
+		CCPC7Server -- Camac[label="Управление\nCamac посредством\nCCPC7 Api", style="dashed"];
+	}
+
+	HVHandler -- HVServer[label="Общение через Tcp", style="dashed"];
+
+	subgraph cluster_3
+	{
+		label="HV_Server";
+		
+		HVServer -- Voltmeter1[label="Управление\nчерез\nCom порт", style="dashed"];
+		HVServer -- Voltmeter2[label="Управление\nчерез\nCom порт", style="dashed"];
+		HVServer --  Block1[label="Управление\nчерез\nCom порт", style="dashed"];
+		HVServer -- Block2[label="Управление\nчерез\nCom порт", style="dashed"];
+	}
+}

@@ -68,8 +68,6 @@ void DataVisualizerForm::visualizeFile(QString filepath)
         opened_files[filepath]->setVisible(!opened_files[filepath]->visible(), getCurrentGraphMode());
 
         //проверка существования файла (на случай если hv файл еще не успел записаться)
-        if(opened_files.contains(filepath))
-            opened_files[filepath]->setMetaDataToTable();
         plot->rescaleAxes(true);
         plot->replot();
     }
@@ -453,6 +451,31 @@ void PointFileDrawer::setColor(QColor color)
 
 QMap<int, unsigned short> PointFileDrawer::aviableMeasureTimes = TcpProtocol::getAviableMeasuteTimes();
 
+template<typename T>
+QCPBars *FileDrawer::createHist(QVector<T> data, QCustomPlot *plot, double minVal, double maxVal, int bins)
+{
+    //пересчет данных на бины
+    float diff = ((float)bins / (double)(maxVal - minVal));
+    QVector<double> hist(bins);
+    QVector<double> bin(bins);
+
+    for(int i = 0; i < data.size(); i++)
+        hist[qMin((int)((((double)data[i]) - minVal) * diff), bins - 1)]++;
+
+    for (int i = 0; i < bins; i++)
+        bin[i] = (((double)i + 0.5) / (double)bins) * (double)(maxVal - minVal) + minVal;
+
+    //создание графика
+    QCPBars *bars;
+    bars = new QCPBars(plot->xAxis, plot->yAxis);
+    bars->setWidth((1. / (double)bins) * (double)(maxVal - minVal));
+    bars->setData(bin, hist);
+    bars->setPen(Qt::NoPen);
+    bars->setBrush(QBrush(color));
+
+    return bars;
+}
+
 void PointFileDrawer::update()
 {
     //файл рисуется только один раз, т.к. он не обновляется
@@ -529,28 +552,12 @@ void PointFileDrawer::update()
         graph_relative.last()->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, 5));
 
         //создание гистограммы
-        int max_size = 4096;
-        int bins = 128;
-
-        float diff = ((float)bins / (double)max_size);
-        QVector<double> hist(bins);
-        QVector<double> bin(bins);
-
+        QVector<unsigned short> data(events.size());
         for(int i = 0; i < events.size(); i++)
-        {
-            hist[qMin((int)((double)events[i].data * diff), max_size - 1)]++;
-        }
-
-        for (int i = 0; i < bins; i++)
-            bin[i] = (((double)i + 0.5) / (double)bins) * (double)max_size;
-
-        bars.push_back(new QCPBars(plot->xAxis, plot->yAxis));
+           data[i] = events[i].data;
+        bars.push_back(createHist<unsigned short>(data, plot));
         plot->addPlottable(bars.last());
-        bars.last()->setPen(Qt::NoPen);
-        bars.last()->setWidth((1. / (double)bins) * (double)max_size);
-        bars.last()->setData(bin, hist);
         bars.last()->setVisible(false);
-        bars.last()->setBrush(QBrush(color));
     }
 
     emit updated();
@@ -836,6 +843,12 @@ APDFileDrawer::APDFileDrawer(QTableWidget *table, QCustomPlot *plot, QString fil
 {
     loaded = 0;
 
+    histType = AMPLITUDE;
+    amplHist = 0;
+    intervalHist = 0;
+
+    histSetWidget = 0;
+
     connect(plot->xAxis, SIGNAL(rangeChanged(QCPRange)), this, SLOT(drawPart(QCPRange)));
 
     update();
@@ -843,16 +856,56 @@ APDFileDrawer::APDFileDrawer(QTableWidget *table, QCustomPlot *plot, QString fil
 
 APDFileDrawer::~APDFileDrawer()
 {
+    histSetWidget->deleteLater();
+    plot->removePlottable(amplHist);
+    plot->removePlottable(intervalHist);
     plot->removeGraph(graph);
 }
 
 void APDFileDrawer::setMetaDataToTable()
 {
     table->clearContents();
-    table->setRowCount(1);
+    table->setRowCount(2);
     table->setColumnCount(2);
     setMetaTableText(0, 0, tr("тип файла"));
     setMetaTableText(1, 0, tr("файл APD"));
+
+
+    setMetaTableText(1, 0, tr("Показывать гистограмму по"));
+
+
+    //создание кнопок выбора гистграммы
+    if(histSetWidget)
+    {
+        delete histSetWidget;
+        histSetWidget = 0;
+    }
+
+
+    histSetWidget = new QWidget();
+    QHBoxLayout *layout = new QHBoxLayout(histSetWidget);
+    histSetWidget->setLayout(layout);
+    histSetButtons[0] = new QRadioButton("амплитуде", histSetWidget);
+    histSetButtons[1] = new QRadioButton("интервалу", histSetWidget);
+    connect(histSetButtons[0], SIGNAL(pressed()), this, SLOT(changeHistType()));
+    connect(histSetButtons[1], SIGNAL(pressed()), this, SLOT(changeHistType()));
+    layout->addWidget(histSetButtons[0]);
+    layout->addWidget(histSetButtons[1]);
+
+    switch (histType)
+    {
+        case AMPLITUDE:
+            histSetButtons[0]->setChecked(true);
+            break;
+        case INTERVAL:
+            histSetButtons[1]->setChecked(true);
+            break;
+    }
+    table->setCellWidget(1, 1, histSetWidget);
+
+
+    table->resizeColumnsToContents();
+    table->resizeRowsToContents();
 }
 
 void APDFileDrawer::setVisible(bool visible, GraphMode graphMode)
@@ -860,11 +913,31 @@ void APDFileDrawer::setVisible(bool visible, GraphMode graphMode)
     isVisible = visible;
     switch(graphMode)
     {
+        case HISTOGRAMM:
+            graph->setVisible(false);
+            switch (histType)
+            {
+                case AMPLITUDE:
+                    amplHist->setVisible(visible);
+                    intervalHist->setVisible(false);
+                    break;
+                case INTERVAL:
+                    amplHist->setVisible(false);
+                    intervalHist->setVisible(visible);
+                    break;
+            }
+            break;
+
         case RELATIVE_TIME:
             graph->setVisible(visible);
+            amplHist->setVisible(false);
+            intervalHist->setVisible(false);
+
             break;
         default:
             graph->setVisible(false);
+            amplHist->setVisible(false);
+            intervalHist->setVisible(false);
             break;
     }
 }
@@ -873,6 +946,8 @@ void APDFileDrawer::setColor(QColor color)
 {
     this->color = color;
     graph->setPen(QPen(color));
+    amplHist->setBrush(QBrush(color));
+    intervalHist->setBrush(QBrush(color));
 }
 
 void APDFileDrawer::update()
@@ -880,6 +955,12 @@ void APDFileDrawer::update()
     //считывается только один раз
     if(!loaded)
     {
+        int minAmpl = 0;
+        int maxAmpl = 0;
+
+        int minInterval = 0;
+        int maxInterval = 0;
+
         //парсинг файла
         QTextStream ts(file);
 
@@ -892,10 +973,25 @@ void APDFileDrawer::update()
 
             //считывание амплитуды
             ts >> buf;
-            val.push_back(buf.toInt());
+            int ampl = buf.toInt();
 
-            //пропуск интервала
+            if(ampl < minAmpl)
+                minAmpl = ampl;
+            if(ampl > maxAmpl)
+                maxAmpl = ampl;
+
+            val.push_back(ampl);
+
+            //считывание интервала
             ts >> buf;
+            int inter = buf.toInt();
+
+            if(inter > minInterval)
+                minInterval = inter;
+            if(inter < maxInterval)
+                maxInterval = inter;
+
+            interval.push_back(inter);
 
             //считывание ширины
             ts >> buf;
@@ -905,11 +1001,23 @@ void APDFileDrawer::update()
         graph = plot->addGraph();
         graph->setPen(QPen(color));
         graph->setLineStyle(QCPGraph::lsStepLeft);
+
+        //построение гистограмм
+
+        amplHist = createHist<int>(val, plot, minAmpl, maxAmpl, qAbs(maxAmpl - minAmpl));
+        amplHist->setVisible(false);
+        intervalHist = createHist<int>(interval, plot, minInterval, maxInterval, qAbs(maxInterval - minInterval) / 4);
+        intervalHist->setVisible(false);
     }
+
+    emit updated();
 }
 
 void APDFileDrawer::drawPart(QCPRange range)
 {
+    if(!graph->visible())
+        return;
+
     if(!time.size())
         return;
 
@@ -921,11 +1029,34 @@ void APDFileDrawer::drawPart(QCPRange range)
     int max = range.upper;
 
     //получение индекса точек, попадающих в границу
+    /*
     std::vector<int>::iterator itMin = std::lower_bound(time.begin(), time.end(), min);
     std::vector<int>::iterator itMax = std::upper_bound(time.begin(), time.end(), max);
 
     int minInd = itMin - time.begin();
     int maxInd = itMax - time.begin();
+    */
+    int minInd = 0;
+    int maxInd = time.size() - 1;
+
+    bool minFound = false;
+    bool maxFound = false;
+    for(int i = 0; i < time.size(); i++)
+    {
+        if(!minFound && time[i] > min)
+        {
+            minFound = true;
+            minInd = qMax(0, i - 1);
+        }
+
+        if(!maxFound && time[i] > max)
+        {
+            maxFound = true;
+            maxInd = i;
+            break;
+        }
+    }
+
 
     int step = qMax(1, (maxInd - minInd)/maxPoints);
 
@@ -946,4 +1077,12 @@ void APDFileDrawer::drawPart(QCPRange range)
 
     graph->setData(x, y);
     plot->replot();
+}
+
+void APDFileDrawer::changeHistType()
+{
+    if(histSetButtons[0]->isChecked())
+        histType = AMPLITUDE;
+    if(histSetButtons[1]->isChecked())
+        histType = INTERVAL;
 }

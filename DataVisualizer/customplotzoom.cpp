@@ -45,16 +45,23 @@ void CustomPlotZoom::mouseReleaseEvent(QMouseEvent * event)
     if (mRubberBand->isVisible())
     {
         const QRect & zoomRect = mRubberBand->geometry();
-        int xp1, yp1, xp2, yp2;
-        zoomRect.getCoords(&xp1, &yp1, &xp2, &yp2);
-        double x1 = xAxis->pixelToCoord(xp1);
-        double x2 = xAxis->pixelToCoord(xp2);
-        double y1 = yAxis->pixelToCoord(yp1);
-        double y2 = yAxis->pixelToCoord(yp2);
 
-        xAxis->setRange(x1, x2);
-        yAxis->setRange(y1, y2);
+        if(zoomRect.width() + zoomRect.height() < 8)
+        {
+            rescaleAxes(true);
+        }
+        else
+        {
+            int xp1, yp1, xp2, yp2;
+            zoomRect.getCoords(&xp1, &yp1, &xp2, &yp2);
+            double x1 = xAxis->pixelToCoord(xp1);
+            double x2 = xAxis->pixelToCoord(xp2);
+            double y1 = yAxis->pixelToCoord(yp1);
+            double y2 = yAxis->pixelToCoord(yp2);
 
+            xAxis->setRange(x1, x2);
+            yAxis->setRange(y1, y2);
+        }
         mRubberBand->hide();
         replot();
     }

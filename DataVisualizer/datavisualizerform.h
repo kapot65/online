@@ -91,6 +91,20 @@ public slots:
     virtual void update() = 0;
 
 protected:
+
+    /*!
+     * \brief Создать график гистограммы по данным.
+     * \param data Вектор данных.
+     * \param plot Указатель на график, где будет нарисована гистограмма.
+     * \param minVal Минимальное значение данных.
+     * \param maxVal Максимальное значение данных.
+     * \param bins Количество бинов.
+     * \return График гистограммы.
+     * \todo Добавить проверку значений.
+     */
+    template<typename T>
+    QCPBars* createHist(QVector<T> data, QCustomPlot *plot,double minVal = 0, double maxVal = 4096, int bins = 128);
+
     /*!
      * \brief Получить произвольный цвет.
      * \return Цвет.
@@ -135,11 +149,22 @@ protected slots:
     void setMetaTableText(int col, int row, QString text);
 };
 
+
+///
+/// \brief Тип выводимой гистограммы для APDFileDrawer
+///
+enum APD_HIST_TYPE
+{
+    AMPLITUDE = 0,
+    INTERVAL = 1
+};
+
 /// \brief Класс для визуализации APD файлов.
 /// \details Оптимизирован под вывод больших данных.
 /// \todo Добавить обработку метаданных.
 /// \todo Сделать корректное время.
 /// \todo Добавить описание.
+/// \todo Ускорить поиск границ.
 class APDFileDrawer : public FileDrawer
 {
     Q_OBJECT
@@ -155,20 +180,33 @@ public slots:
 
 private slots:
     void drawPart(QCPRange range);
+    void changeHistType();
 
 private:
     /// \brief Флаг загрузки файла.
     bool loaded = 0;
 
-    /// \указатель на график
+    /// \brief Указатель на график.
     QCPGraph *graph;
+
+    /// \brief Указатель на гистограмму по амплитуде.
+    QCPBars *amplHist;
+
+    /// \brief Указатель на гистограмму по интервалу.
+    QCPBars *intervalHist;
 
     ///\brief Вектор времени
     std::vector<int> time;
     ///\brief Вектор времени
-    std::vector<int> val;
+    QVector<int> val;
+    ///\brief Вектор интервалов между событиями
+    QVector<int> interval;
     ///\brief Вектор ширины
-    std::vector<int> width;
+    QVector<int> width;
+
+    APD_HIST_TYPE histType;
+    QWidget *histSetWidget;
+    QRadioButton *histSetButtons[2];
 };
 
 /*!
@@ -294,7 +332,6 @@ private:
  * \brief Виджет для визуализации набранных данных.
  * Виджет позволяет открывать файлы с данными и визуализировать их
  * с помощью QCustomPlot.
- * \todo Добавить возможность визуализации файлов с APD.
  * \todo Добавить возможность визуализации файлов сценария.
  */
 class DataVisualizerForm : public QWidget
