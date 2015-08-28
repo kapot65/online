@@ -99,11 +99,13 @@ protected:
      * \param minVal Минимальное значение данных.
      * \param maxVal Максимальное значение данных.
      * \param bins Количество бинов.
+     * \param binMax Максимальное количество элементов в бине.
      * \return График гистограммы.
      * \todo Добавить проверку значений.
      */
     template<typename T>
-    QCPBars* createHist(QVector<T> data, QCustomPlot *plot,double minVal = 0, double maxVal = 4096, int bins = 128);
+    QCPBars* createHist(QVector<T> data, QCustomPlot *plot,double minVal = 0, double maxVal = 4096, int bins = 128,
+                        int *binMax = 0);
 
     /*!
      * \brief Получить произвольный цвет.
@@ -179,6 +181,11 @@ public slots:
     virtual void update();
 
 private slots:
+    /*!
+     * \brief Рисует видимую часть графика. Также подчитывает
+     * текущее количество событий и выводит их в таблицу метаданных.
+     * Присоединен к сигналу QCPAxis::rangeChanged
+     */
     void drawPart(QCPRange range);
     void changeHistType();
 
@@ -189,11 +196,17 @@ private:
     /// \brief Указатель на график.
     QCPGraph *graph;
 
+    /// \brief Вспомогательный график для APDFileDrawer::graph.
+    /// Содержит границы данных и имеет прозрачный цвет. Используется для
+    /// автомасштабирования.
+    QCPGraph *graphBorder;
+
     /// \brief Указатель на гистограмму по амплитуде.
     QCPBars *amplHist;
 
     /// \brief Указатель на гистограмму по интервалу.
     QCPBars *intervalHist;
+
 
     ///\brief Вектор времени
     std::vector<int> time;

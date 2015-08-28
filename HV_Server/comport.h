@@ -57,7 +57,6 @@ protected:
      * \brief Ожидание готовности сообщения
      * \param timeout Таймаут в миллисекундах.
      * \return true - сообщение получено. false - выход по таймауту.
-     * \todo добавить таймауты в DividerReder.
      */
     bool waitForMessageReady(int timeout = 5000);
 

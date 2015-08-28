@@ -7,7 +7,9 @@
 #include <QtEndian>
 #include <QFile>
 #include <QTime>
-#include <QDebug>
+#ifdef TEST_MODE
+    #include <QDebug>
+#endif
 
 #include <QTimer>
 #include <QEventLoop>
@@ -21,7 +23,6 @@
 
 /*!
  * \brief Класс содержит алгоритмы для работы с камаком.
- * \todo Поменять LOG(DEBUG) на TEST_MODE
  */
 class CamacAlgoritm : public QObject
 {

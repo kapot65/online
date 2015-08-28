@@ -38,7 +38,10 @@ void CamacAlgoritm::resetCounters()
     unsigned short none = 0;
 
     //обнуление всех счетчиков
-    LOG(DEBUG) << "Reseting counters";
+#ifdef TEST_MODE
+    qDebug() << "Reseting counters";
+#endif
+
     none  = 0;
     for(int j = 0; j < 7; j++)
     {
@@ -76,14 +79,19 @@ unsigned int CamacAlgoritm::getCounterValue(int counterNum, int channelNum, bool
 #ifndef VIRTUAL_MODE
     unsigned short data = 0;
     NAF(counter, channelNum, f, data);
-    LOG(DEBUG) << QString("Counter: %1, A: %2, data: %3").arg(counter)
-                  .arg(channelNum).arg(data).toStdString();
-    fullData = data;
+#ifdef TEST_MODE
+    qDebug() << QString("Counter: %1, A: %2, data: %3").arg(counter)
+                .arg(channelNum).arg(data);
+#endif
 
     data = 0;
     NAF(counter, channelNum + 4, f, data);
-    LOG(DEBUG) << QString("Counter: %1, A: %2, data: %3").arg(counter)
-                  .arg(channelNum).arg(data).toStdString();
+
+#ifdef TEST_MODE
+    qDebug() << QString("Counter: %1, A: %2, data: %3").arg(counter)
+                .arg(channelNum).arg(data);
+#endif
+
     fullData += 65536 * data;
 #else
     fullData = qrand() % 4096;
@@ -97,13 +105,12 @@ QVector<Event> CamacAlgoritm::acquirePoint(unsigned short measureTime, bool *man
     breakFlag = 0;
 
     unsigned short none = 0;
-    //отключение сигнала тестового генератора (ни на что не влияет)
-    //LOG(DEBUG) << "Disabling Test generator signals";
-    //NAF(TG1, 0, 16, none);
-
 
     //установка TLL_NIM  в состояние
-    LOG(DEBUG) << "Disabling TTL";
+#ifdef TEST_MODE
+    qDebug() << "Disabling TTL";
+#endif
+
     unsigned short data = 0xFFFF;
 #ifndef VIRTUAL_MODE
     NAF(settings->getTTL_NIM(), 0, 17, data);
@@ -113,14 +120,20 @@ QVector<Event> CamacAlgoritm::acquirePoint(unsigned short measureTime, bool *man
 #endif
 
     //установка MADC в режим измерения
-    LOG(DEBUG) << "Setting MADS to measuring mode";
+#ifdef TEST_MODE
+    qDebug() << "Setting MADS to measuring mode";
+#endif
+
     long MADCaddr = 0;
 #ifndef VIRTUAL_MODE
     setMADCAddr(MADCaddr, measureTime);
 #endif
 
     //обнуление всех счетчиков
-    LOG(DEBUG) << "Reseting counters";
+#ifdef TEST_MODE
+    qDebug() << "Reseting counters";
+#endif
+
     none  = 0;
 
 #ifndef VIRTUAL_MODE
@@ -136,21 +149,28 @@ QVector<Event> CamacAlgoritm::acquirePoint(unsigned short measureTime, bool *man
     //задержка 10 мс (нужна?)
     waitMSec(10);
 
-    unsigned short NONE  = 0;
-    // Enable all outputs in OV1, Up Channel
-    LOG(DEBUG) << "Enable all outputs in OV1, Up Channel";
+#ifdef TEST_MODE
+    qDebug() << "Enable all outputs in OV1, Up Channel";
+#endif
+
 #ifndef VIRTUAL_MODE
     data = 0x1F;
     NAF(settings->getOV1(), 0, 16, data);
 #endif
-    // Enable all outputs in OV1, Down Channel
-    LOG(DEBUG) << "Enable all outputs in OV1, Down Channel";
+
+#ifdef TEST_MODE
+    qDebug() << "Enable all outputs in OV1, Down Channel";
+#endif
+
 #ifndef VIRTUAL_MODE
     data = 0x0F;
     NAF(settings->getOV1(), 1, 16, data);
 #endif
-    // "Start" pulse
-    LOG(DEBUG) << "\"Start\" pulse";
+
+#ifdef TEST_MODE
+    qDebug() << "\"Start\" pulse";
+#endif
+
 #ifndef VIRTUAL_MODE
     NAF(settings->getOV1(), 0, 25, NONE);
 #endif
@@ -168,7 +188,9 @@ QVector<Event> CamacAlgoritm::acquirePoint(unsigned short measureTime, bool *man
         getMADCAddr(addr, addrOverflow, endOfMeasurement);
         //количество зафиксированных частиц на текущий момент
         total_events = addr;
-        LOG(DEBUG) << "Total events = " << total_events << " aovfl = " << addrOverflow << " EoM = " << endOfMeasurement;
+        #ifdef TEST_MODE
+            qDebug() << tr("Total events = %1, aovfl = %2, EoM = %3").arg(total_events).arg(addrOverflow).arg(endOfMeasurement);
+        #endif
         emit currentEventCount(total_events);
     }
     while(!addrOverflow && !endOfMeasurement && !breakFlag);
@@ -216,17 +238,25 @@ QVector<Event> CamacAlgoritm::acquirePoint(unsigned short measureTime, bool *man
     //полное количество зафиксированных частиц
     total_events = addr;
     emit currentEventCount(total_events);
-    LOG(DEBUG) << "Acquisition of point done. Total events = " << total_events;
+#ifdef TEST_MODE
+    qDebug() << tr("Acquisition of point done. Total events = %1").arg(total_events);
+#endif
 
     //установка времени сбора (?) 2115
-    LOG(DEBUG) << "Setting measurement time (?)";
+#ifdef TEST_MODE
+    qDebug() << "Setting measurement time (?)";
+#endif
+
     long madcAddr = 0;
     setMADCAddr(madcAddr, measureTime);
 
 
     //очистка прошлых данных
     QVector<Event> events;
-    LOG(DEBUG) << "Reading acquired data from CamacAlgoritm";
+#ifdef TEST_MODE
+    qDebug() << "Reading acquired data from CamacAlgoritm";
+#endif
+
     for(int j =0; j < addr; j++)
     {
 
@@ -275,8 +305,6 @@ QVector<Event> CamacAlgoritm::acquirePoint(unsigned short measureTime, bool *man
     }
 
 /*
-        LOG(DEBUG) << "params.measurePoints.at(i) < No_Time_HV ";
-
         FOR li := 1 TO ADDR DO
             BEGIN
                 READ_MADC_DATA(DATA, VALID);
@@ -311,7 +339,6 @@ QVector<Event> CamacAlgoritm::acquirePoint(unsigned short measureTime, bool *man
         {
             unsigned short data = 0;
             NAF(settings->getCOUNTER1(), j, 2, data);
-            LOG(DEBUG) << "Counter 1, A = " << j << " Data = " << data;
 
 //            Save(Chr(DATA MOD 256));
 //            Save(Chr(DATA DIV 256));
@@ -320,7 +347,6 @@ QVector<Event> CamacAlgoritm::acquirePoint(unsigned short measureTime, bool *man
 
             data = 0;
             NAF(settings->getCOUNTER1(), j + 4, 2, data);
-            LOG(DEBUG) << "Counter 1, A = " << j + 4 << " Data = " << data;
 
 //            Save(Chr(DATA MOD 256));
 //            Save(Chr(DATA DIV 256));
@@ -331,7 +357,6 @@ QVector<Event> CamacAlgoritm::acquirePoint(unsigned short measureTime, bool *man
         {
             unsigned short data = 0;
             NAF(settings->getCOUNTER2(), j, 2, data);
-            LOG(DEBUG) << "Counter 2, A = " << j << " Data = " << data;
 
 //            Save(Chr(DATA MOD 256));
 //            Save(Chr(DATA DIV 256));
@@ -340,8 +365,6 @@ QVector<Event> CamacAlgoritm::acquirePoint(unsigned short measureTime, bool *man
 
             data = 0;
             NAF(settings->getCOUNTER2(), j + 4, 2, data);
-            LOG(DEBUG) << "Counter 1, A = " << j + 4 << " Data = " << data;
-
 //            Save(Chr(DATA MOD 256));
 //            Save(Chr(DATA DIV 256));
 //            Cn[2, i+1] := Cn[2, i+1] + 65536.0 * DATA;
@@ -362,13 +385,10 @@ ccpc::CamacOp CamacAlgoritm::NAF(int n, int a, int f, unsigned short &data)
     op.mode = ccpc::Single;
     op.dir = (op.f>=16)?ccpc::DW16:ccpc::DR16;
 
-    //LOG(DEBUG) << QString("%1, %2, %3").arg(n).arg(a).arg(f).toStdString();
-    //LOG(DEBUG) << QString("-> %1").arg(data, 0, 2).toStdString();
 
     if(op.isWrite())
         op.data.push_back(data);
 
-    //LOG(DEBUG) << QString("<- %1").arg(op.data[0], 0, 2).toStdString();
 
     camac->exec(op);
 
@@ -379,14 +399,18 @@ ccpc::CamacOp CamacAlgoritm::NAF(int n, int a, int f, unsigned short &data)
 
 void CamacAlgoritm::disableMeasurement()
 {
-    LOG(DEBUG) << "Disabling measurement";
+#ifdef TEST_MODE
+    qDebug() << "Disabling measurement";
+#endif
     unsigned short data;
     NAF(settings->getMADC(), 0, 12, data);
 }
 
 void CamacAlgoritm::enableMeasurement()
 {
-    LOG(DEBUG) << "Enabling measurement";
+#ifdef TEST_MODE
+    qDebug() << "Enabling measurement";
+#endif
     unsigned short data;
     NAF(settings->getMADC(), 0, 11, data);
 }
@@ -471,7 +495,6 @@ void CamacAlgoritm::readMADC(unsigned short &data, long &time, bool &valid)
     data = data & 0x0FFF;
     //*/
 
-    //LOG(DEBUG) << "Reading MADC Data:  " << data;
 }
 
 void CamacAlgoritm::readMADCData(unsigned short &data, long &time, bool &valid)
@@ -501,7 +524,6 @@ void CamacAlgoritm::setMADCAddr(long &addr, unsigned short &measureTime)
 
     //tw = qToBigEndian(tw);
 
-    //LOG(DEBUG) << QString("time code: %1").arg(tw, 16, 2, QChar('0')).toStdString();
     NAF(settings->getMADC(), 1, 17, tw);
 #if QT_VERSION >= 0x050300
     QThread::msleep(10);
@@ -520,8 +542,6 @@ void CamacAlgoritm::getMADCAddr(long &addr, bool &addrOverflow, bool &endOfMeasu
     unsigned short finalAdress = 0;
     NAF(settings->getMADC(), 1, 1, finalAdress);
 
-    LOG(DEBUG) << QString("%1").arg(finalAdress, 16, 2, QChar('0')).toStdString();
-
     if(checkBit(finalAdress, 2))
         addrOverflow = true;
     else
@@ -535,7 +555,6 @@ void CamacAlgoritm::getMADCAddr(long &addr, bool &addrOverflow, bool &endOfMeasu
     unsigned short finalAdress2 = 0;
     NAF(settings->getMADC(), 0, 1, finalAdress2);
 
-    LOG(DEBUG) << QString("%1").arg(finalAdress2, 16, 2, QChar('0')).toStdString();
 
     //склеивание адресса
     addr = 0;
@@ -548,7 +567,9 @@ void CamacAlgoritm::getMADCAddr(long &addr, bool &addrOverflow, bool &endOfMeasu
 
     NAF(settings->getMADC(), 1, 1, tw);
 
-    LOG(DEBUG) << QString("%1").arg(tw, 16, 2, QChar('0')).toStdString();
+#ifdef TEST_MODE
+    qDebug() << QString("%1").arg(tw, 16, 2, QChar('0'));
+#endif
 
     addr = tw & 0x0003;
 
@@ -563,7 +584,10 @@ void CamacAlgoritm::getMADCAddr(long &addr, bool &addrOverflow, bool &endOfMeasu
         endOfMeasurement = false;
 
     NAF(settings->getMADC(), 0, 1, tw);
-    LOG(DEBUG) << QString("%1").arg(tw, 16, 2, QChar('0')).toStdString();
+#ifdef TEST_MODE
+    qDebug() << QString("%1").arg(tw, 16, 2, QChar('0'));
+#endif
+
     addr = addr * 65536 + tw;
     //*/
 }
@@ -593,7 +617,10 @@ void CamacAlgoritm::testMADC()
     unsigned short none = 0;
 
     //установка TLL_NIM  в состояние
-    LOG(DEBUG) << "Disabling TTL";
+#ifdef TEST_MODE
+    qDebug() << "Disabling TTL";
+#endif
+
     unsigned short data = 0xFFFF;
     NAF(settings->getTTL_NIM(), 0, 17, data);
 
