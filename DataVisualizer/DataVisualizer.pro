@@ -19,6 +19,8 @@ include (datavisualizer.pri)
 include(../easylogging.pri)
 include(../tcp/tcp.pri)
 
+INCLUDEPATH += $$PWD
+
 SOURCES += main.cpp \
     DataVisualizerWindow.cpp
 

@@ -17,6 +17,8 @@ include(../revision_info.pri )
 include(../tcp/tcp.pri)
 include(../easylogging.pri)
 
+INCLUDEPATH += $$PWD
+
 unix: !macx{
 #LIBS += /home/user/QTProjects/QJson_build/lib/libqjson.so.0
 LIBS += -L$$PWD/../QJson_build/lib/ -lqjson

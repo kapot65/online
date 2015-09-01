@@ -1,3 +1,23 @@
+div.image img[src="CCPC7Correct.png"]{ 
+    width:500px; 
+}
+
+div.image img[src="CCPC7Incorrect.png"]{ 
+    width:500px; 
+}
+
+div.image img[src="HVCorrect.png"]{ 
+    width:500px; 
+}
+
+div.image img[src="HVIncorrect.png"]{ 
+    width:500px; 
+}
+
+div.image img[src="HVIncorrect2.png"]{ 
+    width:500px; 
+}
+
 div.image img[src="remoteDesktops.png"]{ 
     width:700px; 
 }

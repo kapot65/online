@@ -31,7 +31,8 @@ lessThan(QT_MAJOR_VERSION, 5){
 }
 
 win32{
-INCLUDEPATH += D:/SDK/qjsonsrc/include
+INCLUDEPATH += D:/SDK/qjsonsrc/include\
+               $$PWD
 CONFIG += c++11
 }
 

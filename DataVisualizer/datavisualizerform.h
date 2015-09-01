@@ -151,10 +151,7 @@ protected slots:
     void setMetaTableText(int col, int row, QString text);
 };
 
-
-///
 /// \brief Тип выводимой гистограммы для APDFileDrawer
-///
 enum APD_HIST_TYPE
 {
     AMPLITUDE = 0,
@@ -163,10 +160,10 @@ enum APD_HIST_TYPE
 
 /// \brief Класс для визуализации APD файлов.
 /// \details Оптимизирован под вывод больших данных.
-/// \todo Добавить обработку метаданных.
-/// \todo Сделать корректное время.
 /// \todo Добавить описание.
 /// \todo Ускорить поиск границ.
+/// \todo Добавить возможность сохранения.
+/// \bug Вылетает при изменении типа гистограммы при более чем одном открытом файле.
 class APDFileDrawer : public FileDrawer
 {
     Q_OBJECT
@@ -174,10 +171,12 @@ public:
     APDFileDrawer(QTableWidget *table, QCustomPlot *plot, QString filename, QObject *parent = 0);
     ~APDFileDrawer();
 
+
 public slots:
     virtual void setMetaDataToTable();
     virtual void setVisible(bool visible, GraphMode graphMode);
     virtual void setColor(QColor color);
+    /// \todo добавить обработку обнуленных счетчиков
     virtual void update();
 
 private slots:
@@ -187,7 +186,22 @@ private slots:
      * Присоединен к сигналу QCPAxis::rangeChanged
      */
     void drawPart(QCPRange range);
+
     void changeHistType();
+
+    void setHistVisible(bool visible);
+
+    /*!
+     * \brief Создание кнопок выбора типа метаданных.
+     * \param col Колонка в таблице метаданных.
+     * \param row Строка в таблице метаданных.
+     */
+    void createHistModeChangeButtons(int col, int row);
+
+    /*!
+     * \brief Загрузка метаданных из файла.
+     */
+    void loadMetaData();
 
 private:
     /// \brief Флаг загрузки файла.
@@ -209,15 +223,15 @@ private:
 
 
     ///\brief Вектор времени
-    std::vector<int> time;
-    ///\brief Вектор времени
+    std::vector<quint64> time;
+    ///\brief Вектор амплитуды
     QVector<int> val;
     ///\brief Вектор интервалов между событиями
     QVector<int> interval;
     ///\brief Вектор ширины
-    QVector<int> width;
+    QVector<quint64> width;
 
-    APD_HIST_TYPE histType;
+    static APD_HIST_TYPE histType;
     QWidget *histSetWidget;
     QRadioButton *histSetButtons[2];
 };

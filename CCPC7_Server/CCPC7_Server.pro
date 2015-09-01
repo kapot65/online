@@ -23,6 +23,8 @@ include(../revision_info.pri )
 include(../easylogging.pri )
 include(../tcp/tcp.pri)
 
+INCLUDEPATH += $$PWD
+
 unix: !macx{
 #LIBS += /home/user/QTProjects/QJson_build/lib/libqjson.so.0
 LIBS += -L/home/user/QTProjects/QJson_build/lib/ -lqjson
@@ -43,7 +45,7 @@ win32{
 contains(QT_MAJOR_VERSION, 4){
 LIBS += -L$$PWD/../../SDK/qjson_master_build_4_8/src/ -llibqjson
 INCLUDEPATH += D:/SDK/qjsonsrc/include \
-               ccpc/virtual
+               ccpc/virtual \
 
 CONFIG += c++11
 
