@@ -897,6 +897,11 @@ void DataVisualizerForm::on_fileBrowser_clicked(const QModelIndex &index)
     return;
 }
 
+void APDFileDrawer::fullDeleteHistTab()
+{
+    histSetWidget = 0;
+}
+
 APD_HIST_TYPE APDFileDrawer::histType = AMPLITUDE;
 
 void APDFileDrawer::loadMetaData()
@@ -1016,6 +1021,9 @@ void APDFileDrawer::createHistModeChangeButtons(int col, int row)
     layout->addWidget(histSetButtons[0]);
     layout->addWidget(histSetButtons[1]);
 
+    connect(histSetWidget, SIGNAL(destroyed(QObject*)),
+            this, SLOT(fullDeleteHistTab()), Qt::DirectConnection);
+
     switch (APDFileDrawer::histType)
     {
         case AMPLITUDE:
@@ -1064,9 +1072,6 @@ void APDFileDrawer::setMetaDataToTable()
     setMetaTableText(1, 0, tr("файл APD"));
 
     createHistModeChangeButtons(1, 1);
-
-
-
 
     table->resizeColumnsToContents();
     table->resizeRowsToContents();

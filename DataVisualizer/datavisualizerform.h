@@ -272,6 +272,10 @@ private slots:
      */
     void loadMetaData();
 
+    /// \brief Обнуляет адресс APDFileDrawer::histSetWidget при его удалении.
+    /// Присоединен к сигналу APDFileDrawer::histSetWidget::destroyed
+    void fullDeleteHistTab();
+
 private:
     /// \brief Флаг загрузки файла.
     bool loaded = 0;
