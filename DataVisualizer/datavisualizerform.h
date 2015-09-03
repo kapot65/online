@@ -13,6 +13,8 @@
 #include <QFileSystemModel>
 #include <QFileInfo>
 
+#include <QVector>
+
 #include <QDebug>
 #include <QDataStream>
 #include <QJsonDocument>
@@ -71,6 +73,12 @@ signals:
      */
     void updated();
 
+    /*!
+     * \brief Посылает текстовую информацию на форму.
+     * \param Текст информации.
+     */
+    void sendTextInfo(QString info);
+
 public slots:
     ///\brief Вывксти метаданные в таблицу.
     virtual void setMetaDataToTable() = 0;
@@ -105,7 +113,35 @@ protected:
      */
     template<typename T>
     QCPBars* createHist(QVector<T> data, QCustomPlot *plot,double minVal = 0, double maxVal = 4096, int bins = 128,
-                        int *binMax = 0);
+                        int *binMax = 0, bool abs = 1);
+
+    template<typename T>
+    /*!
+     * \brief Сгенерировать гистограмму из вектора данных.
+     * \param [in] data Вектор входных данных
+     * \param [out] binVal Количество событий в бине.
+     * \param [out] binCoord Координата бина.
+     * \param [out] minVal Минимальное значение данных.
+     * \param [out] maxVal Максимальное значение данных.
+     * \param bins Количество бинов.
+     * \param [out] binMax Максимальное количество элементов в бине.
+     * \param abs Брать модуль амплитуд событий. \note Работает только если \p minVal и \p maxVal неположительны.
+     */
+    void generateHistFromData(QVector<T> &data, QVector<double> &binVal, QVector<double> &binCoord,
+                              double &minVal, double &maxVal, int bins = 128,
+                              int *binMax = 0, bool abs = 1);
+
+
+    /*!
+     * \brief Создание графика гистограммы.
+     * \param plot Виджет графиков, в котором будет согдана гистограмма.
+     * \param [in] binVal Количество событий в бине. Получается с помощью метода FileDrawer::generateHistFromData.
+     * \param [in] binCoord Координата бина. Получается с помощью метода FileDrawer::generateHistFromData.
+     * \param minVal Минимальное значение данных.
+     * \param maxVal Максимальное значение данных.
+     * \return Указатель на график гистограммы.
+     */
+    QCPBars* createHistFromData(QCustomPlot *plot, QVector<double> &binVal, QVector<double> &binCoord, double minVal, double maxVal);
 
     /*!
      * \brief Получить произвольный цвет.
@@ -158,6 +194,20 @@ enum APD_HIST_TYPE
     INTERVAL = 1
 };
 
+/*!
+ * \brief Структура для хранения гистограмм APDFileDrawer
+ */
+struct APDHist
+{
+    APDHist():hist(0){}
+
+    /// \brief Указатель на гистограмму.
+    QCPBars *hist;
+
+    /// \brief Данные гистограммы APDHist::hist
+    QPair<QVector<double>, QVector<double>> histValues;
+};
+
 /// \brief Класс для визуализации APD файлов.
 /// \details Оптимизирован под вывод больших данных.
 /// \todo Добавить описание.
@@ -171,13 +221,32 @@ public:
     APDFileDrawer(QTableWidget *table, QCustomPlot *plot, QString filename, QObject *parent = 0);
     ~APDFileDrawer();
 
-
 public slots:
     virtual void setMetaDataToTable();
     virtual void setVisible(bool visible, GraphMode graphMode);
     virtual void setColor(QColor color);
     /// \todo добавить обработку обнуленных счетчиков
     virtual void update();
+
+protected:
+    /*!
+     * \brief Получить индексы элементов, ограничивающих минимальное и максимальные значения.
+     * \param vector Вектор элементов.
+     * \param min Минимальное значение элемента.
+     * \param max Максимальное значение элемента
+     * \param [out] minInd Найденый элемент, соотвествующий \p min.
+     * \param [out] maxInd Найденый элемент, соотвествующий \p max.
+     */
+    template<typename T>
+    void getMinMaxInd(T &vector, double min, double max, quint64 &minInd, quint64 &maxInd);
+
+    /*!
+     * \brief Вычисляет количество событий в окне гистограммы и посылает сообщение
+     * о них.
+     * \param range Интервал окна.
+     * \param apdHist Гистограмма.ы
+     */
+    void sendHistEventsInWindow(QCPRange range, APDHist &apdHist);
 
 private slots:
     /*!
@@ -215,12 +284,11 @@ private:
     /// автомасштабирования.
     QCPGraph *graphBorder;
 
-    /// \brief Указатель на гистограмму по амплитуде.
-    QCPBars *amplHist;
+    /// \brief Гистограмма по амплитуде.
+    APDHist amplHist;
 
-    /// \brief Указатель на гистограмму по интервалу.
-    QCPBars *intervalHist;
-
+    /// \brief Гистограмма по интервалу
+    APDHist intervalHist;
 
     ///\brief Вектор времени
     std::vector<quint64> time;
