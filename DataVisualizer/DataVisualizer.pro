@@ -28,5 +28,4 @@ HEADERS  += \
     DataVisualizerWindow.h
 
 FORMS    += \
-    DataVisualizerForm.ui \
     DataVisualizerWindow.ui

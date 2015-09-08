@@ -463,6 +463,7 @@ private slots:
 
     void on_fileBrowser_clicked(const QModelIndex &index);
 
+
 public slots:
     void openDir(QString dir);
 
@@ -479,6 +480,13 @@ public slots:
     void clear();
 
 private:
+    /*!
+     * \brief Подгон размера дерева файлов под содержимое.
+     * Взято из http://www.qtcentre.org/threads/2841-Resize-QTreeWidget-columns-to-contents.
+     * \param treeWidget_ Дерево файлов.
+     */
+    void resizeColumnsToContents(QTreeWidget *treeWidget_ );
+
     ///\brief Флаг интерактивности.
     bool interactive;
 

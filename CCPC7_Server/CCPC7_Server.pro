@@ -31,6 +31,8 @@ LIBS += -L/home/user/QTProjects/QJson_build/lib/ -lqjson
 INCLUDEPATH += /home/user/QTProjects/qjson-0.8.1/include \
                ccpc/original/
 
+contains(QT_MAJOR_VERSION, 5): DEFINES += USE_QTJSON
+
 SOURCES += \
     ccpc/original/ccpc7.cpp \
     ccpc/original/camacop.cpp \

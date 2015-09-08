@@ -29,7 +29,7 @@ DataVisualizerForm::DataVisualizerForm(bool interactive, QSettings *settings, QW
     plot->setSizePolicy(pol);
 
     model = new QFileSystemModel(this);
-    model->setFilter(QDir::AllEntries | QDir::NoDot);
+    model->setFilter(QDir::AllEntries | QDir::NoDotAndDotDot);
     model->setResolveSymlinks(true);
     ui->fileBrowser->setModel(model);
     QAbstractItemDelegate *del = new CustomItemDelegate(model, &opened_files, this);
@@ -59,6 +59,7 @@ DataVisualizerForm::~DataVisualizerForm()
 void DataVisualizerForm::openDir(QString dir)
 {
     ui->fileBrowser->setRootIndex(model->setRootPath(dir));
+    //resizeColumnsToContents(ui->fileBrowser);
 }
 
 void DataVisualizerForm::visualizeFile(QString filepath)
@@ -93,6 +94,21 @@ void DataVisualizerForm::clear()
     plot->replot();
 }
 
+void DataVisualizerForm::resizeColumnsToContents(QTreeWidget *treeWidget_)
+{
+    int cCols = treeWidget_->columnCount();
+    int cItems = treeWidget_->topLevelItemCount();
+    int w;
+    int col;
+    int i;
+    for( col = 0; col < cCols; col++ ) {
+        w = treeWidget_->header()->sectionSizeHint( col );
+        for( i = 0; i < cItems; i++ )
+            w = qMax( w, treeWidget_->topLevelItem( i )->text( col ).size()*7 + (col == 0 ? treeWidget_->indentation() : 0) );
+        treeWidget_->header()->resizeSection( col, w );
+    }
+}
+
 GraphMode DataVisualizerForm::getCurrentGraphMode()
 {
     if(ui->graphRelativeTimeButton->isChecked())
@@ -108,11 +124,11 @@ void DataVisualizerForm::updateTimeAxis(QCPRange range)
     GraphMode mode = getCurrentGraphMode();
     switch (mode)
     {
-        case ABSOLUTE_TIME:
-            timeAxis->setRange(range.lower / 1000., range.upper / 1000.);
-            break;
-        case RELATIVE_TIME:
-            timeAxis->setRange(range.lower / qPow(10,9), range.upper / qPow(10,9));
+    case ABSOLUTE_TIME:
+        timeAxis->setRange(range.lower / 1000., range.upper / 1000.);
+        break;
+    case RELATIVE_TIME:
+        timeAxis->setRange(range.lower / qPow(10,9), range.upper / qPow(10,9));
             break;
         default:
             break;
@@ -123,8 +139,7 @@ void DataVisualizerForm::updateTimeAxis(QCPRange range)
 
 void DataVisualizerForm::on_colorEditButton_clicked()
 {
-    QString dir = model->rootPath() + "/" +
-                  ui->fileBrowser->currentIndex().data().toString();
+    QString dir = model->filePath(ui->fileBrowser->currentIndex());
 
     if(!opened_files.contains(dir))
         return;
@@ -209,8 +224,6 @@ InfoFileDrawer::InfoFileDrawer(QTableWidget *table, QCustomPlot *plot, QString f
 
 InfoFileDrawer::~InfoFileDrawer()
 {
-    for(int i = 0 ; i <  items.size(); i++)
-        plot->removeItem(items[i]);
 }
 
 void InfoFileDrawer::setMetaDataToTable()
@@ -338,6 +351,7 @@ void InfoFileDrawer::update()
             textItem->setPen(QPen(Qt::black));
             textItem->setVisible(curr_visibility);
             items.push_back(textItem);
+            textItem->setParent(this);
 
             // add the arrow:
             QCPItemLine *arrow = new QCPItemLine(plot);
@@ -348,6 +362,7 @@ void InfoFileDrawer::update()
             arrow->setHead(QCPLineEnding::esSpikeArrow);
             arrow->setVisible(curr_visibility);
             items.push_back(arrow);
+            arrow->setParent(this);
         }
     }
     emit updated();
@@ -363,12 +378,6 @@ PointFileDrawer::PointFileDrawer(QTableWidget *table, QCustomPlot *plot, QString
 
 PointFileDrawer::~PointFileDrawer()
 {
-    for(int i = 0; i < graph_absolute.size(); i++)
-    {
-        plot->removePlottable(graph_absolute[i]);
-        plot->removePlottable(graph_relative[i]);
-        plot->removePlottable(bars[i]);
-    }
 }
 
 void PointFileDrawer::setMetaDataToTable()
@@ -594,6 +603,7 @@ void PointFileDrawer::update()
         graph_absolute.last()->setPen(QPen(color));
         graph_absolute.last()->setLineStyle(QCPGraph::lsNone);
         graph_absolute.last()->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, 5));
+        graph_absolute.last()->setParent(this);
 
         graph_relative.push_back(plot->addGraph());
         graph_relative.last()->addData(time, event_data);
@@ -601,6 +611,7 @@ void PointFileDrawer::update()
         graph_relative.last()->setPen(QPen(color));
         graph_relative.last()->setLineStyle(QCPGraph::lsNone);
         graph_relative.last()->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, 5));
+        graph_relative.last()->setParent(this);
 
         //создание гистограммы
         QVector<unsigned short> data(events.size());
@@ -609,6 +620,7 @@ void PointFileDrawer::update()
         bars.push_back(createHist<unsigned short>(data, plot));
         plot->addPlottable(bars.last());
         bars.last()->setVisible(false);
+        bars.last()->setParent(this);
     }
 
     emit updated();
@@ -636,10 +648,11 @@ VoltageFileDrawer::VoltageFileDrawer(QTableWidget *table, QCustomPlot *plot, QSt
     : FileDrawer(table, plot, filename, parent)
 {
     graph_block_1 = plot->addGraph();
-
+    graph_block_1->setParent(this);
     graph_block_1->setName(tr("напряжение блок 1"));
-    graph_block_2 = plot->addGraph();
 
+    graph_block_2 = plot->addGraph();
+    graph_block_2->setParent(this);
     graph_block_2->setName(tr("напряжение блок 2"));
 
     setColor(color);
@@ -648,8 +661,6 @@ VoltageFileDrawer::VoltageFileDrawer(QTableWidget *table, QCustomPlot *plot, QSt
 
 VoltageFileDrawer::~VoltageFileDrawer()
 {
-    plot->removeGraph(graph_block_1);
-    plot->removeGraph(graph_block_2);
 }
 
 void VoltageFileDrawer::setMetaDataToTable()
@@ -774,6 +785,13 @@ CustomItemDelegate::CustomItemDelegate(QFileSystemModel *model, QMap<QString, Fi
 
 void CustomItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
+    if(index.data().toString() != model->fileName(index))
+    {
+        QStyledItemDelegate::paint(painter, option, index);
+        return;
+    }
+
+
     QStyleOptionViewItemV4 opt = option;
     initStyleOption(&opt, index);
 
@@ -782,7 +800,7 @@ void CustomItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &op
     if (cg == QPalette::Normal && !(opt.state & QStyle::State_Active))
         cg = QPalette::Inactive;
 
-    QString filepath = model->rootPath() + "/" + index.data().toString();
+    QString filepath = model->filePath(index);
 
     if(opened_files->contains(filepath))
     {
@@ -807,7 +825,7 @@ void CustomItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &op
 
 void DataVisualizerForm::on_fileBrowser_doubleClicked(const QModelIndex &index)
 {
-    QString filepath = model->rootPath() + "/" + index.data().toString();
+    QString filepath = model->filePath(index);
 
     QFileInfo fileInfo(filepath);
 
@@ -819,7 +837,8 @@ void DataVisualizerForm::on_fileBrowser_doubleClicked(const QModelIndex &index)
 
 void DataVisualizerForm::on_fileBrowser_clicked(const QModelIndex &index)
 {
-    QString filepath = model->rootPath() + "/" + index.data().toString();
+    QString filepath = model->filePath(index);
+
 
     if(!(opened_files.contains(filepath)))
     {
@@ -1322,3 +1341,5 @@ void APDFileDrawer::changeHistType()
     if(histSetButtons[1]->isChecked())
         APDFileDrawer::histType = INTERVAL;    
 }
+
+

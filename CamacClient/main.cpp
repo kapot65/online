@@ -339,6 +339,49 @@
  * Добавить описание алгоритма сбора точки.  <br>
  * Online разобраться с потоками хендлеров.  <br>
  * CamacServer добавить возможность сборки без QJson (метаданные в QVaraiantMap).
+ *
+ * \subsection Сборка CCPC программ из исходников
+ * В этой главе описан процесс сборки программы из исходников на CCPC с чистой ос Ubuntu 12.10.
+ * Перед началом сборки нужно установить Qt 5.
+ * \note Возможно есть более оптимальные способы сборки.
+ *
+ * Шаги при сбоке
+ * - Устанваливаем Qt
+ *
+ *       sudo apt-get install qt4-dev-tools libqt4-dev libqt4-core libqt4-gui
+ *
+ * - Устанваливаем Qt Creator
+ *
+ *        sudo apt-get install qtcreator
+ *
+ * \warning При установке не нужно добавлять новые репозитории. Новые версии Qt Creator, лежащие в них
+ * не работают на CCPC.
+ *
+ *
+ * - Устанавливаем Git
+ *
+ *       sudo add-apt-repository ppa:git-core/ppa
+ *       sudo apt-get update
+ *       sudo apt-get install git-core
+ *
+ * - Клонируем репозиторий в нужную папку
+ *
+ *       sudo mkdir -p  /home/QtProjects/Online
+ *       sudo chmod -R 777 /home/QtProjects/Online
+ *       cd  /home/QtProjects/Online
+ *       git clone https://Kapot@bitbucket.org/Kapot/online.git
+ *
+ * - После установки всех нужных компонентов открываем QtCreator с правами root
+ *
+ *       sudo /usr/bin/qtcreator
+ *
+ * И открываем файл online.pro.
+ *
+ * \note Оригинальная инструкция по установке находится по адрессу
+ * http://askubuntu.com/questions/279421/how-can-i-install-qt-5-x-on-12-04-lts
+ * http://askubuntu.com/questions/407854/ubuntu-12-04-lts-installing-qt-4-8-5-and-qt-creator
+ * http://askubuntu.com/questions/558318/installing-git-on-ubuntu-12-10
+ *
  */
 
 
