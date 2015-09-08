@@ -325,8 +325,7 @@
  * - **QJSON** Для сборки c QJson (т. е. если не используется определение USE_QTJSON). Необходимо разместить
  * библиотеку по пути:
  *  - для Windows: D:/SDK/qjson. Путь к подключаемому файлу должен быть: D:/SDK/qjson/lib/libqjson.dll.a.
- *  - для Ubuntu: /home/user/QTProjects/QJson_build. Путь к файлу: /home/user/QTProjects/QJson_build/lib/qjson
- *  \todo изменить путь к библиотеке на более удобный.
+ *  - для Ubuntu: Стандартный путь.
  *
  * или поменять в pro - файлах пути к библиотекам.
  *
@@ -357,6 +356,9 @@
  * \warning При установке не нужно добавлять новые репозитории. Новые версии Qt Creator, лежащие в них
  * не работают на CCPC.
  *
+ * - Устанавливаем QJson
+ *
+ *       sudo apt-get install libqjson-dbg libqjson-dev libqjson0 libqjson0-dbg
  *
  * - Устанавливаем Git
  *

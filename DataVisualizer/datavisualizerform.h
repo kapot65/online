@@ -13,12 +13,19 @@
 #include <QFileSystemModel>
 #include <QFileInfo>
 
+#include <QPair>
 #include <QVector>
 
 #include <QDebug>
 #include <QDataStream>
-#include <QJsonDocument>
 #include <QColorDialog>
+
+#include <QRadioButton>
+
+#include <QTreeWidget>
+#include <QTableWidget>
+
+#include <QStyledItemDelegate>
 
 #include <vector>
 
@@ -205,7 +212,7 @@ struct APDHist
     QCPBars *hist;
 
     /// \brief Данные гистограммы APDHist::hist
-    QPair<QVector<double>, QVector<double>> histValues;
+    QPair<QVector<double>, QVector<double> > histValues;
 };
 
 /// \brief Класс для визуализации APD файлов.
@@ -278,7 +285,7 @@ private slots:
 
 private:
     /// \brief Флаг загрузки файла.
-    bool loaded = 0;
+    bool loaded;
 
     /// \brief Указатель на график.
     QCPGraph *graph;

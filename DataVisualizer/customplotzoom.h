@@ -2,11 +2,10 @@
 #define CUSTOMPLOTZOOM_H
 
 #include <QPoint>
+#include <QMouseEvent>
+#include <QRubberBand>
 #include <qcustomplot.h>
-
-class QRubberBand;
-class QMouseEvent;
-class QWidget;
+#include <QWidget>
 
 /*!
  * \brief Виджет QCustomPlot с поддержкой увеличения по окну.
@@ -30,9 +29,9 @@ public:
     void setZoomMode(bool mode);
 
 private slots:
-    void mousePressEvent(QMouseEvent * event) override;
-    void mouseMoveEvent(QMouseEvent * event) override;
-    void mouseReleaseEvent(QMouseEvent * event) override;
+    virtual void mousePressEvent(QMouseEvent * event);
+    virtual void mouseMoveEvent(QMouseEvent * event);
+    virtual void mouseReleaseEvent(QMouseEvent * event);
 
 private:
     bool mZoomMode;

@@ -26,12 +26,7 @@ include(../tcp/tcp.pri)
 INCLUDEPATH += $$PWD
 
 unix: !macx{
-#LIBS += /home/user/QTProjects/QJson_build/lib/libqjson.so.0
-LIBS += -L/home/user/QTProjects/QJson_build/lib/ -lqjson
-INCLUDEPATH += /home/user/QTProjects/qjson-0.8.1/include \
-               ccpc/original/
-
-contains(QT_MAJOR_VERSION, 5): DEFINES += USE_QTJSON
+INCLUDEPATH += ccpc/original/
 
 SOURCES += \
     ccpc/original/ccpc7.cpp \
@@ -45,10 +40,8 @@ HEADERS  += \
 }
 win32{
 contains(QT_MAJOR_VERSION, 4){
-LIBS += -L$$PWD/../../SDK/qjson_master_build_4_8/src/ -llibqjson
-INCLUDEPATH += D:/SDK/qjsonsrc/include \
-               ccpc/virtual \
-
+INCLUDEPATH += \
+               ccpc/virtual
 CONFIG += c++11
 
 SOURCES += \
@@ -62,9 +55,6 @@ HEADERS  += \
 
 contains(QT_MAJOR_VERSION, 5){
 INCLUDEPATH += ccpc/virtual
-
-DEFINES += USE_QTJSON
-
 CONFIG += c++11
 
 SOURCES += \

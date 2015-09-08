@@ -1,11 +1,13 @@
 #include "datavisualizerform.h"
-#include "ui_datavisualizerform.h"
+#include <ui_DataVisualizerForm.h>
+
+#include <QTimer>
 
 DataVisualizerForm::DataVisualizerForm(bool interactive, QSettings *settings, QWidget *parent) :
     QWidget(parent),
     ui(new Ui::DataVisualizerForm)
 {
-    qsrand(QTime::currentTime().msecsSinceStartOfDay());
+    qsrand(QTime::currentTime().second());
     this->interactive = interactive;
 
     //создание файла с настройками, если не указан главный файл настроек
@@ -266,7 +268,11 @@ void InfoFileDrawer::setMetaDataToTable()
            !(comments[i].toMap().contains("comment") && comments[i].toMap().contains("date_time")))
         {
             setMetaTableText(0, table->rowCount() - 1, tr("неизвестный тип комментария"));
+#ifdef USE_QTJSON
             setMetaTableText(1, table->rowCount() - 1, QJsonDocument::fromVariant(comments[i]).toJson());
+#else
+            setMetaTableText(1, table->rowCount() - 1, QJson::Serializer().serialize(comments[i]));
+#endif
         }
         else
         {
@@ -1256,7 +1262,7 @@ void APDFileDrawer::sendHistEventsInWindow(QCPRange range, APDHist &apdHist)
         quint64 minInd;
         quint64 maxInd;
 
-        getMinMaxInd<QVector<double>>(apdHist.histValues.second, range.lower, range.upper,
+        getMinMaxInd<QVector<double> >(apdHist.histValues.second, range.lower, range.upper,
                                       minInd, maxInd);
 
         quint64 sum = 0;
@@ -1294,7 +1300,7 @@ void APDFileDrawer::drawPart(QCPRange range)
         quint64 maxInd;
 
 
-        getMinMaxInd<std::vector<quint64>>(time, range.lower, range.upper, minInd, maxInd);
+        getMinMaxInd<std::vector<quint64> >(time, range.lower, range.upper, minInd, maxInd);
 
         int step = qMax((quint64)1, (maxInd - minInd)/maxPoints);
 

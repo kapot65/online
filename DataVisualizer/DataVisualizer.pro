@@ -4,15 +4,14 @@
 #
 #-------------------------------------------------
 
-QT       += core gui printsupport
+QT       += core gui
 
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+greaterThan(QT_MAJOR_VERSION, 4): QT += widgets printsupport
 
 TARGET = DataVisualizer
 TEMPLATE = app
 
 DEFINES += TEST_MODE
-DEFINES += USE_QTJSON
 
 include(../revision_info.pri )
 include (datavisualizer.pri)

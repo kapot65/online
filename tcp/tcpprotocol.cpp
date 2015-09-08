@@ -112,7 +112,7 @@ QByteArray TcpProtocol::createMessage(QVariantMap meta, QByteArray data, unsigne
     QByteArray serializedMeta = doc.toJson();
 #else
     QJson::Serializer serializer;
-    serializer.setIndentMode(QJson::IndentFull); // в настройки
+    //serializer.setIndentMode(QJson::IndentFull); // в настройки
     QByteArray serializedMeta = serializer.serialize(meta);
 #endif
 

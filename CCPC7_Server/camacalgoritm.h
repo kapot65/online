@@ -7,6 +7,7 @@
 #include <QtEndian>
 #include <QFile>
 #include <QTime>
+#include <qmath.h>
 #ifdef TEST_MODE
     #include <QDebug>
 #endif

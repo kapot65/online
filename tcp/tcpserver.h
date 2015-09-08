@@ -10,8 +10,8 @@
 #ifdef USE_QTJSON
 #include <QJsonDocument>
 #else
-#include <QJson/Parser>
-#include <QJson/Serializer>
+#include <qjson/parser.h>
+#include <qjson/serializer.h>
 #endif
 #include "tcpprotocol.h"
 #include "tcpbase.h"

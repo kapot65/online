@@ -23,15 +23,8 @@ DEFINES += TEST_MODE
 
 CONFIG += c++11
 
-#подключение QJson, если версия qt меньше 5
-lessThan(QT_MAJOR_VERSION, 5){
-    LIBS += D:/SDK/qjson/lib/libqjson.dll.a
-}else{
-    DEFINES += USE_QTJSON
-}
-
 win32{
-INCLUDEPATH += D:/SDK/qjsonsrc/include\
+INCLUDEPATH += \
                $$PWD
 CONFIG += c++11
 }
