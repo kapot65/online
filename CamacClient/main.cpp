@@ -337,14 +337,14 @@
  * Поменять название CamacServer.  <br>
  * Добавить описание алгоритма сбора точки.  <br>
  * Online разобраться с потоками хендлеров.  <br>
- * CamacServer добавить возможность сборки без QJson (метаданные в QVaraiantMap).
+ * CamacServer добавить возможность сборки без QJson (метаданные в QVaraiantMap).  <br>
+ * Обновить инструкцию по установке программ под Linux.
  *
  * \subsection Сборка CCPC программ из исходников
- * В этой главе описан процесс сборки программы из исходников на CCPC с чистой ос Ubuntu 12.10.
- * Перед началом сборки нужно установить Qt 5.
- * \note Возможно есть более оптимальные способы сборки.
+ * В этой главе описан процесс сборки программы из исходников на CCPC с чистой ос xubuntu 12.04.
  *
- * Шаги при сбоке
+ * Шаги при сбоке:
+ *
  * - Устанваливаем Qt
  *
  *       sudo apt-get install qt4-dev-tools libqt4-dev libqt4-core libqt4-gui
@@ -377,13 +377,14 @@
  *
  *       sudo /usr/bin/qtcreator
  *
- * И открываем файл online.pro.
+ *  И открываем файл online.pro.
  *
- * \note Оригинальная инструкция по установке находится по адрессу
- * http://askubuntu.com/questions/279421/how-can-i-install-qt-5-x-on-12-04-lts
- * http://askubuntu.com/questions/407854/ubuntu-12-04-lts-installing-qt-4-8-5-and-qt-creator
+ * - Выбираем нужную программу и нажимаем qmake
+ *
+ * \note Инструкция создавалась с помощью  <br>
+ * http://askubuntu.com/questions/279421/how-can-i-install-qt-5-x-on-12-04-lts  <br>
+ * http://askubuntu.com/questions/407854/ubuntu-12-04-lts-installing-qt-4-8-5-and-qt-creator  <br>
  * http://askubuntu.com/questions/558318/installing-git-on-ubuntu-12-10
- *
  */
 
 
