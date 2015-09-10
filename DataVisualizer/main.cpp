@@ -53,6 +53,7 @@ system((std::string("sudo chmod -R 777 ") + QFileInfo(QDir::homePath() + LOG_DIR
 #endif
 
     QApplication a(argc, argv);
+
     DataVisualizerWindow w;
     w.show();
 

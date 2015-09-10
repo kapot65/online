@@ -19,6 +19,11 @@ DataVisualizerForm::DataVisualizerForm(bool interactive, QSettings *settings, QW
     else
         this->settings = settings;
 
+    //считывание настроек
+    settings->beginGroup(metaObject()->className());
+    bool hide_abs_time = settings->value("hide_abs_time", false).toBool();
+    settings->endGroup();
+
     ui->setupUi(this);
 
     CustomPlotZoom *zPlot = new CustomPlotZoom(this);
@@ -29,6 +34,8 @@ DataVisualizerForm::DataVisualizerForm(bool interactive, QSettings *settings, QW
     pol.setHorizontalPolicy(QSizePolicy::Expanding);
     pol.setVerticalPolicy(QSizePolicy::Expanding);
     plot->setSizePolicy(pol);
+
+    ruler = new Ruler(plot, this);
 
     model = new QFileSystemModel(this);
     model->setFilter(QDir::AllEntries | QDir::NoDotAndDotDot);
@@ -51,6 +58,14 @@ DataVisualizerForm::DataVisualizerForm(bool interactive, QSettings *settings, QW
     connect(ui->histButton, SIGNAL(clicked()), this, SLOT(change_mode()));
     connect(ui->graphRelativeTimeButton, SIGNAL(clicked()),
             this, SLOT(change_mode()));
+
+    if(hide_abs_time)
+    {
+        ui->graphRelativeTimeButton->setChecked(true);
+        ui->graphButton->setEnabled(false);
+        ui->graphButton->setVisible(false);
+        change_mode();
+    }
 }
 
 DataVisualizerForm::~DataVisualizerForm()
@@ -186,602 +201,6 @@ void DataVisualizerForm::change_mode()
     plot->replot();
 }
 
-FileDrawer::FileDrawer(QTableWidget *table, QCustomPlot *plot, QString filename, QObject *parent) : QObject(parent)
-{
-    this->table = table;
-    this->plot = plot;
-
-    isVisible = false;
-    color = getRandomColor();
-
-    file = new QFile(filename, this);
-    file->open(QIODevice::ReadOnly);
-    TcpProtocol::parceMessage(file->readAll(), meta, data, 1);
-    file->close();
-    file->open(QIODevice::ReadOnly);
-
-    connect(this, SIGNAL(updated()), plot, SLOT(replot()));
-}
-
-FileDrawer::~FileDrawer()
-{
-    file->close();
-}
-
-void FileDrawer::setMetaTableText(int col, int row, QString text)
-{
-    if((table->rowCount() > row) && (table->columnCount() > col))
-    {
-        table->setItem(row,col, new QTableWidgetItem());
-        table->item(row,col)->setText(text);
-    }
-}
-
-InfoFileDrawer::InfoFileDrawer(QTableWidget *table, QCustomPlot *plot, QString filename, QObject *parent)
-    : FileDrawer(table, plot, filename, parent)
-{
-    file->close();
-    update();
-}
-
-InfoFileDrawer::~InfoFileDrawer()
-{
-}
-
-void InfoFileDrawer::setMetaDataToTable()
-{
-    //заполнение метаданных
-    table->clearContents();
-    table->setRowCount(0);
-    table->setColumnCount(2);
-    table->insertRow(table->rowCount());
-    setMetaTableText(0, 0, tr("тип файла"));
-    setMetaTableText(1, 0, tr("файл с комментариями к сбору"));
-
-    table->insertRow(table->rowCount());
-    if(meta.contains("date"))
-    {
-        setMetaTableText(0, table->rowCount() - 1, tr("дата"));
-        setMetaTableText(1, table->rowCount() - 1, meta["date"].toString());
-    }
-
-    table->insertRow(table->rowCount());
-    if(meta.contains("operator"))
-    {
-        setMetaTableText(0, table->rowCount() - 1, tr("оператор"));
-        setMetaTableText(1, table->rowCount() - 1, meta["operator"].toString());
-    }
-
-    table->insertRow(table->rowCount());
-    if(meta.contains("description"))
-    {
-        setMetaTableText(0, table->rowCount() - 1, tr("комментарий к началу сбора"));
-        setMetaTableText(1, table->rowCount() - 1, meta["description"].toString());
-    }
-
-    QVariantList comments = meta["comments"].toList();
-
-    for(int i = 0; i < comments.size(); i++)
-    {
-        table->insertRow(table->rowCount());
-        if(!comments[i].canConvert(QVariant::Map) ||
-           !(comments[i].toMap().contains("comment") && comments[i].toMap().contains("date_time")))
-        {
-            setMetaTableText(0, table->rowCount() - 1, tr("неизвестный тип комментария"));
-#ifdef USE_QTJSON
-            setMetaTableText(1, table->rowCount() - 1, QJsonDocument::fromVariant(comments[i]).toJson());
-#else
-            setMetaTableText(1, table->rowCount() - 1, QJson::Serializer().serialize(comments[i]));
-#endif
-        }
-        else
-        {
-            QVariantMap curr_comment = comments[i].toMap();
-            setMetaTableText(0, table->rowCount() - 1, curr_comment["date_time"].toString());
-            setMetaTableText(1, table->rowCount() - 1, curr_comment["comment"].toString());
-        }
-    }
-    table->resizeColumnsToContents();
-}
-
-void InfoFileDrawer::setVisible(bool visible, GraphMode graphMode)
-{
-    if(graphMode == ABSOLUTE_TIME)
-    {
-        for(int i = 0; i < items.size(); i++)
-        {
-            items[i]->setVisible(visible);
-        }
-    }
-    else
-    {
-        for(int i = 0; i < items.size(); i++)
-        {
-            items[i]->setVisible(false);
-        }
-    }
-    isVisible = visible;
-    //plot->replot();
-}
-
-void InfoFileDrawer::update()
-{
-    QFileInfo fi(*file);
-    if(fi.lastModified() == fileLastModified)
-        return; //файл не обновлялся
-
-    fileLastModified = fi.lastModified();
-
-    //file->open(QIODevice::ReadOnly);
-    file->close();
-    file->open(QIODevice::ReadOnly);
-    //file->seek(0);
-    fileBuffer = file->readAll();
-
-    //удаление старых объектов
-    for(int i = 0 ; i < items.size(); i++)
-    {
-        plot->removeItem(items[i]);
-    }
-    //определение текущего состояния видисомти графика
-    bool curr_visibility;
-    if(items.isEmpty())
-        curr_visibility = 0;
-    else
-        curr_visibility = items[0]->visible();
-    //переоткрытие сообщения
-    TcpProtocol::parceMessage(fileBuffer, meta, data);
-
-    QVariantList comments = meta["comments"].toList();
-
-    double x = 0.1;
-    double y = 0;
-
-    for(int i = 0; i < comments.size(); i++)
-    {
-        if(comments[i].canConvert(QVariant::Map) &&
-           (comments[i].toMap().contains("comment") && comments[i].toMap().contains("date_time")))
-        {
-            QVariantMap curr_comment = comments[i].toMap();
-
-            //отрисовка комментария на графике
-            //добавление бокса с текстом
-            QCPItemText *textItem = new QCPItemText(plot);
-            plot->addItem(textItem);
-            textItem->setPositionAlignment(Qt::AlignTop|Qt::AlignHCenter);
-            textItem->position->setType(QCPItemPosition::ptAxisRectRatio);
-            textItem->position->setCoords(x, y);
-            x += 0.1;
-            textItem->setText(curr_comment["comment"].toString());
-            //textItem->setFont(QFont(font().family(), 16));
-            textItem->setPen(QPen(Qt::black));
-            textItem->setVisible(curr_visibility);
-            items.push_back(textItem);
-            textItem->setParent(this);
-
-            // add the arrow:
-            QCPItemLine *arrow = new QCPItemLine(plot);
-            plot->addItem(arrow);
-            arrow->start->setParentAnchor(textItem->bottom);
-            QDateTime dtime = QDateTime::fromString(curr_comment["date_time"].toString(), Qt::ISODate);
-            arrow->end->setCoords(dtime.toMSecsSinceEpoch(), 0);
-            arrow->setHead(QCPLineEnding::esSpikeArrow);
-            arrow->setVisible(curr_visibility);
-            items.push_back(arrow);
-            arrow->setParent(this);
-        }
-    }
-    emit updated();
-    //setVisible(isVisible);
-}
-
-PointFileDrawer::PointFileDrawer(QTableWidget *table, QCustomPlot *plot, QString filename, QObject *parent)
-    : FileDrawer(table, plot, filename, parent)
-{
-    loaded = 0;
-    update();
-}
-
-PointFileDrawer::~PointFileDrawer()
-{
-}
-
-void PointFileDrawer::setMetaDataToTable()
-{
-    //заполнение метаинформации
-    table->clearContents();
-    table->setRowCount(8);
-    table->setColumnCount(2);
-    setMetaTableText(0, 0, tr("тип файла"));
-    setMetaTableText(1, 0, tr("точка"));
-    setMetaTableText(0, 1, tr("дата сбора"));
-    setMetaTableText(1, 1, meta["date"].toString());
-    setMetaTableText(0, 2, tr("время начала сбора"));
-    setMetaTableText(1, 2, meta["start_time"].toString());
-    setMetaTableText(0, 3, tr("время конца сбора"));
-    setMetaTableText(1, 3, meta["end_time"].toString());
-    setMetaTableText(0, 4, tr("количество событий"));
-    setMetaTableText(1, 4, meta["total_events"].toString());
-    setMetaTableText(0, 5, tr("время сбора"));
-    setMetaTableText(1, 5, meta["external_meta"].toMap()
-                           ["acquisition_time"].toString());
-    setMetaTableText(0, 6, tr("установленное напряжение на блоке 1"));
-    setMetaTableText(1, 6, meta["external_meta"].toMap()
-                           ["HV1_value"].toString());
-    setMetaTableText(0, 7, tr("установленное напряжение на блоке 2"));
-    setMetaTableText(1, 7, meta["external_meta"].toMap()
-                           ["HV2_value"].toString());
-    table->resizeColumnsToContents();
-}
-
-void PointFileDrawer::setVisible(bool visible, GraphMode graphMode)
-{
-    //скрытие всех графиков
-    for(int i = 0; i < graph_absolute.size(); i++)
-        graph_absolute[i]->setVisible(false);
-    for(int i = 0; i < graph_relative.size(); i++)
-        graph_relative[i]->setVisible(false);
-    for(int i = 0; i < bars.size(); i++)
-        bars[i]->setVisible(false);
-
-
-    //показ нужного графика
-    switch (graphMode)
-    {
-        case ABSOLUTE_TIME:
-        {
-            for(int i = 0; i < graph_absolute.size(); i++)
-                graph_absolute[i]->setVisible(visible);
-            break;
-        }
-        case RELATIVE_TIME:
-        {
-            for(int i = 0; i < graph_relative.size(); i++)
-                graph_relative[i]->setVisible(visible);
-            break;
-        }
-        case HISTOGRAMM:
-        {
-            for(int i = 0; i < bars.size(); i++)
-                bars[i]->setVisible(visible);
-        }
-        default:
-            break;
-    }
-
-    isVisible = visible;
-}
-
-void PointFileDrawer::setColor(QColor color)
-{
-    this->color = color;
-
-    for(int i = 0; i < graph_absolute.size(); i++)
-        graph_absolute[i]->setPen(color);
-
-    for(int i = 0; i < graph_relative.size(); i++)
-        graph_relative[i]->setPen(color);
-
-    for(int i = 0; i < bars.size(); i++)
-        bars[i]->setBrush(color);
-
-}
-
-QMap<int, unsigned short> PointFileDrawer::aviableMeasureTimes = TcpProtocol::getAviableMeasuteTimes();
-
-
-QCPBars *FileDrawer::createHistFromData(QCustomPlot *plot, QVector<double> &binVal, QVector<double> &binCoord, double minVal, double maxVal)
-{
-    QCPBars *bars;
-    bars = new QCPBars(plot->xAxis, plot->yAxis);
-    double size = binVal.size();
-    double width = (1. / size) * (double)(maxVal - minVal);
-    bars->setWidth(width);
-    bars->setData(binCoord, binVal);
-    bars->setPen(Qt::NoPen);
-    bars->setBrush(QBrush(color));
-
-    return bars;
-
-}
-
-template<typename T>
-void FileDrawer::generateHistFromData(QVector<T> &data, QVector<double> &binVal, QVector<double> &binCoord,
-                                      double &minVal, double &maxVal, int bins, int *binMax, bool abs)
-{
-    binVal = QVector<double>(bins);
-    binCoord = QVector<double>(bins);
-
-
-    if(abs && (minVal > 0 || maxVal > 0))
-        abs = 0;
-
-    if(abs)
-    {
-        double buf = minVal;
-        minVal = qAbs(maxVal);
-        maxVal = qAbs(buf);
-    }
-
-    //пересчет данных на бины
-    float diff = ((float)bins / (double)(maxVal - minVal));
-
-    for(int i = 0; i < data.size(); i++)
-    {
-        double currData;
-        if(!abs)
-            currData = data[i];
-        else
-            currData = qAbs(data[i]);
-        binVal[qMin((int)((currData - minVal) * diff), bins - 1)]++;
-    }
-
-    //Определение самого большого бина
-    if(binMax)
-    {
-        *binMax = (int)(std::max_element(binVal.begin(), binVal.end()));
-#ifdef TEST_MODE
-        qDebug() << *binMax;
-#endif
-    }
-
-    for (int i = 0; i < bins; i++)
-        binCoord[i] = (((double)i + 0.5) / (double)bins) * (double)(maxVal - minVal) + minVal;
-}
-
-
-template<typename T>
-QCPBars *FileDrawer::createHist(QVector<T> data, QCustomPlot *plot, double minVal, double maxVal, int bins, int *binMax, bool abs)
-{
-    QVector<double> hist;
-    QVector<double> bin;
-
-    generateHistFromData<T>(data, hist, bin, minVal, maxVal, bins, binMax, abs);
-
-    //создание графика
-    return createHistFromData(plot, hist, bin, minVal, maxVal);
-}
-
-void PointFileDrawer::update()
-{
-    //файл рисуется только один раз, т.к. он не обновляется
-    QByteArray rawData = file->readAll();
-
-    if(!loaded)
-    {
-        loaded = 1;
-
-        QVariantMap meta;
-        QVector<Event> events;
-
-        //парсинг сообщения
-        if(!TcpProtocol::parceMessageWithPoints(rawData, meta, events) || events.isEmpty())
-        {
-            loaded = 0;
-            return;
-        }
-
-        //преобразование формата для QCustomPlot
-        QVector<double> time(events.size());
-        QVector<double> time_abs(events.size());
-        QVector<double> event_data(events.size());
-
-        //получение абсолютного времени из метаданных
-        QDate date = QDate::fromString(meta["date"].toString(), "yyyy.MM.dd");
-        QTime start_time = QTime::fromString(meta["start_time"].toString(), "hh:mm:ss.zzz");
-        QTime end_time = QTime::fromString(meta["end_time"].toString(), "hh:mm:ss.zzz");
-
-        QDateTime start_datetime(date, start_time);
-        QDateTime end_datetime(date, end_time);
-
-        int acquisitionTime = 5;
-        //попытка получить точное время из метаданных
-        if(meta["external_meta"].toMap().contains("acquisition_time"))
-        {
-            acquisitionTime = meta["external_meta"].toMap()["acquisition_time"].toInt();
-            acquisitionTime = aviableMeasureTimes.lowerBound(acquisitionTime).key();
-        }
-        else
-        {
-            double raw_time = (double)(end_datetime.toMSecsSinceEpoch()
-                                       - start_datetime.toMSecsSinceEpoch())/1000.;
-            acquisitionTime = aviableMeasureTimes.lowerBound(raw_time + 1).key();
-        }
-
-        //коэффициент нормирования относительного времени
-        double coeff = TcpProtocol::madsTimeToNSecCoeff(acquisitionTime);
-        //коэффициент перевода относительного времени в миллисекунды
-        double coeff_abs = coeff/qPow(10,6);
-
-        //создание графиков с абсолютным и относительным временем
-        for(int i =0; i< events.size(); i++)
-        {
-            time[i] = coeff*events[i].time;
-            time_abs[i] = (double)start_datetime.toMSecsSinceEpoch()
-                                         + coeff_abs*events[i].time;
-            event_data[i] = events[i].data;
-            //вычисление абсолютного времени
-        }
-
-        graph_absolute.push_back(plot->addGraph());
-        graph_absolute.last()->addData(time_abs, event_data);
-        graph_absolute.last()->setVisible(false);
-        graph_absolute.last()->setPen(QPen(color));
-        graph_absolute.last()->setLineStyle(QCPGraph::lsNone);
-        graph_absolute.last()->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, 5));
-        graph_absolute.last()->setParent(this);
-
-        graph_relative.push_back(plot->addGraph());
-        graph_relative.last()->addData(time, event_data);
-        graph_relative.last()->setVisible(false);
-        graph_relative.last()->setPen(QPen(color));
-        graph_relative.last()->setLineStyle(QCPGraph::lsNone);
-        graph_relative.last()->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, 5));
-        graph_relative.last()->setParent(this);
-
-        //создание гистограммы
-        QVector<unsigned short> data(events.size());
-        for(int i = 0; i < events.size(); i++)
-           data[i] = events[i].data;
-        bars.push_back(createHist<unsigned short>(data, plot));
-        plot->addPlottable(bars.last());
-        bars.last()->setVisible(false);
-        bars.last()->setParent(this);
-    }
-
-    emit updated();
-}
-
-QColor FileDrawer::getRandomColor()
-{
-    // this are the numbers of the QT default colors
-    static int QtColours[]= { 3, 2, 7, 13, 8, 14, 9,
-                              15, 10, 16, 11, 17, 12,
-                              18, 5, 4, 6, 19, 0, 1 };
-
-
-    QColor color(QtColours[qrand() % sizeof(QtColours)]);
-    color.setAlpha(150);
-
-#ifdef TEST_MODE
-    qDebug() << color;
-#endif
-
-    return color;
-}
-
-VoltageFileDrawer::VoltageFileDrawer(QTableWidget *table, QCustomPlot *plot, QString filename, QObject *parent)
-    : FileDrawer(table, plot, filename, parent)
-{
-    graph_block_1 = plot->addGraph();
-    graph_block_1->setParent(this);
-    graph_block_1->setName(tr("напряжение блок 1"));
-
-    graph_block_2 = plot->addGraph();
-    graph_block_2->setParent(this);
-    graph_block_2->setName(tr("напряжение блок 2"));
-
-    setColor(color);
-    update();
-}
-
-VoltageFileDrawer::~VoltageFileDrawer()
-{
-}
-
-void VoltageFileDrawer::setMetaDataToTable()
-{
-    table->clearContents();
-    table->setRowCount(1);
-    table->setColumnCount(2);
-    setMetaTableText(0, 0, tr("тип файла"));
-    setMetaTableText(1, 0, tr("файл напряжения"));
-}
-
-void VoltageFileDrawer::setVisible(bool visible, GraphMode graphMode)
-{
-    if(graphMode == ABSOLUTE_TIME)
-    {
-        graph_block_1->setVisible(visible);
-        graph_block_2->setVisible(visible);
-    }
-    else
-    {
-        graph_block_1->setVisible(false);
-        graph_block_2->setVisible(false);
-    }
-
-    isVisible = visible;
-}
-
-void VoltageFileDrawer::setColor(QColor color)
-{
-    this->color = color;
-
-    graph_block_1->setPen(color);
-
-    QPen dashPen;
-    dashPen.setStyle(Qt::DashLine);
-    dashPen.setColor(color);
-    graph_block_2->setPen(dashPen);
-}
-
-void VoltageFileDrawer::update()
-{
-    QFileInfo fi(*file);
-    if(fi.lastModified() == fileLastModified)
-        return; //файл не обновлялся
-
-    //считывание хедеров
-    if(file->pos() == 0)
-    {
-        //проверка готовности бинарного хедера
-        if(file->bytesAvailable() < 30)
-            return;
-
-        //считывание бинарного заголовка
-        rawMachineHeader = file->read(30);
-        bool ok;
-        header = TcpProtocol::readMachineHeader(rawMachineHeader, &ok);
-        if(!ok)
-        {
-            file->seek(0);
-            return;
-        }
-    }
-    if(file->pos() == 30)
-    {
-        if(file->bytesAvailable() < header.metaLength)
-            return;
-
-        //парсинг мета хедера
-        QByteArray headers = rawMachineHeader + file->read(header.metaLength);
-        QByteArray data;
-        TcpProtocol::parceMessage(headers, meta, data, true);
-    }
-
-
-    while(file->bytesAvailable() >= sizeof(unsigned char)
-                                + sizeof(unsigned long long int)
-                                + sizeof(double))
-    {
-        unsigned char block;
-        unsigned long long int time;
-        double value;
-        //добаление значений на график
-        switch(header.dataType)
-        {
-            case HV_BINARY:
-                file->read((char*)&block, sizeof(unsigned char));
-                file->read((char*)&time, sizeof(unsigned long long int));
-                file->read((char*)(&value), sizeof(double));
-            case HV_TEXT_BINARY:
-            {
-                QStringList lines = QString(file->readLine()).split(' ');
-                time = QDateTime().fromString(lines[0], Qt::ISODate).toMSecsSinceEpoch();
-                block = lines[1].toInt();
-                value = lines[2].toDouble();
-            }
-        }
-
-        switch (block)
-        {
-            case 1:
-                graph_block_1->addData(time, value);
-            break;
-
-            case 2:
-                graph_block_2->addData(time, value);
-            break;
-
-            default:
-                break;
-        }
-    }
-
-    emit updated();
-}
-
 CustomItemDelegate::CustomItemDelegate(QFileSystemModel *model, QMap<QString, FileDrawer *> *opened_files,
                                        QObject *parent): QStyledItemDelegate(parent)
 {
@@ -836,7 +255,9 @@ void DataVisualizerForm::on_fileBrowser_doubleClicked(const QModelIndex &index)
     QFileInfo fileInfo(filepath);
 
     if(fileInfo.isDir())
-        openDir(filepath);
+    {
+        //openDir(filepath);
+    }
     else
         visualizeFile(filepath);
 }
@@ -844,7 +265,6 @@ void DataVisualizerForm::on_fileBrowser_doubleClicked(const QModelIndex &index)
 void DataVisualizerForm::on_fileBrowser_clicked(const QModelIndex &index)
 {
     QString filepath = model->filePath(index);
-
 
     if(!(opened_files.contains(filepath)))
     {
@@ -855,7 +275,9 @@ void DataVisualizerForm::on_fileBrowser_clicked(const QModelIndex &index)
            QFile::exists(fileInfo.absolutePath() + "/block_stat")) &&
            (fileInfo.baseName() != "setup_raw") &&
            (fileInfo.baseName() != "setup") &&
-           (fileInfo.baseName() != "block_stat"))
+           (fileInfo.baseName() != "block_stat") &&
+            fileInfo.suffix().isEmpty() && //Проверка расширения файла
+            !fileInfo.fileName().contains("amplHist")) //Файл не сгененрирован автоматически.
         {
             APDFileDrawer *apdfd = new APDFileDrawer(ui->metaTable, plot, filepath, this);
             opened_files[filepath] = apdfd;
@@ -922,430 +344,101 @@ void DataVisualizerForm::on_fileBrowser_clicked(const QModelIndex &index)
     return;
 }
 
-void APDFileDrawer::fullDeleteHistTab()
+Ruler::Ruler(QCustomPlot *plot, QObject *parent) : QObject(parent)
 {
-    histSetWidget = 0;
+    this->plot = plot;
+    x1 = 0;
+    x2 = 0;
+    y = 0;
+
+    mouseJustMovedFlag = 0;
+
+    text = 0;
+
+    graph = plot->addGraph();
+    graph->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, 5));
+
+    connect(plot, SIGNAL(mouseRelease(QMouseEvent*)),
+            this, SLOT(processMouseRelease(QMouseEvent*)));
+
+    connect(plot, SIGNAL(mouseMove(QMouseEvent*)),
+            this, SLOT(processMouseMove(QMouseEvent*)));
 }
 
-APD_HIST_TYPE APDFileDrawer::histType = AMPLITUDE;
-
-void APDFileDrawer::loadMetaData()
+void Ruler::processMouseMove(QMouseEvent *ev)
 {
-    QFile setupFile(QFileInfo(file->fileName()).absolutePath() + "/setup");
-    if(setupFile.exists())
+    if((ev->buttons() & Qt::RightButton) ||
+       (ev->buttons() & Qt::LeftButton))
     {
-        setupFile.open(QIODevice::ReadOnly);
-
-        QString content(setupFile.readAll());
-        QStringList contentList = content.split("\n", QString::SkipEmptyParts);
-
-        for(int i = 0; i < contentList.size(); i++)
-        {
-            QString buf;
-
-            if(contentList[i].contains("Station StationStart time: "))
-            {
-                buf = contentList[i].remove("Station StationStart time: ");
-                meta["timeStart"] = QDateTime::fromString(buf);
-                continue;
-            }
-
-            if(contentList[i].contains("Stop time: "))
-            {
-                buf = contentList[i].remove("Stop time: ");
-                meta["timeStop"] = QDateTime::fromString(buf);
-                continue;
-            }
-
-            if(contentList[i].contains("Threshold = "))
-            {
-                buf = contentList[i].remove("Threshold = ");
-                meta["threshold"] = buf.toDouble();
-                continue;
-            }
-
-            if(contentList[i].contains("Main step = "))
-            {
-                buf = contentList[i].remove("Main step = ");
-
-
-                //перевод в одинаковые единицы измерения
-                int coef = 1;
-                if(buf.contains(" ns"))
-                {
-                    buf = buf.remove(" ns");
-                    coef = 1;
-                }
-                if(buf.contains(" mks"))
-                {
-                    buf = buf.remove(" mks");
-                    coef = 1000;
-                }
-
-                meta["mainStep"] = (buf.toDouble() * coef) * 10; //наносекунды * 10
-                continue;
-            }
-
-            if(contentList[i].contains("K = "))
-            {
-                buf = contentList[i].remove("K = ");
-                meta["amplifyCoef"] = buf.toDouble();
-                continue;
-            }
-
-            if(contentList[i].contains("Base line offset = "))
-            {
-                buf = contentList[i].remove("Base line offset = ");
-                meta["baseLineOffset"] = buf.toDouble();
-                continue;
-            }
-        }
-
-        setupFile.close();
-    }
-}
-
-APDFileDrawer::APDFileDrawer(QTableWidget *table, QCustomPlot *plot, QString filename, QObject *parent)
-: FileDrawer(table, plot, filename, parent)
-{
-    loaded = 0;
-
-    //загрузка метаданных файла
-    loadMetaData();
-
-    histSetWidget = 0;
-
-    connect(plot->xAxis, SIGNAL(rangeChanged(QCPRange)), this, SLOT(drawPart(QCPRange)));
-
-    update();
-}
-
-APDFileDrawer::~APDFileDrawer()
-{
-}
-
-void APDFileDrawer::createHistModeChangeButtons(int col, int row)
-{
-    setMetaTableText(0, 1, tr("Показывать гистограмму по"));
-
-    //создание кнопок выбора гистограммы
-    if(histSetWidget)
-    {
-        delete histSetWidget;
-        histSetWidget = 0;
+        mouseJustMovedFlag = 1;
+        clearRuler();
     }
 
-
-    histSetWidget = new QWidget();
-    QHBoxLayout *layout = new QHBoxLayout(histSetWidget);
-    histSetWidget->setLayout(layout);
-    histSetButtons[0] = new QRadioButton("амплитуде", histSetWidget);
-    histSetButtons[1] = new QRadioButton("интервалу", histSetWidget);
-    connect(histSetButtons[0], SIGNAL(pressed()), this, SLOT(changeHistType()));
-    connect(histSetButtons[1], SIGNAL(pressed()), this, SLOT(changeHistType()));
-    layout->addWidget(histSetButtons[0]);
-    layout->addWidget(histSetButtons[1]);
-
-    connect(histSetWidget, SIGNAL(destroyed(QObject*)),
-            this, SLOT(fullDeleteHistTab()), Qt::DirectConnection);
-
-    switch (APDFileDrawer::histType)
-    {
-        case AMPLITUDE:
-            histSetButtons[0]->setChecked(true);
-            break;
-        case INTERVAL:
-            histSetButtons[1]->setChecked(true);
-            break;
-    }
-    table->setCellWidget(col, row, histSetWidget);
 }
 
-void APDFileDrawer::setMetaDataToTable()
+void Ruler::clearRuler()
 {
-    table->clearContents();
+    x1 = 0;
+    x2 = 0;
+    y = 0;
 
-    table->setColumnCount(2);
-    if(meta.isEmpty())
-        table->setRowCount(2);
+    if(text)
+    {
+        plot->removeItem(text);
+        text = 0;
+    }
+
+    graph->removeDataAfter(0);
+    plot->replot();
+}
+
+void Ruler::processMouseRelease(QMouseEvent *ev)
+{
+    if((ev->button() == Qt::RightButton) || mouseJustMovedFlag)
+    {
+        mouseJustMovedFlag = 0;
+        clearRuler();
+    }
     else
-    {
-        table->setRowCount(8);
-        setMetaTableText(0, 2, tr("Время начала сбора"));
-        setMetaTableText(1, 2, meta["timeStart"].toDateTime().toString());
-
-        setMetaTableText(0, 3, tr("Время окончания сбора"));
-        setMetaTableText(1, 3, meta["timeStop"].toDateTime().toString());
-
-        setMetaTableText(0, 4, tr("Шаг по времени"));
-        setMetaTableText(1, 4, tr("%1 нс").arg(meta["mainStep"].toDouble() / 10.));
-
-        setMetaTableText(0, 5, tr("Отступ базовой линии"));
-        setMetaTableText(1, 5, tr("%1").arg(meta["baseLineOffset"].toDouble()));
-
-        setMetaTableText(0, 6, tr("Коэффициент усиления"));
-        setMetaTableText(1, 6, tr("%1").arg(meta["amplifyCoef"].toDouble()));
-
-        setMetaTableText(0, 7, tr("Порог"));
-        setMetaTableText(1, 7, tr("%1").arg(meta["threshold"].toDouble()));
-
-    }
-
-
-
-    setMetaTableText(0, 0, tr("тип файла"));
-    setMetaTableText(1, 0, tr("файл APD"));
-
-    createHistModeChangeButtons(1, 1);
-
-    table->resizeColumnsToContents();
-    table->resizeRowsToContents();
-}
-
-void APDFileDrawer::setHistVisible(bool visible)
-{
-    switch (APDFileDrawer::histType)
-    {
-        case AMPLITUDE:
-            amplHist.hist->setVisible(visible);
-            break;
-        case INTERVAL:
-            intervalHist.hist->setVisible(visible);
-            break;
-    }
-}
-
-void APDFileDrawer::setVisible(bool visible, GraphMode graphMode)
-{
-    isVisible = visible;
-
-    graphBorder->setVisible(false);
-    intervalHist.hist->setVisible(false);
-    amplHist.hist->setVisible(false);
-    graph->setVisible(false);
-
-    switch(graphMode)
-    {
-        case HISTOGRAMM:
-
-            setHistVisible(visible);
-            break;
-
-        case RELATIVE_TIME:
-            graphBorder->setVisible(visible);
-            graph->setVisible(visible);
-            break;
-        default:
-            break;
-    }
-}
-
-void APDFileDrawer::setColor(QColor color)
-{
-    this->color = color;
-    graph->setPen(QPen(color));
-    amplHist.hist->setBrush(QBrush(color));
-    intervalHist.hist->setBrush(QBrush(color));
-}
-
-void APDFileDrawer::update()
-{
-    //считывается только один раз
-    if(!loaded)
-    {
-        double minAmpl = 0;
-        double maxAmpl = 0;
-
-        double minInterval = 0;
-        double maxInterval = 0;
-
-        //парсинг файла
-        QTextStream ts(file);
-
-        quint64 timeCoef = 1.;
-        if(meta.contains("mainStep"))
-            timeCoef = meta["mainStep"].toDouble();
-
-        while(!ts.atEnd())
+        if(ev->button() == Qt::LeftButton)
         {
-            //получение значений из файла
-            quint64 timeVal;
-            int inter, ampl, w;
-            ts >> timeVal >> ampl >> inter >> w;
+            if(x1 == 0)
+            {
+                clearRuler();
 
-            if(!timeVal && time.size())
-                break;
+                y = plot->yAxis->pixelToCoord(ev->pos().y());
+                x1 = plot->xAxis->pixelToCoord(ev->pos().x());
 
-            if(ampl < minAmpl)
-                minAmpl = ampl;
-            if(ampl > maxAmpl)
-                maxAmpl = ampl;
-
-            if(inter < minInterval)
-                minInterval = inter;
-            if(inter > maxInterval)
-                maxInterval = inter;
-
-            //запись значений в вектора
-            time.push_back(timeVal * timeCoef);
-            val.push_back(ampl);
-            interval.push_back(inter);
-            width.push_back(w * timeCoef);
-        }
-
-        graph = plot->addGraph();
-        graph->setPen(QPen(color));
-        graph->setLineStyle(QCPGraph::lsStepLeft);
-
-        graphBorder = plot->addGraph();
-        graphBorder->addData(0, minAmpl);
-        graphBorder->addData(time[time.size() - 1], qMax(0, (int)maxAmpl));
-        graphBorder->setPen(QPen(QColor(0,0,0,0)));
-
-        generateHistFromData(val, amplHist.histValues.first, amplHist.histValues.second,
-                             minAmpl, maxAmpl, qAbs(maxAmpl - minAmpl));
-        amplHist.hist = createHistFromData(plot, amplHist.histValues.first, amplHist.histValues.second, minAmpl, maxAmpl);
-        amplHist.hist->setVisible(false);
-        plot->addPlottable(amplHist.hist);
-
-
-        generateHistFromData<int>(interval, intervalHist.histValues.first, intervalHist.histValues.second,
-                                  minInterval, maxInterval, qMin(qMax(128, qAbs((int)maxInterval - (int)minInterval) / 4096), 8192));
-        intervalHist.hist = createHistFromData(plot, intervalHist.histValues.first, intervalHist.histValues.second,
-                                          minInterval, maxInterval);
-        intervalHist.hist->setVisible(false);
-        plot->addPlottable(intervalHist.hist);
-
-        //установка родителей графикам
-        graph->setParent(this);
-        graphBorder->setParent(this);
-        amplHist.hist->setParent(this);
-        intervalHist.hist->setParent(this);
-    }
-    emit updated();
-}
-
-template<typename T>
-void APDFileDrawer::getMinMaxInd(T &vector, double min, double max,
-                                 quint64 &minInd, quint64 &maxInd)
-{
-    minInd = 0;
-    maxInd = vector.size() - 1;
-
-    bool minFound = false;
-    bool maxFound = false;
-    for(quint64 i = 0; i < vector.size(); i++)
-    {
-        if(!minFound && vector[i] > min)
-        {
-            minFound = true;
-            if(i == 0)
-                minInd = 0;
+                graph->addData(x1, y);
+                plot->replot();
+            }
             else
-                minInd = i - 1;
+                if(x2 == 0)
+                {
+                    x2 = plot->xAxis->pixelToCoord(ev->pos().x());
+
+                    graph->addData(x2, y);
+
+                    if(text)
+                    {
+                        plot->removeItem(text);
+                        text = 0;
+                    }
+
+                    text = new QCPItemText(plot);
+
+                    plot->addItem(text);
+
+                    text->setText(tr("%1 нс").arg(qAbs(x2 - x1)));
+                    text->position->setCoords((x2 + x1) / 2., y);
+                    plot->replot();
+                }
+                else
+                {
+                    x1 = 0;
+                    x2 = 0;
+                    y = 0;
+                    processMouseRelease(ev);
+                }
         }
-
-        if(!maxFound && vector[i] > max)
-        {
-            maxFound = true;
-            maxInd = i;
-            break;
-        }
-    }
 }
-
-void APDFileDrawer::sendHistEventsInWindow(QCPRange range, APDHist &apdHist)
-{
-    if(apdHist.hist->visible())
-    {
-        //подсчет количества событий в окне
-        quint64 minInd;
-        quint64 maxInd;
-
-        getMinMaxInd<QVector<double> >(apdHist.histValues.second, range.lower, range.upper,
-                                      minInd, maxInd);
-
-        quint64 sum = 0;
-        for(quint64 i = minInd; i < maxInd; i++)
-            sum += apdHist.histValues.first[i];
-
-        emit sendTextInfo(tr("Событий в окне: %1 ")
-                          .arg(sum));
-    }
-}
-
-void APDFileDrawer::drawPart(QCPRange range)
-{
-    if(!time.size())
-        return;
-
-    sendHistEventsInWindow(range, amplHist);
-
-    sendHistEventsInWindow(range, intervalHist);
-
-    if(graph->visible())
-    {
-        //определение максимального количества точек, которые могут быть отображены на экране
-        int maxPoints = plot->width();
-
-        //получение индекса точек, попадающих в границу
-        /*
-        std::vector<int>::iterator itMin = std::lower_bound(time.begin(), time.end(), min);
-        std::vector<int>::iterator itMax = std::upper_bound(time.begin(), time.end(), max);
-
-        int minInd = itMin - time.begin();
-        int maxInd = itMax - time.begin();
-        */
-        quint64 minInd;
-        quint64 maxInd;
-
-
-        getMinMaxInd<std::vector<quint64> >(time, range.lower, range.upper, minInd, maxInd);
-
-        int step = qMax((quint64)1, (maxInd - minInd)/maxPoints);
-
-        QVector<double> x, y;
-
-        for(quint64 i = minInd; i < maxInd; i+= step)
-        {
-            x.push_back(time[i]);
-            y.push_back(val[i]);
-
-            x.push_back(time[i] + width[i]);
-            y.push_back(0);
-        }
-
-        if(time.size() != 0)
-        {
-            x.push_front(0);
-            y.push_front(0);
-
-            x.push_back(time[time.size() - 1]);
-            y.push_back(val[time.size() - 1]);
-            x.push_back(time[time.size() - 1] + width[time.size() - 1]);
-            y.push_back(0);
-        }
-
-        emit sendTextInfo(tr("Событий в окне: %1 (%2 показано, %3 скрыто)")
-                          .arg(maxInd - minInd)
-                          .arg((maxInd - minInd)/step)
-                          .arg((int)(((double)(maxInd - minInd))*(1. - 1./(double)step))));
-
-        graph->setData(x, y);
-        plot->replot();
-    }
-}
-
-void APDFileDrawer::changeHistType()
-{
-    QEventLoop el;
-    QTimer::singleShot(200, &el, SLOT(quit()));
-    el.exec();
-
-    if(histSetButtons[0]->isChecked())
-        APDFileDrawer::histType = AMPLITUDE;
-    if(histSetButtons[1]->isChecked())
-        APDFileDrawer::histType = INTERVAL;    
-}
-
-

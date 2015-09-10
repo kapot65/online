@@ -6,6 +6,14 @@ DataVisualizerWindow::DataVisualizerWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::DataVisualizerWindow)
 {
+    this->settings = new QSettings(tr("%1.ini").arg(metaObject()->className()),
+                                   QSettings::IniFormat);
+
+    settings->beginGroup("DataVisualizerForm");
+        if(!settings->contains("hide_abs_time"))
+            settings->setValue("hide_abs_time", true);
+    settings->endGroup();
+
     ui->setupUi(this);
     form = new DataVisualizerForm(1, settings, this);
     ui->dataVisualizerFrame->layout()->addWidget(form);
@@ -20,9 +28,6 @@ DataVisualizerWindow::~DataVisualizerWindow()
 
 void DataVisualizerWindow::on_openFolderButton_clicked()
 {
-    this->settings = new QSettings("DataVisualizerSettings.ini",
-                                   QSettings::IniFormat);
-
     settings->beginGroup("DataVisualizer");
     QString dir = settings->value("last_opened_dir", QVariant(QString())).toString();
     dir = QFileDialog::getExistingDirectory(this, tr("Открыть папку с данными"), dir);
