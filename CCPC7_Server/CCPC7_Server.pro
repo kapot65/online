@@ -22,63 +22,32 @@ DEFINES += \
 include(../revision_info.pri )
 include(../easylogging.pri )
 include(../tcp/tcp.pri)
+include(../ccpc/ccpc.pri)
 
 INCLUDEPATH += $$PWD
 
-unix: !macx{
-INCLUDEPATH += ccpc/original/
-
-SOURCES += \
-    ccpc/original/ccpc7.cpp \
-    ccpc/original/camacop.cpp \
-    ccpc/original/camacimpl.cpp \
-    ccpc/original/ccpcisa.cpp \
-
-HEADERS  += \
-        ccpc/original/ccpc7.h \
-
-}
 win32{
 contains(QT_MAJOR_VERSION, 4){
-INCLUDEPATH += \
-               ccpc/virtual
 CONFIG += c++11
-
-SOURCES += \
-        ccpc/virtual/ccpc7.cpp \
-        ccpc/virtual/ccpc7base.cpp \
-
-HEADERS  += \
-        ccpc/virtual/ccpc7.h \
-        ccpc/virtual/ccpc7base.h \
 }
 
 contains(QT_MAJOR_VERSION, 5){
-INCLUDEPATH += ccpc/virtual
 CONFIG += c++11
-
-SOURCES += \
-        ccpc/virtual/ccpc7.cpp \
-        ccpc/virtual/ccpc7base.cpp \
-
-HEADERS  += \
-        ccpc/virtual/ccpc7.h \
-        ccpc/virtual/ccpc7base.h \
 }
 }
 
 SOURCES += main.cpp\
     camacserver.cpp \
-    camacalgoritm.cpp \
     commandhandler.cpp \
     camacserversettings.cpp \
     camacserverhandler.cpp \
-    tempfolder.cpp
+    tempfolder.cpp \
+    camacalgoritm.cpp
 
 HEADERS  += \
     camacserver.h \
-    camacalgoritm.h \
     commandhandler.h \
     camacserversettings.h \
     camacserverhandler.h \
-    tempfolder.h
+    tempfolder.h \
+    camacalgoritm.h

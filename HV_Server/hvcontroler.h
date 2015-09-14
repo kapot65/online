@@ -34,7 +34,7 @@ public slots:
      * Диапазоны устанавливаются в ini файле в полях "minTreshold" и "maxTreshold".
      * \param voltage Напряжение в вольтах.
      */
-    void setVoltage(double voltage);
+    virtual void setVoltage(double voltage);
 
 protected:
     /*!

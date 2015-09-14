@@ -21,11 +21,12 @@
 #include "camacserversettings.h"
 #include <tcpprotocol.h>
 #include <event.h>
+#include <ccpccommands.h>
 
 /*!
  * \brief Класс содержит алгоритмы для работы с камаком.
  */
-class CamacAlgoritm : public QObject
+class CamacAlgoritm : public CCPCCommands, public QObject
 {
     Q_OBJECT
 public:
@@ -79,12 +80,6 @@ protected:
      */
     void resetCounters();
 
-    /*!
-     * \brief Ожидание.
-     * \param Время ожидания в милисекундах.
-     */
-    void waitMSec(int msec);
-
 
     /*!
      * \brief Получение значения на каунтере.
@@ -95,25 +90,6 @@ protected:
      */
     unsigned int getCounterValue(int counterNum, int channelNum, bool withReset);
 
-    /*!
-     * \brief Проведения цикла C
-     */
-    void C();
-
-    /*!
-     * \brief Проведение цикла Z
-     */
-    void Z();
-
-    /*!
-     * \brief Проведение операции NAF
-     * \param n N
-     * \param a A
-     * \param f F
-     * \param [in, out]data Данные.
-     * \return Результат операции.
-     */
-    ccpc::CamacOp NAF(int n, int a, int f, unsigned short &data);
 
 private:
     /*!
@@ -187,30 +163,6 @@ private:
     void getMADCAddr(long &addr, bool &addrOverflow, bool &endOfMeasurement);//GET ADDRESS, ADDRESS-OVERFLOW AND END-OF-MEASURE BITS
 
     //вспомогательные функции
-    /*!
-     * \brief Выдает значение бита в байте.
-     * \param Рассматриваемый байт.
-     * \param Позиция бита в байте.
-     * \return Значение бита.
-     */
-    bool checkBit(unsigned short var, int pos);
-
-    /*!
-     * \brief Изменяет значение бита в байте.
-     * \param Рассматриваемый байт.
-     * \param Позиция заменяемого бита в байте.
-     * \param Значение заменяемого бита.
-     */
-    void replaceBit(long &var, int pos, bool bit);
-
-    /*!
-     * \brief Изменяет значение бита в байте.
-     * \param Рассматриваемый байт.
-     * \param Позиция заменяемого бита в байте.
-     * \param Значение заменяемого бита.
-     */
-    void replaceBit(unsigned short &var, int pos, bool bit);
-
     /*!
      * \brief Доступные времена сбора.
      * Создается с помощью TcpProtocol::getAviableMeasuteTimes

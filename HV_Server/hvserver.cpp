@@ -1,4 +1,5 @@
 #include "hvserver.h"
+#include "hvmaincontroller.h"
 
 #ifdef TEST_MODE
     #include <QDebug>
@@ -37,7 +38,7 @@ HVServer::HVServer(IniManager *manager, int port, QObject *parent): TcpServer(po
     connect(this, SIGNAL(getDivider2Voltage()), divider2, SLOT(getVoltage()), Qt::QueuedConnection);
     connect(divider2, SIGNAL(getVoltageDone(double)), this, SLOT(onDivider2GetVoltageDone(double)), Qt::QueuedConnection);
 
-    hvControlerDivider2 = new HVControler(manager, "HVController2", &ok);
+    hvControlerDivider2 = new HvMainController(manager, "HVController2", &ok);
     if(!ok)
     {
         this->deleteLater();

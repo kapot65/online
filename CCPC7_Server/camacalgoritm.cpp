@@ -1,28 +1,11 @@
 #include "camacalgoritm.h"
 
-CamacAlgoritm::CamacAlgoritm(QObject *parent) : QObject(parent)
+CamacAlgoritm::CamacAlgoritm(QObject *parent) : CCPCCommands(), QObject(parent)
 {
     breakFlag = 0;
 
-#if QT_VERSION >= 0x040800
-    timer = new QTimer(this);
-    eventLoop = new QEventLoop(this);
-    connect(timer, SIGNAL(timeout()), eventLoop, SLOT(quit()));
-    connect(timer, SIGNAL(timeout()), timer, SLOT(stop()));
-#endif
-
     //connect(camac, SIGNAL(have_error(QString)), this, SLOT(process_error(QString)));
     aviableMeasureTimes = TcpProtocol::getAviableMeasuteTimes();
-}
-
-void CamacAlgoritm::waitMSec(int msec)
-{
-    #if QT_VERSION >= 0x050300
-            QThread::msleep(msec);
-    #elif QT_VERSION >= 0x040800
-        timer->start(msec);
-        eventLoop->exec();
-    #endif
 }
 
 void CamacAlgoritm::on_breakAcquisition()
@@ -375,28 +358,6 @@ QVector<Event> CamacAlgoritm::acquirePoint(unsigned short measureTime, bool *man
     return events;
 }
 
-ccpc::CamacOp CamacAlgoritm::NAF(int n, int a, int f, unsigned short &data)
-{
-    ccpc::CamacOp op;
-    op.n = n;
-    op.a = a;
-    op.f = f;
-
-    op.mode = ccpc::Single;
-    op.dir = (op.f>=16)?ccpc::DW16:ccpc::DR16;
-
-
-    if(op.isWrite())
-        op.data.push_back(data);
-
-
-    camac->exec(op);
-
-    if(op.data.size() != 0)
-        data = op.data[0];
-    return op;
-}
-
 void CamacAlgoritm::disableMeasurement()
 {
 #ifdef TEST_MODE
@@ -423,29 +384,6 @@ void CamacAlgoritm::writeMADC(unsigned short &data, long &time)
     NAF(settings->getMADC(), 1, 16, tw);
     tw = data & 0x0FFF;
     NAF(settings->getMADC(), 2, 16, tw);
-}
-
-inline bool CamacAlgoritm::checkBit(unsigned short var, int pos)
-{
-    return (var) & (1<<(pos));
-}
-
-inline void CamacAlgoritm::replaceBit(long &var, int pos, bool bit)
-{
-    //обнуление нужного бита
-    var &= ~(1 << pos);
-    //заполнение нужного бита
-    if(bit)
-        var |= (1 << pos);
-}
-
-inline void CamacAlgoritm::replaceBit(unsigned short &var, int pos, bool bit)
-{
-    //обнуление нужного бита
-    var &= ~(1 << pos);
-    //заполнение нужного бита
-    if(bit)
-        var |= (1 << pos);
 }
 
 void CamacAlgoritm::readMADC(unsigned short &data, long &time, bool &valid)
@@ -590,24 +528,6 @@ void CamacAlgoritm::getMADCAddr(long &addr, bool &addrOverflow, bool &endOfMeasu
 
     addr = addr * 65536 + tw;
     //*/
-}
-
-void CamacAlgoritm::C()
-{
-    LOG(INFO) << "Executing C cycle";
-
-    ccpc::CamacOp op;
-    op.mode = ccpc::Ccycle;
-    camac->exec(op);
-}
-
-void CamacAlgoritm::Z()
-{
-    LOG(INFO) << "Executing Z cycle";
-
-    ccpc::CamacOp op;
-    op.mode = ccpc::Zcycle;
-    camac->exec(op);
 }
 
 void CamacAlgoritm::testMADC()

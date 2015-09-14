@@ -16,6 +16,7 @@ CONFIG   -= app_bundle
 include(../revision_info.pri )
 include(../tcp/tcp.pri)
 include(../easylogging.pri)
+include(../ccpc/ccpc.pri)
 
 INCLUDEPATH += $$PWD
 
@@ -34,6 +35,7 @@ SOURCES += main.cpp\
     comport.cpp \
     hvcontroler.cpp \
     dividerreader.cpp \
+    hvmaincontroller.cpp \
 
 HEADERS  += \
     hvserver.h \
@@ -41,3 +43,4 @@ HEADERS  += \
     comport.h \
     hvcontroler.h \
     dividerreader.h \
+    hvmaincontroller.h \

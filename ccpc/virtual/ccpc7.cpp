@@ -1,7 +1,7 @@
 #include <ccpc7.h>
 #include <QtNetwork>
 #include <QEventLoop>
-#include "commandhandler.h"
+//#include "commandhandler.h"
 
 using namespace ccpc;
 
@@ -72,7 +72,7 @@ void CamacImplCCPC7::exec(CamacOp &op)
     out << op_message;
     out.device()->seek(0);
     */
-    QVariantMap message = CommandHandler::camacOpToMessage(op);
+    QVariantMap message ;//= CommandHandler::camacOpToMessage(op);
     QByteArray fullMessage = TcpProtocol::createMessage(message);
 
     QEventLoop pause;
@@ -86,7 +86,7 @@ void CamacImplCCPC7::exec(CamacOp &op)
     QByteArray answer = connection->readAll();
     QByteArray data;
     TcpProtocol::parceMessage(answer, message, data);
-    op =  CommandHandler::messageToCamacOp(message);
+    //op =  CommandHandler::messageToCamacOp(message);
 }
 void CamacImplCCPC7::processError()
 {
