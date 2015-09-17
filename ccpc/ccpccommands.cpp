@@ -47,12 +47,12 @@ void CCPCCommands::Z()
 ccpc::CamacOp CCPCCommands::NAF(int n, int a, int f, unsigned short &data)
 {
     long dataLong = data;
-    ccpc::CamacOp opOut = NAF(n, a, f, dataLong);
+    ccpc::CamacOp opOut = NAF(n, a, f, dataLong, false);
     data = dataLong;
     return opOut;
 }
 
-ccpc::CamacOp CCPCCommands::NAF(int n, int a, int f, long &data)
+ccpc::CamacOp CCPCCommands::NAF(int n, int a, int f, long &data, bool use24bit)
 {
     ccpc::CamacOp op;
     op.n = n;
@@ -60,7 +60,11 @@ ccpc::CamacOp CCPCCommands::NAF(int n, int a, int f, long &data)
     op.f = f;
 
     op.mode = ccpc::Single;
-    op.dir = (op.f>=16)?ccpc::DW16:ccpc::DR16;
+
+    if(use24bit)
+        op.dir = (op.f>=16)?ccpc::DW24:ccpc::DR24;
+    else
+        op.dir = (op.f>=16)?ccpc::DW16:ccpc::DR16;
 
 
     if(op.isWrite())

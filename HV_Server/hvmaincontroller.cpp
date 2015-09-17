@@ -38,7 +38,7 @@ HvMainController::HvMainController(IniManager *manager, QString controllerName, 
             data = 0xffffff;
             NAF(controllerId, 0, 16, data);
 
-            unsigned short databuf;
+            long databuf;
             //Проверка того, что напряжение установилось
             NAF(controllerId, 0, 0, databuf);
 
