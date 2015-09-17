@@ -46,6 +46,14 @@ void CCPCCommands::Z()
 
 ccpc::CamacOp CCPCCommands::NAF(int n, int a, int f, unsigned short &data)
 {
+    long dataLong = data;
+    ccpc::CamacOp opOut = NAF(n, a, f, dataLong);
+    data = dataLong;
+    return opOut;
+}
+
+ccpc::CamacOp CCPCCommands::NAF(int n, int a, int f, long &data)
+{
     ccpc::CamacOp op;
     op.n = n;
     op.a = a;

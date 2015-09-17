@@ -17,10 +17,11 @@ HvMainController::HvMainController(IniManager *manager, QString controllerName, 
         else
         {
 #ifndef VIRTUAL_MODE
+
             camac = new ccpc::CamacImplCCPC7();
 
             //Инициализация блока управления.
-            unsigned short data = 0x16;
+            long data = 0x16;
             ccpc::CamacOp op = NAF(controllerId, 1, 16, data);
 
             if(!(op.q && op.x))

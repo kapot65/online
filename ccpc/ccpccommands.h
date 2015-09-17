@@ -63,6 +63,16 @@ protected:
      */
     ccpc::CamacOp NAF(int n, int a, int f, unsigned short &data);
 
+    /*!
+     * \brief Проведение операции с данными long
+     * \param n N
+     * \param a A
+     * \param f F
+     * \param [in, out]data Данные.
+     * \return Результат операции.
+     */
+    ccpc::CamacOp NAF(int n, int a, int f, long &data);
+
 private:
 #if QT_VERSION >= 0x040800
     /*!
