@@ -340,7 +340,7 @@
  * CamacServer добавить возможность сборки без QJson (метаданные в QVaraiantMap).  <br>
  * Обновить инструкцию по установке программ под Linux.
  *
- * \subsection Сборка CCPC программ из исходников
+ * \subsection CCPCBuild Сборка CCPC программ из исходников
  * В этой главе описан процесс сборки программы из исходников на CCPC с чистой ос xubuntu 12.04.
  *
  * Шаги при сбоке:
@@ -365,6 +365,14 @@
  *       sudo add-apt-repository ppa:git-core/ppa
  *       sudo apt-get update
  *       sudo apt-get install git-core
+ *
+ * - Собираем библиотеку QtSerialPort. Для этого:
+ *  -Клонируем репозиторий в любую папку
+ *
+ *       sudo git clone -b qt4-dev git://code.qt.io/qt/qtserialport.git
+ *
+ *  -Открываем проект, через QtCreator. Добавлем дополнительный этак сборки Make с аргументом install.
+ *  -Собираем проект.
  *
  * - Клонируем репозиторий в нужную папку
  *
@@ -395,8 +403,15 @@
 #include "camacclientform.h"
 
 // настройки логгера
+// настройки логгера
+#if QT_VERSION >= 0x050300
 INITIALIZE_EASYLOGGINGPP
 #define LOG_DIRECTORY "D:\\Logs\\CamacClient\\"
+#elif QT_VERSION >= 0x040800
+_INITIALIZE_EASYLOGGINGPP
+#define LOG_DIRECTORY "/home/Logs/CamacClient/"
+#endif
+
 
 int main(int argc, char *argv[])
 {
@@ -408,13 +423,30 @@ int main(int argc, char *argv[])
     LOG(INFO) << "Programm run in virtual mode";
 #endif
 
-    START_EASYLOGGINGPP(argc, argv);
-
     QDateTime curr_datetime = QDateTime::currentDateTime();
 
+#if QT_VERSION >= 0x050300
+START_EASYLOGGINGPP(argc, argv);
+#elif QT_VERSION >= 0x040800
+    _START_EASYLOGGINGPP(argc, argv);
+#endif
+
+#if defined(Q_OS_LINUX)
+    //убирание привилегий рута с папки с логами
+    system((std::string("sudo chmod -R 777 ") + QFileInfo(LOG_DIRECTORY +
+            curr_datetime.toString("/log_yyyyMMdd-hhmmss.zzz")).dir().path().toStdString()).c_str());
+#endif
+
+#if QT_VERSION >= 0x050300
     el::Loggers::reconfigureAllLoggers(el::ConfigurationType::Filename,
                                          (LOG_DIRECTORY +
-                                          curr_datetime.toString("yyyyMMdd-hhmmss.zzz")).toStdString());
+                                          curr_datetime.toString("/log_yyyyMMdd-hhmmss.zzz")).toStdString());
+#elif QT_VERSION >= 0x040800
+    easyloggingpp::Loggers::reconfigureAllLoggers(easyloggingpp::ConfigurationType::Filename,
+                                     (LOG_DIRECTORY +
+                                      curr_datetime.toString("/log_yyyyMMdd-hhmmss.zzz")).toStdString());
+#endif
+
     LOG(INFO) << "Programm started";
 
     QApplication a(argc, argv);

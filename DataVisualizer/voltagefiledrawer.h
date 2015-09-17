@@ -2,6 +2,7 @@
 #define VOLTAGEFILEDRAWER_H
 
 #include "filedrawer.h"
+#include <QFileInfo>
 
 /*!
  * \brief Класс для визуализации файла с напряжением.

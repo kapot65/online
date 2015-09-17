@@ -34,10 +34,10 @@ HvMainController::HvMainController(IniManager *manager, QString controllerName, 
 
 
             //Установка нулевого напряжения.
-            data = 0xffffff
+            data = 0xffffff;
             NAF(controllerId, 0, 16, data);
 
-            unsigned char databuf;
+            unsigned short databuf;
             //Проверка того, что напряжение установилось
             NAF(controllerId, 0, 0, databuf);
 

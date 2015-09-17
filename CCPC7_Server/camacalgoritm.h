@@ -26,7 +26,7 @@
 /*!
  * \brief Класс содержит алгоритмы для работы с камаком.
  */
-class CamacAlgoritm : public CCPCCommands, public QObject
+class CamacAlgoritm :  public QObject, public CCPCCommands
 {
     Q_OBJECT
 public:

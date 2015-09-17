@@ -137,32 +137,44 @@ void CamacClientForm::showTextOutput(QByteArray output)
 
 void CamacClientForm::camacMarkError()
 {
+#if QT_VERSION >= 0x050300
     ui->tabWidget->tabBar()->setTabTextColor(1,Qt::darkRed);
+#endif
 }
 
 void CamacClientForm::camacMarkWarning()
 {
+#if QT_VERSION >= 0x050300
     ui->tabWidget->tabBar()->setTabTextColor(1,Qt::darkYellow);
+#endif
 }
 
 void CamacClientForm::camacMarkReady()
 {
+#if QT_VERSION >= 0x050300
     ui->tabWidget->tabBar()->setTabTextColor(1,Qt::darkGreen);
+#endif
 }
 
 void CamacClientForm::HVMarkError()
 {
+#if QT_VERSION >= 0x050300
     ui->tabWidget->tabBar()->setTabTextColor(2,Qt::darkRed);
+#endif
 }
 
 void CamacClientForm::HVMarkWarning()
 {
+#if QT_VERSION >= 0x050300
     ui->tabWidget->tabBar()->setTabTextColor(2,Qt::darkYellow);
+#endif
 }
 
 void CamacClientForm::HVMarkReady()
 {
+#if QT_VERSION >= 0x050300
     ui->tabWidget->tabBar()->setTabTextColor(2,Qt::darkGreen);
+#endif
 }
 
 void CamacClientForm::on_clearLogButton_clicked()

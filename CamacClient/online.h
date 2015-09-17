@@ -19,8 +19,8 @@
 #include <QJsonObject>
 #include <QJsonDocument>
 #else
-#include <QJson/Parser>
-#include <QJson/Serializer>
+#include <qjson/parser.h>
+#include <qjson/serializer.h>
 #endif
 #include <easylogging++.h>
 
@@ -229,14 +229,14 @@ public:
      * \param scenario Сценарий.
      * \return Успешность выполнения сценария.
      */
-    bool processScenario(QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant>> scenario);
+    bool processScenario(QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> > scenario);
 
     /*!
      * \brief Метод вычисляет примерное время обработки сигнала.
      * \param scenario Сценарий.
      * \return Время выполнения сценария в секундах.
      */
-    static int approximateScenarioTime(QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant>> scenario);
+    static int approximateScenarioTime(QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> > scenario);
 
     /*!
      * \brief Метод конструирует сценарий обратной сборки.
@@ -245,7 +245,7 @@ public:
      * \return Сценарий. Вектор пар. Первый элемет в паре содержит тип команды сценария.
      * Второй элемент - ее аргуметны.
      */
-    static QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant>> constructReverseScenario(QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant>> scenario);
+    static QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> > constructReverseScenario(QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> > scenario);
 
     /*!
      * \brief Метод парсит сценарий. Если происходит ошибка парсинга - записывает ошибку\
@@ -255,7 +255,7 @@ public:
      * \return Сценарий. Вектор пар. Первый элемет в паре содержит тип команды сценария.
      * Второй элемент - ее аргуметны.
      */
-    static QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant>> parseScenario(QString scenario_string, bool *ok = 0);
+    static QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> > parseScenario(QString scenario_string, bool *ok = 0);
 
 signals:
     /*!

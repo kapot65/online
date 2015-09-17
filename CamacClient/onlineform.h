@@ -5,7 +5,8 @@
 #include <QFileDialog>
 #include <QMessageBox>
 #include <online.h>
-#include <QJsonDocument>
+
+#include <QStringListModel>
 
 #include <datavisualizerform.h>
 
@@ -72,7 +73,7 @@ private:
     DataVisualizerForm *dataVisualizerForm;
 
     int curr_scenario_process_time;
-    QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant>> curr_scenario;
+    QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> > curr_scenario;
 
     bool surnameOk;
     bool sessionOk;
@@ -87,7 +88,7 @@ private:
     Ui::OnlineForm *ui;
 
     QStringListModel *model;
-    void visualizeScenario(QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant>> scenario);
+    void visualizeScenario(QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> > scenario);
 
     static bool copyRecursively(const QString &srcFilePath, const QString &tgtFilePath);
 };

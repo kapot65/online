@@ -7,8 +7,8 @@
 #include <QJsonObject>
 #include <QJsonDocument>
 #else
-#include <QJson/Parser>
-#include <QJson/Serializer>
+#include <qjson/parser.h>
+#include <qjson/serializer.h>
 #endif
 #include <QFileDialog>
 #include <QTextStream>

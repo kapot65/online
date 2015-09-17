@@ -1,5 +1,6 @@
 #include "ccpc7handlerform.h"
 #include "ui_ccpc7handlerform.h"
+#include <QComboBox>
 
 CCPC7HandlerForm::CCPC7HandlerForm(CCPC7Handler *ccpc7Handler, DataVisualizerForm *dataVisualizerForm, IniManager *settingsManager, QWidget *parent) :
     QWidget(parent),
@@ -84,7 +85,12 @@ void CCPC7HandlerForm::on_acquirePointButton_clicked()
 {
     connect(ccpc7Handler, SIGNAL(pointAcquired(MachineHeader,QVariantMap,QVector<Event>)),
             this, SLOT(drawAcquiredPoint(MachineHeader,QVariantMap,QVector<Event>)));
+
+#if QT_VERSION >= 0x050300
     ccpc7Handler->acquirePoint(ui->acquisitionTimeBox->currentData().toInt());
+#else
+    ccpc7Handler->acquirePoint(ui->acquisitionTimeBox->currentText().toInt());
+#endif
 }
 
 void CCPC7HandlerForm::on_reconnectButton_clicked()

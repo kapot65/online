@@ -2,6 +2,7 @@
 #define INFOFILEDRAWER_H
 
 #include "filedrawer.h"
+#include <QFileInfo>
 
 /*!
  * \brief Класс для визуализации файла метаданных.

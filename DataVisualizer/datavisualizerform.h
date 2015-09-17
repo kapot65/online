@@ -17,7 +17,7 @@
 #include <QDebug>
 #include <QDataStream>
 #include <QColorDialog>
-#include <QRadioButton>
+
 #include <QStyledItemDelegate>
 #include <vector>
 

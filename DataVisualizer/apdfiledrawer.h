@@ -2,6 +2,12 @@
 #define APDFILEDRAWER_H
 
 #include <QObject>
+#include <QRadioButton>
+#include <QHBoxLayout>
+#include <QPushButton>
+#include <QFileInfo>
+#include <QEventLoop>
+#include <QTimer>
 #include "filedrawer.h"
 
 /// \brief Тип выводимой гистограммы для APDFileDrawer
