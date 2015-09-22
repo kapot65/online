@@ -1,5 +1,6 @@
 #include "datavisualizerform.h"
 #include <ui_DataVisualizerForm.h>
+#include <QFileDialog>
 
 #include <QTimer>
 
@@ -18,6 +19,11 @@ DataVisualizerForm::DataVisualizerForm(bool interactive, QSettings *settings, QW
     }
     else
         this->settings = settings;
+
+
+#ifndef APD_MODE
+    ui->saveGraphs->setVisible(false);
+#endif
 
     //считывание настроек
     settings->beginGroup(metaObject()->className());
@@ -338,10 +344,143 @@ void DataVisualizerForm::on_fileBrowser_clicked(const QModelIndex &index)
     if(opened_files.contains(filepath))
     {
         opened_files[filepath]->setMetaDataToTable();
-        connect(opened_files[filepath], SIGNAL(sendTextInfo(QString)),
-                ui->infoLabel, SLOT(setText(QString)), Qt::UniqueConnection);
+
+        connect(opened_files[filepath], SIGNAL(sendTextInfo(QString,QString)),
+                this, SLOT(updateText(QString,QString)), Qt::UniqueConnection);
     }
     return;
+}
+
+#ifdef APD_MODE
+void DataVisualizerForm::on_saveGraphs_clicked()
+{
+    QString dir = settings->value("lastSavedFile").toString();
+    dir = QFileDialog::getSaveFileName(this, tr("Выберите файл для сохранения"), dir);
+
+    if(dir.isEmpty())
+        return;
+
+    settings->setValue("lastSavedFile", dir);
+
+    QStringList names;
+    QVector<std::vector<quint64> > times;
+    QVector<QVector<int> > values;
+    QVector<QPair<QVector<double>, QVector<double> > > amplitudes;
+
+    //загрузка открытых значений
+    for(auto it = opened_files.begin(); it!= opened_files.end(); it++)
+    {
+        bool visible = it.value()->visible();
+        QString className = it.value()->metaObject()->className();
+        if(visible && className == "APDFileDrawer")
+        {
+            names.push_back(it.key());
+            times.push_back(((APDFileDrawer*)(it.value()))->getTime());
+            values.push_back(((APDFileDrawer*)(it.value()))->getVal());
+            amplitudes.push_back(((APDFileDrawer*)(it.value()))->getAmplHistValues());
+        }
+    }
+
+    //создание метаданных
+    QVariantMap meta;
+    meta["type"] = "APDGeneratedFile";
+
+    for(int i = 0; i < names.size(); i++)
+        meta[tr("batchAt%1").arg(i)] = QFileInfo(names[i]).fileName();
+
+
+    //создание данных файла гистограммы
+    QByteArray histFileData;
+    int i = 0;
+    for(bool end = 0; !end; i++)
+    {
+        bool haveElement = false;
+
+        for(int j = 0; j < names.size(); j++)
+        {
+            if(j == 0 && i < amplitudes[0].first.size())
+                histFileData += tr("%1\t").arg(amplitudes[0].second[i]).toLatin1();
+
+            if(i < amplitudes[j].first.size())
+            {
+                haveElement = true;
+                histFileData += tr("%1").arg(amplitudes[j].first[i]).toLatin1();
+
+                if(j != names.size() - 1)
+                  histFileData += "\t";
+            }
+        }
+
+        histFileData += "\n";
+
+        if(!haveElement)
+            end = 1;
+    }
+
+    meta["fileType"] = "histogramms";
+    histFileData = TcpProtocol::createMessage(meta, histFileData);
+
+    //запись в файл
+    QFile histFile(dir + "_hist");
+    histFile.open(QIODevice::WriteOnly);
+    histFile.write(histFileData);
+    histFile.close();
+
+    //создание данных файла амплитуд
+    //сортировка данных
+    QMap<quint64, QVector<qint64> > sortedValues;
+
+    for(int j = 0; j < names.size(); j++)
+    {
+        for(int i = 0; i < times[j].size(); i++ )
+        {
+            if(!sortedValues.contains(times[j][i]))
+               sortedValues[times[j][i]] = QVector<qint64>(names.size());
+
+            sortedValues[times[j][i]][j] = values[j][i];
+        }
+    }
+
+    //вывод значений
+    QByteArray amplFileData;
+    for(auto it = sortedValues.begin(); it != sortedValues.end(); it++)
+    {
+        amplFileData += tr("%1\t").arg(it.key()).toLatin1();
+        int size = it.value().size();
+        for(int k = 0; k < size; k++)
+        {
+            if(it.value()[k] == 0)
+                amplFileData += " ";
+            else
+                amplFileData += tr("%1").arg(it.value()[k]).toLatin1();
+
+            if(k != size - 1)
+              amplFileData += "\t";
+        }
+
+        amplFileData += "\n";
+    }
+
+    meta["fileType"] = "time";
+    amplFileData = TcpProtocol::createMessage(meta, amplFileData);
+
+    //запись в файл
+    QFile amplFile(dir + "_time");
+    amplFile.open(QIODevice::WriteOnly);
+    amplFile.write(amplFileData);
+    amplFile.close();
+}
+#endif
+
+void DataVisualizerForm::updateText(QString sender, QString info)
+{
+    curr_info[sender] = info;
+
+    QString text;
+    for(auto it = curr_info.begin(); it != curr_info.end(); it++)
+        text += tr("%1: %2\n").arg(it.key(), it.value());
+
+    ui->infoLabel->setText(text);
 }
 
 Ruler::Ruler(QCustomPlot *plot, QObject *parent) : QObject(parent)

@@ -2,7 +2,6 @@
 #define DATAVISUALIZERFORM_H
 
 #include <QWidget>
-#include <QFileDialog>
 #include <QSettings>
 #include "customplotzoom.h"
 
@@ -124,6 +123,14 @@ private slots:
 
     void on_fileBrowser_clicked(const QModelIndex &index);
 
+#ifdef APD_MODE
+    void on_saveGraphs_clicked();
+#endif
+
+    /*!
+     * \brief Обновление тектовой информации о графике
+     */
+    void updateText(QString sender, QString info);
 
 public slots:
     void openDir(QString dir);
@@ -173,6 +180,9 @@ private:
     Ruler *ruler;
 
     Ui::DataVisualizerForm *ui;
+
+    /// \brief Текущая текстовая информация о графиках
+    QMap<QString, QString> curr_info;
 };
 
 #endif // DATAVISUALIZERFORM_H

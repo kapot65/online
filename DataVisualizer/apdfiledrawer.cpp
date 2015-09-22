@@ -71,8 +71,8 @@ void APDFileDrawer::createGraphModeChangeButtons(int col, int row)
     graphSetWidget = new QWidget();
     QHBoxLayout *layout = new QHBoxLayout(graphSetWidget);
     graphSetWidget->setLayout(layout);
-    graphSetButtons[0] = new QRadioButton("двухплотный график", graphSetWidget);
-    graphSetButtons[1] = new QRadioButton("график счета", graphSetWidget);
+    graphSetButtons[0] = new QRadioButton("график счета", graphSetWidget);
+    graphSetButtons[1] = new QRadioButton("двухплотный график", graphSetWidget);
     connect(graphSetButtons[0], SIGNAL(pressed()), this, SLOT(changeGraphType()));
     connect(graphSetButtons[1], SIGNAL(pressed()), this, SLOT(changeGraphType()));
     layout->addWidget(graphSetButtons[0]);
@@ -125,10 +125,6 @@ void APDFileDrawer::setMetaDataToTable()
         setMetaTableText(1, i, tr("%1").arg(meta["threshold"].toDouble()));
     }
 
-    QPushButton *btn = new QPushButton(tr("сохранить гистограмму"));
-    connect(btn, SIGNAL(clicked(bool)), this, SLOT(saveHist()));
-    table->setCellWidget(3, 0, btn);
-
     setMetaTableText(0, 0, tr("тип файла"));
     setMetaTableText(1, 0, tr("файл APD"));
 
@@ -167,6 +163,22 @@ void APDFileDrawer::setGraphVisible(bool visible)
 
 }
 
+QPair<QVector<double>, QVector<double> > APDFileDrawer::getAmplHistValues() const
+{
+    return amplHist.histValues;
+}
+
+QVector<int> APDFileDrawer::getVal() const
+{
+    return val;
+}
+
+std::vector<quint64> APDFileDrawer::getTime() const
+{
+    return time;
+}
+
+
 void APDFileDrawer::setVisible(bool visible, GraphMode graphMode)
 {
     isVisible = visible;
@@ -199,8 +211,8 @@ void APDFileDrawer::setColor(QColor color)
     graph->setPen(QPen(color));
     graph2->setPen(QPen(color));
 
-    amplHist.hist->setBrush(QBrush(color));
-    intervalHist.hist->setBrush(QBrush(color));
+    amplHist.hist->setPen(QPen(color));
+    intervalHist.hist->setPen(QPen(color));
 }
 
 void APDFileDrawer::update()
@@ -263,16 +275,19 @@ void APDFileDrawer::update()
         graphBorder->addData(time[time.size() - 1], qMax((int)qAbs(minAmpl), (int)maxAmpl));
         graphBorder->setPen(QPen(QColor(0,0,0,0)));
 
+        minAmpl = -512;
+        maxAmpl = 0;
         generateHistFromData(val, amplHist.histValues.first, amplHist.histValues.second,
-                             minAmpl, maxAmpl, qAbs(maxAmpl - minAmpl));
-        amplHist.hist = createHistFromData(plot, amplHist.histValues.first, amplHist.histValues.second, minAmpl, maxAmpl);
+                             minAmpl, maxAmpl,  qAbs(maxAmpl - minAmpl));
+
+        amplHist.hist = createGraphHistFromData(plot, amplHist.histValues.first, amplHist.histValues.second, minAmpl, maxAmpl);
         amplHist.hist->setVisible(false);
         plot->addPlottable(amplHist.hist);
 
 
         generateHistFromData<int>(interval, intervalHist.histValues.first, intervalHist.histValues.second,
                                   minInterval, maxInterval, qMin(qMax(128, qAbs((int)maxInterval - (int)minInterval) / 4096), 8192));
-        intervalHist.hist = createHistFromData(plot, intervalHist.histValues.first, intervalHist.histValues.second,
+        intervalHist.hist = createGraphHistFromData(plot, intervalHist.histValues.first, intervalHist.histValues.second,
                                           minInterval, maxInterval);
         intervalHist.hist->setVisible(false);
         plot->addPlottable(intervalHist.hist);
@@ -330,7 +345,8 @@ void APDFileDrawer::sendHistEventsInWindow(QCPRange range, APDHist &apdHist)
         for(quint64 i = minInd; i < maxInd; i++)
             sum += apdHist.histValues.first[i];
 
-        emit sendTextInfo(tr("Событий в окне: %1 ")
+        emit sendTextInfo(QFileInfo(*file).fileName(),
+                          tr("Событий в окне: %1 ")
                           .arg(sum));
     }
 }
@@ -413,39 +429,12 @@ void APDFileDrawer::drawPart(QCPRange range)
         }
 
         int eventsInWindow = (maxInd - minInd)/2;
-        emit sendTextInfo(tr("Событий в окне: %1 (%2 показано, %3 скрыто)")
+        emit sendTextInfo(QFileInfo(*file).fileName(),
+                          tr("Событий в окне: %1 (%2 показано, %3 скрыто)")
                           .arg(eventsInWindow)
                           .arg(eventsInWindow/step)
                           .arg((int)(((double)eventsInWindow)*(1. - 1./(double)step))));
     }
-}
-
-void APDFileDrawer::saveHist()
-{
-    if(amplHist.histValues.first.size() < 3)
-        return;
-
-    QFileInfo fi(file->fileName());
-
-    QString filepath = fi.absolutePath();
-
-    QFile fileAmplHist(filepath + "/amplHist");
-    fileAmplHist.open(QIODevice::WriteOnly);
-
-    double width = amplHist.histValues.second[3] - amplHist.histValues.second[2];
-
-    //запись хедера
-    fileAmplHist.write(tr("bin size: %1\n"
-                        "legend:\n"
-                        "(events)\t(bin coord(center))\n").arg(width).toLatin1());
-
-    for(int i = 0; i < amplHist.histValues.first.size(); i++)
-    {
-        fileAmplHist.write(tr("%1\t%2\n").arg(amplHist.histValues.first[i])
-                                         .arg(amplHist.histValues.second[i]).toLatin1());
-    }
-
-    fileAmplHist.close();
 }
 
 void APDFileDrawer::loadMetaData()
