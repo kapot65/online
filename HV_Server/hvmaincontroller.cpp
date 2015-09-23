@@ -17,38 +17,10 @@ HvMainController::HvMainController(IniManager *manager, QString controllerName, 
         else
         {
 #ifndef VIRTUAL_MODE
-
-            camac = new ccpc::CamacImplCCPC7();
-
-            //Инициализация блока управления.
-            long data = 0x16;
-            ccpc::CamacOp op = NAF(controllerId, 1, 16, data);
-
-            if(!(op.q && op.x))
-            {
-                initSuccesfullFlag = false;
-                return;
-            }
-
-            data = 0x1E;
-            NAF(controllerId, 1, 16, data);
-
-
-            //Установка нулевого напряжения.
-            data = 0xffffff;
-            NAF(controllerId, 0, 16, data);
-
-            long databuf;
-            //Проверка того, что напряжение установилось
-            NAF(controllerId, 0, 0, databuf);
-
-            if(data != databuf)
-            {
-                initSuccesfullFlag = false;
-                return;
-            }
-#endif
+            setVoltage(0, initSuccesfullFlag)
+#else
             initSuccesfullFlag = true;
+#endif
         }
     }
 }
@@ -60,6 +32,43 @@ void HvMainController::setVoltage(double voltage)
         LOG(ERROR) << QString("%1 has not inited succesfully. Exit setting voltage step.").arg(controllerName).toStdString();
         return;
     }
+
+    bool ok;
+    setVoltage(voltage, ok);
+}
+
+void HvMainController::setVoltage(double voltage, bool &ok)
+{
+    //Инициализация блока управления.
+    long data = 0x16;
+    ccpc::CamacOp op = NAF(controllerId, 1, 16, data);
+
+    if(!(op.q && op.x))
+    {
+        ok = false;
+        return;
+    }
+
+    data = 0x1E;
+    NAF(controllerId, 1, 16, data);
+
+
+    //Установка нулевого напряжения.
+    data = encodeVoltage(voltage);
+    NAF(controllerId, 0, 16, data);
+
+    long databuf;
+    //Проверка того, что напряжение установилось
+    NAF(controllerId, 0, 0, databuf);
+
+    if(data != databuf)
+    {
+        ok = false;
+        return;
+    }
+
+    ok = true;
+    return;
 }
 
 long HvMainController::encodeVoltage(double voltage)
@@ -70,10 +79,10 @@ long HvMainController::encodeVoltage(double voltage)
         return 0xffffff;
     }
 
-    QString voltageString = tr("%1").arg((voltage * 100000));
+    QString voltageString = tr("%1").arg((voltage * 100000), 6, 'f', 0, QChar('0'));
 
     QString voltageOutput;
-    for(int i = voltageString.size(); i >=0 ; i--)
+    for(int i = voltageString.size() - 1; i >=0 ; i--)
     {
         char currChar = voltageString.at(i).toLatin1();
         switch(currChar)

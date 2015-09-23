@@ -195,7 +195,7 @@ bool Online::processScenario(QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> > sc
             pauseLoop.exec();
         }
 
-        auto command = scenario[i];
+        QPair<SCENARIO_COMMAND_TYPE, QVariant> command = scenario[i];
         switch (command.first)
         {
         case SET_VOLTAGE:

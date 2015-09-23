@@ -14,9 +14,11 @@ public:
     HvMainController(IniManager *manager, QString controllerName, bool *ok = 0,  QObject *parent = 0);
 
 public slots:
-    void setVoltage(double voltage);
+    virtual void setVoltage(double voltage);
 
 private:
+    void setVoltage(double voltage, bool &ok);
+
     /// \brief Адрес блока управления вольтметром.
     int controllerId;
 

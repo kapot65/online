@@ -20,17 +20,16 @@ DataVisualizerForm::DataVisualizerForm(bool interactive, QSettings *settings, QW
     else
         this->settings = settings;
 
-
-#ifndef APD_MODE
-    ui->saveGraphs->setVisible(false);
-#endif
-
     //считывание настроек
     settings->beginGroup(metaObject()->className());
     bool hide_abs_time = settings->value("hide_abs_time", false).toBool();
     settings->endGroup();
 
     ui->setupUi(this);
+
+#ifndef APD_MODE
+    ui->saveGraphs->setVisible(false);
+#endif
 
     CustomPlotZoom *zPlot = new CustomPlotZoom(this);
     zPlot->setZoomMode(true);
@@ -368,7 +367,7 @@ void DataVisualizerForm::on_saveGraphs_clicked()
     QVector<QPair<QVector<double>, QVector<double> > > amplitudes;
 
     //загрузка открытых значений
-    for(auto it = opened_files.begin(); it!= opened_files.end(); it++)
+    for(QMap<QString, FileDrawer*>::iterator it = opened_files.begin(); it!= opened_files.end(); it++)
     {
         bool visible = it.value()->visible();
         QString className = it.value()->metaObject()->className();
@@ -477,7 +476,7 @@ void DataVisualizerForm::updateText(QString sender, QString info)
     curr_info[sender] = info;
 
     QString text;
-    for(auto it = curr_info.begin(); it != curr_info.end(); it++)
+    for(QMap<QString, QString>::iterator it = curr_info.begin(); it != curr_info.end(); it++)
         text += tr("%1: %2\n").arg(it.key(), it.value());
 
     ui->infoLabel->setText(text);
