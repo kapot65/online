@@ -4,6 +4,7 @@
 #include "hvcontroler.h"
 #include <ccpccommands.h>
 
+
 /*!
  * \brief HVControler с функцией управления основным блоком через ccpc.
  */
@@ -21,6 +22,14 @@ private:
 
     /// \brief Флаг успешной инициализации
     bool initSuccesfullFlag;
+
+    ///
+    /// \brief Перевод напряжения в формат, распознаваемый вольтметром.
+    /// \param voltage Исходное напряжение.
+    /// \return Код напряжения.
+    /// \note Напряжение перед этой функцией нужно перевести в единицы измерения вольтметра.
+    /// \todo Добавить граничные значения в конфигурационный файл.
+    long encodeVoltage(double voltage);
 };
 
 #endif // HVMAINCONTROLLER_H

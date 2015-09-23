@@ -32,56 +32,34 @@
 **
 ****************************************************************************/
 
-#ifndef MAINWINDOW_H
-#define MAINWINDOW_H
+#ifndef CONSOLE_H
+#define CONSOLE_H
 
-#include <QtCore/QtGlobal>
+#include <QPlainTextEdit>
 
-#include <QMainWindow>
-#include <QDebug>
-
-#include <QtSerialPort/QSerialPort>
-
-QT_BEGIN_NAMESPACE
-
-namespace Ui {
-class MainWindow;
-}
-
-QT_END_NAMESPACE
-
-class Console;
-class SettingsDialog;
-
-class MainWindow : public QMainWindow
+class Console : public QPlainTextEdit
 {
     Q_OBJECT
 
+signals:
+    void getData(const QByteArray &data);
+
 public:
-    explicit MainWindow(QWidget *parent = 0);
-    ~MainWindow();
+    explicit Console(QWidget *parent = 0);
 
-private slots:
-    void openSerialPort();
-    void closeSerialPort();
-    void about();
-    void writeData(const QByteArray &data);
-    void readData();
+    void putData(const QByteArray &data);
 
-    void handleError(QSerialPort::SerialPortError error);
+    void setLocalEchoEnabled(bool set);
 
-    void on_pushButton_clicked();
-
-    void on_readPortButton_clicked();
+protected:
+    virtual void keyPressEvent(QKeyEvent *e);
+    virtual void mousePressEvent(QMouseEvent *e);
+    virtual void mouseDoubleClickEvent(QMouseEvent *e);
+    virtual void contextMenuEvent(QContextMenuEvent *e);
 
 private:
-    void initActionsConnections();
+    bool localEchoEnabled;
 
-private:
-    Ui::MainWindow *ui;
-    Console *console;
-    SettingsDialog *settings;
-    QSerialPort *serial;
 };
 
-#endif // MAINWINDOW_H
+#endif // CONSOLE_H

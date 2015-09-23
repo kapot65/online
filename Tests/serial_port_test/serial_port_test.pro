@@ -6,22 +6,32 @@
 
 QT       += core gui
 
+greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+
 greaterThan(QT_MAJOR_VERSION, 4){
     QT += serialport
 }else{
     CONFIG += serialport
 }
 
-
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
-
 TARGET = serial_port_test
+
 TEMPLATE = app
 
+SOURCES += \
+    main.cpp \
+    mainwindow.cpp \
+    settingsdialog.cpp \
+    console.cpp
 
-SOURCES += main.cpp\
-        mainwindow.cpp
+HEADERS += \
+    mainwindow.h \
+    settingsdialog.h \
+    console.h
 
-HEADERS  += mainwindow.h
+FORMS += \
+    mainwindow.ui \
+    settingsdialog.ui
 
-FORMS    += mainwindow.ui
+RESOURCES += \
+    terminal.qrc

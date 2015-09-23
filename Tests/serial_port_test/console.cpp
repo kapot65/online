@@ -32,56 +32,65 @@
 **
 ****************************************************************************/
 
-#ifndef MAINWINDOW_H
-#define MAINWINDOW_H
+#include "console.h"
 
-#include <QtCore/QtGlobal>
+#include <QScrollBar>
 
-#include <QMainWindow>
-#include <QDebug>
+#include <QtCore/QDebug>
 
-#include <QtSerialPort/QSerialPort>
+Console::Console(QWidget *parent)
+    : QPlainTextEdit(parent)
+    , localEchoEnabled(false)
+{
+    document()->setMaximumBlockCount(100);
+    QPalette p = palette();
+    p.setColor(QPalette::Base, Qt::black);
+    p.setColor(QPalette::Text, Qt::green);
+    setPalette(p);
 
-QT_BEGIN_NAMESPACE
-
-namespace Ui {
-class MainWindow;
 }
 
-QT_END_NAMESPACE
-
-class Console;
-class SettingsDialog;
-
-class MainWindow : public QMainWindow
+void Console::putData(const QByteArray &data)
 {
-    Q_OBJECT
+    insertPlainText(QString(data));
 
-public:
-    explicit MainWindow(QWidget *parent = 0);
-    ~MainWindow();
+    QScrollBar *bar = verticalScrollBar();
+    bar->setValue(bar->maximum());
+}
 
-private slots:
-    void openSerialPort();
-    void closeSerialPort();
-    void about();
-    void writeData(const QByteArray &data);
-    void readData();
+void Console::setLocalEchoEnabled(bool set)
+{
+    localEchoEnabled = set;
+}
 
-    void handleError(QSerialPort::SerialPortError error);
+void Console::keyPressEvent(QKeyEvent *e)
+{
+    switch (e->key()) {
+    case Qt::Key_Backspace:
+    case Qt::Key_Left:
+    case Qt::Key_Right:
+    case Qt::Key_Up:
+    case Qt::Key_Down:
+        break;
+    default:
+        if (localEchoEnabled)
+            QPlainTextEdit::keyPressEvent(e);
+        emit getData(e->text().toLocal8Bit());
+    }
+}
 
-    void on_pushButton_clicked();
+void Console::mousePressEvent(QMouseEvent *e)
+{
+    Q_UNUSED(e)
+    setFocus();
+}
 
-    void on_readPortButton_clicked();
+void Console::mouseDoubleClickEvent(QMouseEvent *e)
+{
+    Q_UNUSED(e)
+}
 
-private:
-    void initActionsConnections();
-
-private:
-    Ui::MainWindow *ui;
-    Console *console;
-    SettingsDialog *settings;
-    QSerialPort *serial;
-};
-
-#endif // MAINWINDOW_H
+void Console::contextMenuEvent(QContextMenuEvent *e)
+{
+    Q_UNUSED(e)
+}

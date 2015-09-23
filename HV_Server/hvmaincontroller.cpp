@@ -62,3 +62,56 @@ void HvMainController::setVoltage(double voltage)
     }
 }
 
+long HvMainController::encodeVoltage(double voltage)
+{
+    if(voltage > 4 || voltage < 0)
+    {
+        LOG(WARNING) << tr("Bad voltage value: %1. Changing to zero.").arg(voltage).toStdString();
+        return 0xffffff;
+    }
+
+    QString voltageString = tr("%1").arg((voltage * 100000));
+
+    QString voltageOutput;
+    for(int i = voltageString.size(); i >=0 ; i--)
+    {
+        char currChar = voltageString.at(i).toLatin1();
+        switch(currChar)
+        {
+            case '0':
+                voltageOutput += "1111";
+                break;
+            case '1':
+                voltageOutput += "1110";
+                break;
+            case '2':
+                voltageOutput += "1101";
+                break;
+            case '3':
+                voltageOutput += "1100";
+                break;
+            case '4':
+                voltageOutput += "1011";
+                break;
+            case '5':
+                voltageOutput += "1010";
+                break;
+            case '6':
+                voltageOutput += "1001";
+                break;
+            case '7':
+                voltageOutput += "1000";
+                break;
+            case '8':
+                voltageOutput += "0111";
+                break;
+            case '9':
+                voltageOutput += "0110";
+                break;
+        }
+    }
+
+    long out = voltageOutput.toLong(0, 2);
+    return out;
+}
+

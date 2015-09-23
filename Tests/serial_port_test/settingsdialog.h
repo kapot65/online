@@ -32,56 +32,63 @@
 **
 ****************************************************************************/
 
-#ifndef MAINWINDOW_H
-#define MAINWINDOW_H
+#ifndef SETTINGSDIALOG_H
+#define SETTINGSDIALOG_H
 
-#include <QtCore/QtGlobal>
-
-#include <QMainWindow>
-#include <QDebug>
-
+#include <QDialog>
 #include <QtSerialPort/QSerialPort>
+
+QT_USE_NAMESPACE
 
 QT_BEGIN_NAMESPACE
 
 namespace Ui {
-class MainWindow;
+class SettingsDialog;
 }
+
+class QIntValidator;
 
 QT_END_NAMESPACE
 
-class Console;
-class SettingsDialog;
-
-class MainWindow : public QMainWindow
+class SettingsDialog : public QDialog
 {
     Q_OBJECT
 
 public:
-    explicit MainWindow(QWidget *parent = 0);
-    ~MainWindow();
+    struct Settings {
+        QString name;
+        qint32 baudRate;
+        QString stringBaudRate;
+        QSerialPort::DataBits dataBits;
+        QString stringDataBits;
+        QSerialPort::Parity parity;
+        QString stringParity;
+        QSerialPort::StopBits stopBits;
+        QString stringStopBits;
+        QSerialPort::FlowControl flowControl;
+        QString stringFlowControl;
+        bool localEchoEnabled;
+    };
+
+    explicit SettingsDialog(QWidget *parent = 0);
+    ~SettingsDialog();
+
+    Settings settings() const;
 
 private slots:
-    void openSerialPort();
-    void closeSerialPort();
-    void about();
-    void writeData(const QByteArray &data);
-    void readData();
-
-    void handleError(QSerialPort::SerialPortError error);
-
-    void on_pushButton_clicked();
-
-    void on_readPortButton_clicked();
+    void showPortInfo(int idx);
+    void apply();
+    void checkCustomBaudRatePolicy(int idx);
 
 private:
-    void initActionsConnections();
+    void fillPortsParameters();
+    void fillPortsInfo();
+    void updateSettings();
 
 private:
-    Ui::MainWindow *ui;
-    Console *console;
-    SettingsDialog *settings;
-    QSerialPort *serial;
+    Ui::SettingsDialog *ui;
+    Settings currentSettings;
+    QIntValidator *intValidator;
 };
 
-#endif // MAINWINDOW_H
+#endif // SETTINGSDIALOG_H
