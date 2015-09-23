@@ -442,7 +442,7 @@ void DataVisualizerForm::on_saveGraphs_clicked()
 
     //вывод значений
     QByteArray amplFileData;
-    for(auto it = sortedValues.begin(); it != sortedValues.end(); it++)
+    for(QMap<quint64, QVector<qint64> >::iterator it = sortedValues.begin(); it != sortedValues.end(); it++)
     {
         amplFileData += tr("%1\t").arg(it.key()).toLatin1();
         int size = it.value().size();

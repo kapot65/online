@@ -13,6 +13,8 @@ class HvMainController : public HVControler, public CCPCCommands
 public:
     HvMainController(IniManager *manager, QString controllerName, bool *ok = 0,  QObject *parent = 0);
 
+    ~HvMainController();
+
 public slots:
     virtual void setVoltage(double voltage);
 
@@ -32,6 +34,18 @@ private:
     /// \note Напряжение перед этой функцией нужно перевести в единицы измерения вольтметра.
     /// \todo Добавить граничные значения в конфигурационный файл.
     long encodeVoltage(double voltage);
+
+    /*!
+     * \brief Коэффициент преобразования при свободном члене для управления напряжением
+     * через ccpc.
+     */
+    double a0;
+
+    /*!
+     * \brief Коэффициент преобразования при линейном члене для управления напряжением
+     * через ccpc.
+     */
+    double a1;
 };
 
 #endif // HVMAINCONTROLLER_H

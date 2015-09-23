@@ -1,6 +1,8 @@
 #include "DataVisualizerWindow.h"
 #include "ui_DataVisualizerWindow.h"
 
+#include <QFileDialog>
+
 
 DataVisualizerWindow::DataVisualizerWindow(QWidget *parent) :
     QMainWindow(parent),

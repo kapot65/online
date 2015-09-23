@@ -3,26 +3,58 @@
 HvMainController::HvMainController(IniManager *manager, QString controllerName, bool *ok, QObject *parent)
     : HVControler(manager, controllerName, ok, parent), CCPCCommands()
 {
+    bool coefOk = true;
+
     if(!manager->getSettingsValue(controllerName, "ControlerCCPCId").isValid())
     {
         processSettingError("ControlerCCPCId", controllerName);
+        coefOk = false;
+    }
+
+    if(!manager->getSettingsValue(controllerName, "a0").isValid())
+    {
+        processSettingError("a0", controllerName);
+        coefOk = false;
+    }
+
+    if(!manager->getSettingsValue(controllerName, "a1").isValid())
+    {
+        processSettingError("a1", controllerName);
+        coefOk = false;
+    }
+
+    if(!coefOk)
+    {
         initSuccesfullFlag = false;
+        TcpProtocol::setOk(false, ok);
     }
     else
     {
         controllerId = manager->getSettingsValue(controllerName, "ControlerCCPCId").toInt();
+        a0 = manager->getSettingsValue(controllerName, "a0").toDouble();
+        a1 = manager->getSettingsValue(controllerName, "a1").toDouble();
 
         if(controllerId < 0 || controllerId > 24)
             initSuccesfullFlag = false;
         else
         {
+            camac = new ccpc::CamacImplCCPC7;
 #ifndef VIRTUAL_MODE
-            setVoltage(0, initSuccesfullFlag)
+            setVoltage(0, initSuccesfullFlag);
 #else
             initSuccesfullFlag = true;
 #endif
+            if(initSuccesfullFlag)
+                TcpProtocol::setOk(true, ok);
+            else
+                TcpProtocol::setOk(false, ok);
         }
     }
+}
+
+HvMainController::~HvMainController()
+{
+    delete camac;
 }
 
 void HvMainController::setVoltage(double voltage)
@@ -32,9 +64,15 @@ void HvMainController::setVoltage(double voltage)
         LOG(ERROR) << QString("%1 has not inited succesfully. Exit setting voltage step.").arg(controllerName).toStdString();
         return;
     }
+    \
+    busyFlag = 1;
 
     bool ok;
     setVoltage(voltage, ok);
+
+    emit setVoltageDone();
+
+    busyFlag = 0;
 }
 
 void HvMainController::setVoltage(double voltage, bool &ok)
@@ -73,7 +111,10 @@ void HvMainController::setVoltage(double voltage, bool &ok)
 
 long HvMainController::encodeVoltage(double voltage)
 {
-    if(voltage > 4 || voltage < 0)
+    //Преобразование напряжения в единицы измерения ccpc
+    voltage = a0 + a1 * voltage;
+
+    if(voltage > 3.5 || voltage < 0)
     {
         LOG(WARNING) << tr("Bad voltage value: %1. Changing to zero.").arg(voltage).toStdString();
         return 0xffffff;
@@ -82,7 +123,7 @@ long HvMainController::encodeVoltage(double voltage)
     QString voltageString = tr("%1").arg((voltage * 100000), 6, 'f', 0, QChar('0'));
 
     QString voltageOutput;
-    for(int i = voltageString.size() - 1; i >=0 ; i--)
+    for(int i = 0; i < voltageString.size() ; i++)
     {
         char currChar = voltageString.at(i).toLatin1();
         switch(currChar)

@@ -30,7 +30,7 @@ INCLUDEPATH += $$PWD
 contains(QT_MAJOR_VERSION, 5){
 
 DEFINES += TEST_MODE \
-           VIRTUAL_MODE
+#           VIRTUAL_MODE
 
 CONFIG += c++11
 }
