@@ -416,8 +416,10 @@ _INITIALIZE_EASYLOGGINGPP
 
 int main(int argc, char *argv[])
 {
+#if QT_VERSION <= 0x050000
      QTextCodec::setCodecForTr(QTextCodec::codecForName("UTF-8"));
      QTextCodec::setCodecForCStrings(QTextCodec::codecForName("UTF-8"));
+#endif
 
 #ifdef TEST_MODE
     LOG(INFO) << "Programm run in test mode";

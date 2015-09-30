@@ -38,8 +38,8 @@ HvMainController::HvMainController(IniManager *manager, QString controllerName, 
             initSuccesfullFlag = false;
         else
         {
-            camac = new ccpc::CamacImplCCPC7;
 #ifndef VIRTUAL_MODE
+            camac = new ccpc::CamacImplCCPC7;
             setVoltage(0, initSuccesfullFlag);
 #else
             initSuccesfullFlag = true;
