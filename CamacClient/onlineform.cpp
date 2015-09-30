@@ -47,7 +47,7 @@ OnlineForm::OnlineForm(CCPC7Handler *ccpc7Handler, HVHandler *hvHandler,
     ui->scenarioView->setVisible(false);
     ui->finishOnThisIterationBox->setVisible(false);
 
-    qRegisterMetaType<QVector<Event>>("QVector<Event>");
+    qRegisterMetaType<QVector<Event> >("QVector<Event>");
     connect(online, SIGNAL(sendInfoMessage(QString)),
             ui->infoLabel, SLOT(setText(QString)), Qt::QueuedConnection);
     connect(ui->pauseButton, SIGNAL(clicked()), online, SLOT(pause()));

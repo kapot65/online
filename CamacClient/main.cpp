@@ -401,6 +401,7 @@
 #include <QDateTime>
 #include <datavisualizerform.h>
 #include "camacclientform.h"
+#include <QTextCodec>
 
 // настройки логгера
 // настройки логгера
@@ -415,6 +416,9 @@ _INITIALIZE_EASYLOGGINGPP
 
 int main(int argc, char *argv[])
 {
+     QTextCodec::setCodecForTr(QTextCodec::codecForName("UTF-8"));
+     QTextCodec::setCodecForCStrings(QTextCodec::codecForName("UTF-8"));
+
 #ifdef TEST_MODE
     LOG(INFO) << "Programm run in test mode";
 #endif

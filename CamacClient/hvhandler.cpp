@@ -74,7 +74,7 @@ void HVHandler::setVoltage(int block, double value)
 #ifdef TEST_MODE
     #ifndef USE_QTJSON
     QJson::Serializer serializer;
-    serializer.setIndentMode(QJson::IndentFull); // в настройки
+    //serializer.setIndentMode(QJson::IndentFull); // в настройки
     #endif
 #endif
 
@@ -122,7 +122,7 @@ void HVHandler::getVoltage(int block)
 #ifdef TEST_MODE
     #ifndef USE_QTJSON
     QJson::Serializer serializer;
-    serializer.setIndentMode(QJson::IndentFull); // в настройки
+    //serializer.setIndentMode(QJson::IndentFull); // в настройки
     #endif
 #endif
 

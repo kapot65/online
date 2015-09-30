@@ -1,5 +1,6 @@
 #include "DataVisualizerWindow.h"
 #include <QApplication>
+#include <QTextCodec>
 
 #include <easylogging++.h>
 
@@ -19,7 +20,10 @@ _INITIALIZE_EASYLOGGINGPP
 
 int main(int argc, char *argv[])
 {
-QDateTime curr_datetime = QDateTime::currentDateTime();
+    QTextCodec::setCodecForTr(QTextCodec::codecForName("UTF-8"));
+    QTextCodec::setCodecForCStrings(QTextCodec::codecForName("UTF-8"));
+
+    QDateTime curr_datetime = QDateTime::currentDateTime();
 
 #if QT_VERSION >= 0x050300
 START_EASYLOGGINGPP(argc, argv);

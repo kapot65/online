@@ -2,7 +2,7 @@ TEMPLATE = subdirs
 unix: !macx{
         SUBDIRS = CCPC7_Server \
             HV_Server \
-            #CamacClient \
+            CamacClient \
             DataVisualizer  \
 }
 win32{

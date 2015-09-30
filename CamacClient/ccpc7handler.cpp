@@ -79,7 +79,7 @@ void CCPC7Handler::acquirePoint(int time, QVariant external_meta)
 #ifdef TEST_MODE
     #ifndef USE_QTJSON
     QJson::Serializer serializer;
-    serializer.setIndentMode(QJson::IndentFull); // в настройки
+    //serializer.setIndentMode(QJson::IndentFull); // в настройки
     #endif
 #endif
 
@@ -112,7 +112,7 @@ void CCPC7Handler::resetCounters()
 #ifdef TEST_MODE
     #ifndef USE_QTJSON
     QJson::Serializer serializer;
-    serializer.setIndentMode(QJson::IndentFull); // в настройки
+    //serializer.setIndentMode(QJson::IndentFull); // в настройки
     #endif
 #endif
 
@@ -141,7 +141,7 @@ void CCPC7Handler::breakAcquisition()
 #ifdef TEST_MODE
     #ifndef USE_QTJSON
     QJson::Serializer serializer;
-    serializer.setIndentMode(QJson::IndentFull); // в настройки
+    //serializer.setIndentMode(QJson::IndentFull); // в настройки
     #endif
 #endif
 
@@ -170,7 +170,7 @@ void CCPC7Handler::getCountersValue(int counter, QList<QVariant> channels_id, bo
 #ifdef TEST_MODE
     #ifndef USE_QTJSON
     QJson::Serializer serializer;
-    serializer.setIndentMode(QJson::IndentFull); // в настройки
+    //serializer.setIndentMode(QJson::IndentFull); // в настройки
     #endif
 #endif
 

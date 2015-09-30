@@ -10,7 +10,13 @@ Online::Online(IniManager *settingsManager, CCPC7Handler *ccpcHandler, HVHandler
 
     //создание папки temp
     QDir dir("temp");
+
+#if QT_VERSION >= 0x050000
     dir.removeRecursively();
+#else
+    dir.rmpath("temp");
+#endif
+
     QDir().mkdir("temp");
 
     //настройка паузы
@@ -195,7 +201,7 @@ bool Online::processScenario(QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> > sc
             pauseLoop.exec();
         }
 
-        auto command = scenario[i];
+        QPair<SCENARIO_COMMAND_TYPE, QVariant> command = scenario[i];
         switch (command.first)
         {
         case SET_VOLTAGE:
@@ -314,7 +320,7 @@ bool Online::processScenario(QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> > sc
                 emit waiting(msec);
                 QEventLoop el;
                 connect(this, SIGNAL(stop_scenario()), &el, SLOT(quit()));
-                QTimer::singleShot(msec, Qt::CoarseTimer, &el, SLOT(quit()));
+                QTimer::singleShot(msec, &el, SLOT(quit()));
 
                 el.exec();
                 break;
