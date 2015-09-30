@@ -6,17 +6,21 @@
 
 QT       += core gui
 
+
+DEFINES += TEST_MODE \
+           APD_MODE
+
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets printsupport
 
 TARGET = DataVisualizer
 TEMPLATE = app
 
-DEFINES += TEST_MODE
-
 include(../revision_info.pri )
-include (datavisualizer.pri)
+include(datavisualizer.pri)
 include(../easylogging.pri)
 include(../tcp/tcp.pri)
+
+
 
 INCLUDEPATH += $$PWD
 

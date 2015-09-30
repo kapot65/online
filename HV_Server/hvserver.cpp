@@ -9,6 +9,7 @@ HVServer::HVServer(IniManager *manager, int port, QObject *parent): TcpServer(po
 {
     this->manager = manager;
 
+    //создание классов для взаимодействия с основным блоком напряжения
     divider1 = new DividerReader("Divider1", manager);
     divider1->start();
 
@@ -18,7 +19,7 @@ HVServer::HVServer(IniManager *manager, int port, QObject *parent): TcpServer(po
     connect(divider1, SIGNAL(getVoltageDone(double)), this, SLOT(onDivider1GetVoltageDone(double)), Qt::QueuedConnection);
 
     bool ok;
-    hvControlerDivider1 = new HVControler(manager, "HVController1", &ok);
+    hvControlerDivider1 = new HvMainController(manager, "HVController1", &ok);
     if(!ok)
     {
         this->deleteLater();
@@ -30,6 +31,7 @@ HVServer::HVServer(IniManager *manager, int port, QObject *parent): TcpServer(po
     connect(hvControlerDivider1, SIGNAL(setVoltageDone()), this, SLOT(onDivider1SetVoltageDone()));
 
 
+    //создание классов для взаимодействия с основным блоком смещения
     divider2 = new DividerReader("Divider2", manager);
     divider2->start();
 
@@ -38,7 +40,7 @@ HVServer::HVServer(IniManager *manager, int port, QObject *parent): TcpServer(po
     connect(this, SIGNAL(getDivider2Voltage()), divider2, SLOT(getVoltage()), Qt::QueuedConnection);
     connect(divider2, SIGNAL(getVoltageDone(double)), this, SLOT(onDivider2GetVoltageDone(double)), Qt::QueuedConnection);
 
-    hvControlerDivider2 = new HvMainController(manager, "HVController2", &ok);
+    hvControlerDivider2 = new HVControler(manager, "HVController2", &ok);
     if(!ok)
     {
         this->deleteLater();
@@ -48,7 +50,6 @@ HVServer::HVServer(IniManager *manager, int port, QObject *parent): TcpServer(po
     hvControlerDivider2->start();
     connect(this, SIGNAL(setDivider2Voltage(double)), hvControlerDivider2, SLOT(setVoltage(double)), Qt::QueuedConnection);
     connect(hvControlerDivider2, SIGNAL(setVoltageDone()), this, SLOT(onDivider2SetVoltageDone()));
-
     connect(this, SIGNAL(receiveMessage(MachineHeader,QVariantMap,QByteArray)),
             this, SLOT(processMessage(MachineHeader,QVariantMap,QByteArray)));
 }

@@ -95,10 +95,7 @@ void TcpServer::processNewConnection()
 
 void TcpServer::serverReady()
 {
-    QTimer *timer = new QTimer(this);
-    connect(timer, SIGNAL(timeout()), this, SLOT(sendReady()));
-    connect(timer, SIGNAL(timeout()), timer, SLOT(deleteLater()));
-    timer->start(100);
+    QTimer::singleShot(300, this, SLOT(sendReady()));
 }
 
 void TcpServer::sendReady()

@@ -57,7 +57,7 @@ signals:
      * \brief Посылает текстовую информацию на форму.
      * \param Текст информации.
      */
-    void sendTextInfo(QString info);
+    void sendTextInfo(QString sender, QString info);
 
 public slots:
     ///\brief Вывксти метаданные в таблицу.
@@ -171,6 +171,20 @@ protected:
      * \return Указатель на график гистограммы.
      */
     QCPBars* createHistFromData(QCustomPlot *plot, QVector<double> &binVal, QVector<double> &binCoord, double minVal, double maxVal);
+
+
+    /*!
+     * \brief Создание гистограммы без закраски
+     * \param plot Виджет графиков, в котором будет согдана гистограмма.
+     * \param [in] binVal Количество событий в бине. Получается с помощью метода FileDrawer::generateHistFromData.
+     * \param [in] binCoord Координата бина. Получается с помощью метода FileDrawer::generateHistFromData.
+     * \param minVal Минимальное значение данных.
+     * \param maxVal Максимальное значение данных.
+     * \return Указатель на график гистограммы.
+     */
+    QCPGraph* createGraphHistFromData(QCustomPlot *plot, QVector<double> &binVal, QVector<double> &binCoord,
+                                      double minVal, double maxVal);
+
 
     /*!
      * \brief Получить произвольный цвет.

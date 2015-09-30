@@ -32,7 +32,7 @@ struct APDHist
     APDHist():hist(0){}
 
     /// \brief Указатель на гистограмму.
-    QCPBars *hist;
+    QCPAbstractPlottable *hist;
 
     /// \brief Данные гистограммы APDHist::hist
     /// Первый член - количество событий в бине,
@@ -52,6 +52,12 @@ class APDFileDrawer : public FileDrawer
 public:
     APDFileDrawer(QTableWidget *table, QCustomPlot *plot, QString filename, QObject *parent = 0);
     ~APDFileDrawer();
+
+    std::vector<quint64> getTime() const;
+
+    QVector<int> getVal() const;
+
+    QPair<QVector<double>, QVector<double> > getAmplHistValues() const;
 
 public slots:
     virtual void setMetaDataToTable();
@@ -87,12 +93,6 @@ private slots:
      * Присоединен к сигналу QCPAxis::rangeChanged
      */
     void drawPart(QCPRange range);
-
-    /*!
-     * \brief Сохранить гистограмму.
-     * Гистограмма сохраняется рядом с исходным файлом.
-     */
-    void saveHist();
 
     void changeHistType();
 

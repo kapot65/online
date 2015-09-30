@@ -69,6 +69,13 @@
          </property>
         </widget>
        </item>
+       <item>
+        <widget class="QPushButton" name="saveGraphs">
+         <property name="text">
+          <string>сохранить графики</string>
+         </property>
+        </widget>
+       </item>
       </layout>
      </widget>
      <widget class="QWidget" name="verticalLayoutWidget_2">

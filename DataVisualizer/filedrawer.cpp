@@ -12,7 +12,16 @@ QCPBars *FileDrawer::createHistFromData(QCustomPlot *plot, QVector<double> &binV
     bars->setBrush(QBrush(color));
 
     return bars;
+}
 
+QCPGraph *FileDrawer::createGraphHistFromData(QCustomPlot *plot, QVector<double> &binVal, QVector<double> &binCoord, double minVal, double maxVal)
+{
+    QCPGraph *graph = new QCPGraph(plot->xAxis, plot->yAxis);
+    graph->setPen(QPen(color));
+    graph->setLineStyle(QCPGraph::lsStepCenter);
+    graph->setData(binCoord, binVal);
+
+    return graph;
 }
 
 FileDrawer::FileDrawer(QTableWidget *table, QCustomPlot *plot, QString filename, QObject *parent) : QObject(parent)
@@ -55,7 +64,7 @@ QColor FileDrawer::getRandomColor()
 
 
     QColor color(QtColours[qrand() % sizeof(QtColours)]);
-    color.setAlpha(150);
+    //color.setAlpha(150);
 
 #ifdef TEST_MODE
     qDebug() << color;

@@ -1,0 +1,14 @@
+Station StationStart time: Wed Jul  1 12:40:20 2015
+
+Stop time: Wed Jul  1 12:40:50 2015
+
+APD_126_10 - Chanel1
+Threshold = -13
+Main step = 10 ns
+L1 step = 10 ns
+L2 step = 10 ns
+L1 offset = 0 mks
+L2 offset = 0 mks
+K = 13
+Falling edge
+Base line offset = 3

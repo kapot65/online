@@ -27,7 +27,7 @@ class CCPCCommands
 public:
     /*!
      * \warning В Конструктор не создает CCPCCommands::camac
-     * Его создание должно быть проведенов классах-наследниках.
+     * Его создание и удаление должно быть проведено классах-наследниках.
      */
     explicit CCPCCommands();
 
@@ -54,7 +54,7 @@ protected:
     void Z();
 
     /*!
-     * \brief Проведение операции NAF
+     * \brief Проведение операции NAF с 16-битными словами
      * \param n N
      * \param a A
      * \param f F
@@ -64,14 +64,15 @@ protected:
     ccpc::CamacOp NAF(int n, int a, int f, unsigned short &data);
 
     /*!
-     * \brief Проведение операции с данными long
+     * \brief Проведение операции с 24-битными словами
      * \param n N
      * \param a A
      * \param f F
      * \param [in, out]data Данные.
+     * \param use24bit Использовать передачу 24 бит.
      * \return Результат операции.
      */
-    ccpc::CamacOp NAF(int n, int a, int f, long &data);
+    ccpc::CamacOp NAF(int n, int a, int f, long &data, bool use24bit = true);
 
 private:
 #if QT_VERSION >= 0x040800
