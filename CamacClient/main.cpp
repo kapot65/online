@@ -402,17 +402,22 @@
 #include <datavisualizerform.h>
 #include "camacclientform.h"
 #include <QTextCodec>
+#include <easylogging++.h>
 
 // настройки логгера
-// настройки логгера
-#if QT_VERSION >= 0x050300
-INITIALIZE_EASYLOGGINGPP
-#define LOG_DIRECTORY "D:\\Logs\\CamacClient\\"
-#elif QT_VERSION >= 0x040800
-_INITIALIZE_EASYLOGGINGPP
-#define LOG_DIRECTORY "/home/Logs/CamacClient/"
+#if __cplusplus == 201103L
+    INITIALIZE_EASYLOGGINGPP
+#elif __cplusplus == 199711L
+    _INITIALIZE_EASYLOGGINGPP
 #endif
 
+#ifdef Q_OS_LINUX
+    #define LOG_DIRECTORY "/home/Logs/CamacClient/"
+#endif
+
+#ifdef Q_OS_WIN
+    #define LOG_DIRECTORY "D:\\Logs\\CamacClient\\"
+#endif
 
 int main(int argc, char *argv[])
 {
@@ -431,9 +436,9 @@ int main(int argc, char *argv[])
 
     QDateTime curr_datetime = QDateTime::currentDateTime();
 
-#if QT_VERSION >= 0x050300
-START_EASYLOGGINGPP(argc, argv);
-#elif QT_VERSION >= 0x040800
+#if __cplusplus == 201103L
+    START_EASYLOGGINGPP(argc, argv);
+#elif __cplusplus == 199711L
     _START_EASYLOGGINGPP(argc, argv);
 #endif
 
@@ -443,11 +448,11 @@ START_EASYLOGGINGPP(argc, argv);
             curr_datetime.toString("/log_yyyyMMdd-hhmmss.zzz")).dir().path().toStdString()).c_str());
 #endif
 
-#if QT_VERSION >= 0x050300
+#if __cplusplus == 201103L
     el::Loggers::reconfigureAllLoggers(el::ConfigurationType::Filename,
                                          (LOG_DIRECTORY +
                                           curr_datetime.toString("/log_yyyyMMdd-hhmmss.zzz")).toStdString());
-#elif QT_VERSION >= 0x040800
+#elif __cplusplus == 199711L
     easyloggingpp::Loggers::reconfigureAllLoggers(easyloggingpp::ConfigurationType::Filename,
                                      (LOG_DIRECTORY +
                                       curr_datetime.toString("/log_yyyyMMdd-hhmmss.zzz")).toStdString());

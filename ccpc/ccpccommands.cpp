@@ -1,4 +1,5 @@
 #include "ccpccommands.h"
+#include <QThread>
 
 CCPCCommands::CCPCCommands()
 {

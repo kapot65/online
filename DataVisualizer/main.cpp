@@ -5,57 +5,44 @@
 #include <easylogging++.h>
 
 // настройки логгера
-#if QT_VERSION >= 0x050300
-INITIALIZE_EASYLOGGINGPP
+#if __cplusplus == 201103L
+    INITIALIZE_EASYLOGGINGPP
+#elif __cplusplus == 199711L
+    _INITIALIZE_EASYLOGGINGPP
+#endif
 
-#elif QT_VERSION >= 0x040800
-_INITIALIZE_EASYLOGGINGPP
+#ifdef Q_OS_LINUX
+    #define LOG_DIRECTORY "/home/Logs/DataVisualizer/"
 #endif
 
 #ifdef Q_OS_WIN
-#define LOG_DIRECTORY "D:\\Logs\\DataVisualizer\\"
-#elif defined(Q_OS_LINUX)
-#define LOG_DIRECTORY "/Logs/DataVisualizer/"
+    #define LOG_DIRECTORY "D:\\Logs\\DataVisualizer\\"
 #endif
 
 int main(int argc, char *argv[])
 {
-#if QT_VERSION <= 0x050000
-    QTextCodec::setCodecForTr(QTextCodec::codecForName("UTF-8"));
-    QTextCodec::setCodecForCStrings(QTextCodec::codecForName("UTF-8"));
+#if __cplusplus == 201103L
+    START_EASYLOGGINGPP(argc, argv);
+#elif __cplusplus == 199711L
+    _START_EASYLOGGINGPP(argc, argv);
 #endif
 
     QDateTime curr_datetime = QDateTime::currentDateTime();
 
-#if QT_VERSION >= 0x050300
-START_EASYLOGGINGPP(argc, argv);
-#elif QT_VERSION >= 0x040800
-_START_EASYLOGGINGPP(argc, argv);
-#endif
-
 #if defined(Q_OS_LINUX)
-//убирание привилегий рута с папки с логами
-system((std::string("sudo chmod -R 777 ") + QFileInfo(QDir::homePath() + LOG_DIRECTORY +
-        curr_datetime.toString("yyyyMMdd-hhmmss.zzz")).dir().path().toStdString()).c_str());
-
+    //убирание привилегий рута с папки с логами
+    system((std::string("sudo chmod -R 777 ") + QFileInfo(LOG_DIRECTORY +
+            curr_datetime.toString("/log_yyyyMMdd-hhmmss.zzz")).dir().path().toStdString()).c_str());
 #endif
 
-#if QT_VERSION >= 0x050300
+#if __cplusplus == 201103L
     el::Loggers::reconfigureAllLoggers(el::ConfigurationType::Filename,
                                          (LOG_DIRECTORY +
-                                          curr_datetime.toString("yyyyMMdd-hhmmss.zzz")).toStdString());
-#elif QT_VERSION >= 0x040800
-
-#ifdef Q_OS_WIN
+                                          curr_datetime.toString("/log_yyyyMMdd-hhmmss.zzz")).toStdString());
+#elif __cplusplus == 199711L
     easyloggingpp::Loggers::reconfigureAllLoggers(easyloggingpp::ConfigurationType::Filename,
                                      (LOG_DIRECTORY +
-                                      curr_datetime.toString("yyyyMMdd-hhmmss.zzz")).toStdString());
-#elif defined(Q_OS_LINUX)
-    easyloggingpp::Loggers::reconfigureAllLoggers(easyloggingpp::ConfigurationType::Filename,
-                                     (QDir::homePath() + LOG_DIRECTORY +
-                                      curr_datetime.toString("yyyyMMdd-hhmmss.zzz")).toStdString());
-#endif
-
+                                      curr_datetime.toString("/log_yyyyMMdd-hhmmss.zzz")).toStdString());
 #endif
 
     QApplication a(argc, argv);

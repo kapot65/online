@@ -19,22 +19,18 @@ DEFINES += \
     VIRTUAL_MODE\
     TEST_MODE
 
+greaterThan(QT_MAJOR_VERSION, 4){
+    CONFIG += c++11
+} else {
+    QMAKE_CXXFLAGS += -std=c++11
+}
+
 include(../revision_info.pri )
 include(../easylogging.pri )
 include(../tcp/tcp.pri)
 include(../ccpc/ccpc.pri)
 
 INCLUDEPATH += $$PWD
-
-win32{
-contains(QT_MAJOR_VERSION, 4){
-CONFIG += c++11
-}
-
-contains(QT_MAJOR_VERSION, 5){
-CONFIG += c++11
-}
-}
 
 SOURCES += main.cpp\
     camacserver.cpp \

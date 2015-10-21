@@ -6,16 +6,31 @@
 #include <QDir>
 
 // настройки логгера
-#if QT_VERSION >= 0x050300
-INITIALIZE_EASYLOGGINGPP
+#include <easylogging++.h>
 
-#elif QT_VERSION >= 0x040800
-_INITIALIZE_EASYLOGGINGPP
+// настройки логгера
+#if __cplusplus == 201103L
+    INITIALIZE_EASYLOGGINGPP
+#elif __cplusplus == 199711L
+    _INITIALIZE_EASYLOGGINGPP
+#endif
+
+#ifdef Q_OS_LINUX
+    #define LOG_DIRECTORY "/home/Logs/CCPC7_Server/"
+#endif
+
+#ifdef Q_OS_WIN
+    #define LOG_DIRECTORY "D:\\Logs\\CCPC7_Server\\"
 #endif
 
 int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
+
+#if QT_VERSION <= 0x050000
+     QTextCodec::setCodecForTr(QTextCodec::codecForName("UTF-8"));
+     QTextCodec::setCodecForCStrings(QTextCodec::codecForName("UTF-8"));
+#endif
 
 #ifdef TEST_MODE
     LOG(INFO) << "Programm run in test mode";
@@ -23,6 +38,13 @@ int main(int argc, char *argv[])
 
 #ifdef VIRTUAL_MODE
     LOG(INFO) << "Programm run in virtual mode";
+#endif
+
+
+#if __cplusplus == 201103L
+    START_EASYLOGGINGPP(argc, argv);
+#elif __cplusplus == 199711L
+    _START_EASYLOGGINGPP(argc, argv);
 #endif
 
     //создание временной папки
@@ -33,27 +55,16 @@ int main(int argc, char *argv[])
     timer.connect(&timer, SIGNAL(timeout()), &tempFolder, SLOT(clear()));
     timer.start(120000);
 
-#if QT_VERSION >= 0x050300
-START_EASYLOGGINGPP(argc, argv);
-#elif QT_VERSION >= 0x040800
-    _START_EASYLOGGINGPP(argc, argv);
-#endif
-
-#if defined(Q_OS_LINUX)
-    //убирание привилегий рута с папки с логами
-    system((std::string("sudo chmod -R 777 ") + QFileInfo(tempFolder.getFolderPath() +
-            curr_datetime.toString("/log_yyyyMMdd-hhmmss.zzz")).dir().path().toStdString()).c_str());
-#endif
-
-#if QT_VERSION >= 0x050300
+#if __cplusplus == 201103L
     el::Loggers::reconfigureAllLoggers(el::ConfigurationType::Filename,
                                          (tempFolder.getFolderPath() +
                                           curr_datetime.toString("/log_yyyyMMdd-hhmmss.zzz")).toStdString());
-#elif QT_VERSION >= 0x040800
+#elif __cplusplus == 199711L
     easyloggingpp::Loggers::reconfigureAllLoggers(easyloggingpp::ConfigurationType::Filename,
                                      (tempFolder.getFolderPath() +
                                       curr_datetime.toString("/log_yyyyMMdd-hhmmss.zzz")).toStdString());
 #endif
+
     CamacServerHandler camacServerHandler(&tempFolder);
 
     return a.exec();

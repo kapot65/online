@@ -11,6 +11,12 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 TARGET = CamacClient
 TEMPLATE = app
 
+greaterThan(QT_MAJOR_VERSION, 4){
+    CONFIG += c++11
+} else {
+    QMAKE_CXXFLAGS += -std=c++11
+}
+
 include(../easylogging.pri )
 include(../revision_info.pri )
 include(../DataVisualizer/datavisualizer.pri)
@@ -20,8 +26,6 @@ include(../tcp/tcp.pri)
 DEFINES += TEST_MODE
 #виртуальный режим
 #DEFINES += VIRTUAL_MODE
-
-CONFIG += c++11
 
 win32{
 INCLUDEPATH += \

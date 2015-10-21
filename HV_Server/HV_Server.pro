@@ -9,15 +9,23 @@ QT       -= gui
 
 greaterThan(QT_MAJOR_VERSION, 4){
     QT += serialport
+    QT += widgets
 }else{
     CONFIG += serialport
 }
 
-TARGET = HV_Server
-TEMPLATE = app
+greaterThan(QT_MAJOR_VERSION, 4){
+    CONFIG += c++11
+} else {
+    QMAKE_CXXFLAGS += -std=c++11
+}
 
 CONFIG   += console
 CONFIG   -= app_bundle
+
+TARGET = HV_Server
+TEMPLATE = app
+
 
 include(../revision_info.pri )
 include(../tcp/tcp.pri)
@@ -30,7 +38,7 @@ INCLUDEPATH += $$PWD
 contains(QT_MAJOR_VERSION, 5){
 
 DEFINES += TEST_MODE \
-#           VIRTUAL_MODE
+           VIRTUAL_MODE
 
 CONFIG += c++11
 }

@@ -53,20 +53,20 @@ bool CamacServerSettings::loadSettings(QString fileName)
         TERMINAL2 = getSettingsValue("CamacAlgoritm", "TERMINAL2").toInt();
 
         //считывание уровня логирования
-#if QT_VERSION >= 0x050300
-    logLevel = el::LevelHelper::convertFromString("warning");
-#elif QT_VERSION >= 0x040800
-    //logLevel = el::LevelHelper::convertFromString("warning");
+#if __cplusplus == 201103L
+        logLevel = el::LevelHelper::convertFromString("warning");
+#elif __cplusplus == 199711L
+        //logLevel = el::LevelHelper::convertFromString("warning");
 #endif
 
         if(getSettingsValue("General", "LogLevel").isValid())
         {
             QString logLevelStr = getSettingsValue("General", "LogLevel").toString();
 
-#if QT_VERSION >= 0x050300
+#if __cplusplus == 201103L
             if(el::LevelHelper::convertFromString(logLevelStr.toStdString().c_str()) != el::Level::Unknown)
                 logLevel = el::LevelHelper::convertFromString(logLevelStr.toStdString().c_str());
-#elif QT_VERSION >= 0x040800
+#elif __cplusplus == 199711L
             /*
             if(el::LevelHelper::convertFromString(logLevelStr.toStdString().c_str()) != el::Level::Unknown)
                 logLevel = el::LevelHelper::convertFromString(logLevelStr.toStdString().c_str());

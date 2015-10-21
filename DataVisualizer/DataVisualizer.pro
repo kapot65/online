@@ -15,6 +15,12 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets printsupport
 TARGET = DataVisualizer
 TEMPLATE = app
 
+greaterThan(QT_MAJOR_VERSION, 4){
+    CONFIG += c++11
+} else {
+    QMAKE_CXXFLAGS += -std=c++11
+}
+
 include(../revision_info.pri )
 include(datavisualizer.pri)
 include(../easylogging.pri)

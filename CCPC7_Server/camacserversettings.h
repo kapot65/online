@@ -91,14 +91,11 @@ public:
      */
     int getTERMINAL2(){ return TERMINAL2; }
 
-#ifdef Q_OS_WIN
-#if QT_VERSION >= 0x050300
+#if __cplusplus == 201103L
     el::Level getLogLevel(){return logLevel;}
-#endif
-#elif defined(Q_OS_LINUX)
+#elif __cplusplus == 199711L
     //easyloggingpp::Level getLogLevel(){return;}
 #endif
-
 
 signals:
     /*!
@@ -147,11 +144,9 @@ private:
     ///индекс TERMINAL2
     int TERMINAL2;
 
-#ifdef Q_OS_WIN
-#if QT_VERSION >= 0x050300
+#if __cplusplus == 201103L
     el::Level logLevel;
-#endif
-#elif defined(Q_OS_LINUX)
+#elif __cplusplus == 199711L
     //easyloggingpp::Level logLevel;
 #endif
 
