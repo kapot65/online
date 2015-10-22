@@ -61,8 +61,6 @@ signals:
 #endif
 
 protected:
-    ///Указатель на класс для взаимодействия с устройством.
-    ccpc::CamacImplCCPC7 *camac;
 
     ///Указатель на сенеджер настроек сервера.
     CamacServerSettings *settings;
@@ -96,17 +94,6 @@ private:
      * \brief Флаг ручного прерывания алгоритма.
      */
     bool breakFlag;
-
-#if QT_VERSION >= 0x040800
-    /*!
-     * \brief Таймер для установки задержек.
-     */
-    QTimer *timer;
-    /*!
-     * \brief QEventLoop для ожидания во время задержек.
-     */
-    QEventLoop *eventLoop;
-#endif
 
     /*!
      * \brief Отключение возможности измерений.
