@@ -14,7 +14,7 @@ TEMPLATE = app
 greaterThan(QT_MAJOR_VERSION, 4){
     CONFIG += c++11
 } else {
-    QMAKE_CXXFLAGS += -std=c++11
+    #QMAKE_CXXFLAGS += -std=c++11
 }
 
 include(../easylogging.pri )
