@@ -68,7 +68,9 @@ void HvMainController::setVoltage(double voltage)
     busyFlag = 1;
 
     bool ok;
+#ifndef VIRTUAL_MODE
     setVoltage(voltage, ok);
+#endif
 
     emit setVoltageDone();
 

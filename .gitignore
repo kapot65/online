@@ -3,3 +3,4 @@ online.pro.user.b54289d
 *.cpp.*
 *.h.*
 documentation/build/
+*.pro.user

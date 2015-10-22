@@ -29,9 +29,12 @@ void TcpClient::setPeer(QString peerName, int peerPort)
 void TcpClient::connectToServer()
 {
     if(networkSession)
+    {
         delete networkSession;
-    if(connection)
-        delete connection;
+        if(connection)
+            delete connection;
+    }
+
 
     connection = new QTcpSocket;
     connect(connection, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(processError(QAbstractSocket::SocketError)));

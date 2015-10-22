@@ -10,7 +10,7 @@ CamacServer::CamacServer(int port, CamacServerSettings *settings): TcpServer(por
 //установка соответсвующего уровня логирования
 #if __cplusplus == 201103L
     el::Loggers::setLoggingLevel(settings->getLogLevel());
-#elif __cplusplus == 199711L
+#else
     //easyloggingpp::Loggers::setLoggingLevel(settings->getLogLevel());
 #endif
 

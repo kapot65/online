@@ -407,7 +407,7 @@
 // настройки логгера
 #if __cplusplus == 201103L
     INITIALIZE_EASYLOGGINGPP
-#elif __cplusplus == 199711L
+#else
     _INITIALIZE_EASYLOGGINGPP
 #endif
 
@@ -438,21 +438,23 @@ int main(int argc, char *argv[])
 
 #if __cplusplus == 201103L
     START_EASYLOGGINGPP(argc, argv);
-#elif __cplusplus == 199711L
+#else
     _START_EASYLOGGINGPP(argc, argv);
 #endif
 
-#if defined(Q_OS_LINUX)
-    //убирание привилегий рута с папки с логами
-    system((std::string("sudo chmod -R 777 ") + QFileInfo(LOG_DIRECTORY +
-            curr_datetime.toString("/log_yyyyMMdd-hhmmss.zzz")).dir().path().toStdString()).c_str());
+#ifdef Q_OS_LINUX
+    QDir().mkpath(QDir::homePath() + LOG_DIRECTORY);
+#endif
+
+#ifdef Q_OS_WIN
+    QDir().mkpath(LOG_DIRECTORY);
 #endif
 
 #if __cplusplus == 201103L
     el::Loggers::reconfigureAllLoggers(el::ConfigurationType::Filename,
                                          (LOG_DIRECTORY +
                                           curr_datetime.toString("/log_yyyyMMdd-hhmmss.zzz")).toStdString());
-#elif __cplusplus == 199711L
+#else
     easyloggingpp::Loggers::reconfigureAllLoggers(easyloggingpp::ConfigurationType::Filename,
                                      (LOG_DIRECTORY +
                                       curr_datetime.toString("/log_yyyyMMdd-hhmmss.zzz")).toStdString());

@@ -27,6 +27,13 @@ void TcpBase::readMessageFromStream(QIODevice *dev,
     QByteArray message;
     if(!continue_message)
     {
+        if(dev->bytesAvailable() < 30)
+        {
+            ok = false;
+            hasMore = false;
+            return;
+        }
+
         message += dev->read(30);
         //попытка считать бинарный заголовок
         //попытка пробуется на каждом пакете, чтобы избежать поломки сервера
@@ -66,7 +73,7 @@ void TcpBase::readMessageFromStream(QIODevice *dev,
             else
                 ok = true;
 
-            if(dev->size())
+            if(dev->bytesAvailable())
                 hasMore = true;
             else
                 hasMore = false;
@@ -94,7 +101,7 @@ void TcpBase::readMessage()
 #endif
     }
 
-    if(hasMore)
+    if(hasMore && connection->bytesAvailable())
         readMessage();
 }
 

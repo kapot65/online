@@ -55,7 +55,7 @@ bool CamacServerSettings::loadSettings(QString fileName)
         //считывание уровня логирования
 #if __cplusplus == 201103L
         logLevel = el::LevelHelper::convertFromString("warning");
-#elif __cplusplus == 199711L
+#else
         //logLevel = el::LevelHelper::convertFromString("warning");
 #endif
 
@@ -66,7 +66,7 @@ bool CamacServerSettings::loadSettings(QString fileName)
 #if __cplusplus == 201103L
             if(el::LevelHelper::convertFromString(logLevelStr.toStdString().c_str()) != el::Level::Unknown)
                 logLevel = el::LevelHelper::convertFromString(logLevelStr.toStdString().c_str());
-#elif __cplusplus == 199711L
+#else
             /*
             if(el::LevelHelper::convertFromString(logLevelStr.toStdString().c_str()) != el::Level::Unknown)
                 logLevel = el::LevelHelper::convertFromString(logLevelStr.toStdString().c_str());

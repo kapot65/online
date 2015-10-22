@@ -93,7 +93,7 @@ public:
 
 #if __cplusplus == 201103L
     el::Level getLogLevel(){return logLevel;}
-#elif __cplusplus == 199711L
+#else
     //easyloggingpp::Level getLogLevel(){return;}
 #endif
 
@@ -146,7 +146,7 @@ private:
 
 #if __cplusplus == 201103L
     el::Level logLevel;
-#elif __cplusplus == 199711L
+#else
     //easyloggingpp::Level logLevel;
 #endif
 

@@ -11,7 +11,7 @@
 // настройки логгера
 #if __cplusplus == 201103L
     INITIALIZE_EASYLOGGINGPP
-#elif __cplusplus == 199711L
+#else
     _INITIALIZE_EASYLOGGINGPP
 #endif
 
@@ -43,7 +43,7 @@ int main(int argc, char *argv[])
 
 #if __cplusplus == 201103L
     START_EASYLOGGINGPP(argc, argv);
-#elif __cplusplus == 199711L
+#else
     _START_EASYLOGGINGPP(argc, argv);
 #endif
 
@@ -59,7 +59,7 @@ int main(int argc, char *argv[])
     el::Loggers::reconfigureAllLoggers(el::ConfigurationType::Filename,
                                          (tempFolder.getFolderPath() +
                                           curr_datetime.toString("/log_yyyyMMdd-hhmmss.zzz")).toStdString());
-#elif __cplusplus == 199711L
+#else
     easyloggingpp::Loggers::reconfigureAllLoggers(easyloggingpp::ConfigurationType::Filename,
                                      (tempFolder.getFolderPath() +
                                       curr_datetime.toString("/log_yyyyMMdd-hhmmss.zzz")).toStdString());

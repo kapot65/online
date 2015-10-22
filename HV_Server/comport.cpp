@@ -4,12 +4,14 @@ ComPort::ComPort(IniManager *manager, QObject *parent) : QThread(parent)
 {
     busyFlag = 0;
 
+#ifndef VIRTUAL_MODE
     this->manager = manager;
     serialPort = new QSerialPort(this);
 
     connect(serialPort, SIGNAL(readyRead()), this, SLOT(readMessage()));
     connect(serialPort, SIGNAL(aboutToClose()), this, SLOT(onPortClose()));
     connect(serialPort, SIGNAL(error(QSerialPort::SerialPortError)), this, SLOT(onPortError(QSerialPort::SerialPortError)));
+#endif
 }
 
 ComPort::~ComPort()

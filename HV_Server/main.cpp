@@ -5,21 +5,35 @@
 #include <iostream>
 #include <QDateTime>
 
-#if QT_VERSION >= 0x050300
-INITIALIZE_EASYLOGGINGPP
+#if __cplusplus == 201103L
+    INITIALIZE_EASYLOGGINGPP
+#else
+    _INITIALIZE_EASYLOGGINGPP
+#endif
 
-#elif QT_VERSION >= 0x040800
-_INITIALIZE_EASYLOGGINGPP
+#ifdef Q_OS_LINUX
+    #define LOG_DIRECTORY "/home/Logs/HV_Server/"
 #endif
 
 #ifdef Q_OS_WIN
-#define LOG_DIRECTORY "E:\\Logs\\HV_Server\\"
-#elif defined(Q_OS_LINUX)
-#define LOG_DIRECTORY "/Logs/HV_server/"
+    #define LOG_DIRECTORY "D:\\Logs\\HV_Server\\"
 #endif
+
 
 int main(int argc, char *argv[])
 {
+
+#if __cplusplus == 201103L
+    START_EASYLOGGINGPP(argc, argv);
+#else
+    _START_EASYLOGGINGPP(argc, argv);
+#endif
+
+#if QT_VERSION <= 0x050000
+     QTextCodec::setCodecForTr(QTextCodec::codecForName("UTF-8"));
+     QTextCodec::setCodecForCStrings(QTextCodec::codecForName("UTF-8"));
+#endif
+
 #ifdef TEST_MODE
     LOG(INFO) << "Programm run in test mode";
 #endif
@@ -28,40 +42,31 @@ int main(int argc, char *argv[])
     LOG(INFO) << "Programm run in virtual mode";
 #endif
 
+
     QCoreApplication a(argc, argv);
 
     QDateTime curr_datetime = QDateTime::currentDateTime();
 
-    #if QT_VERSION >= 0x050300
-    START_EASYLOGGINGPP(argc, argv);
-    #elif QT_VERSION >= 0x040800
-    _START_EASYLOGGINGPP(argc, argv);
-    #endif
 
-    #if defined(Q_OS_LINUX)
-    //убирание привилегий рута с папки с логами
-    system((std::string("sudo chmod -R 777 ") + QFileInfo(QDir::homePath() + LOG_DIRECTORY +
-            curr_datetime.toString("yyyyMMdd-hhmmss.zzz")).dir().path().toStdString()).c_str());
+#ifdef Q_OS_LINUX
+    QDir().mkpath(QDir::homePath() + LOG_DIRECTORY);
+#endif
 
-    #endif
+#ifdef Q_OS_WIN
+    QDir().mkpath(LOG_DIRECTORY);
+#endif
 
-    #if QT_VERSION >= 0x050300
+
+
+#if __cplusplus == 201103L
         el::Loggers::reconfigureAllLoggers(el::ConfigurationType::Filename,
                                              (LOG_DIRECTORY +
                                               curr_datetime.toString("yyyyMMdd-hhmmss.zzz")).toStdString());
-    #elif QT_VERSION >= 0x040800
-
-    #ifdef Q_OS_WIN
-        easyloggingpp::Loggers::reconfigureAllLoggers(easyloggingpp::ConfigurationType::Filename,
-                                         (LOG_DIRECTORY +
-                                          curr_datetime.toString("yyyyMMdd-hhmmss.zzz")).toStdString());
-    #elif defined(Q_OS_LINUX)
+#else
         easyloggingpp::Loggers::reconfigureAllLoggers(easyloggingpp::ConfigurationType::Filename,
                                          (QDir::homePath() + LOG_DIRECTORY +
                                           curr_datetime.toString("yyyyMMdd-hhmmss.zzz")).toStdString());
-    #endif
-
-    #endif
+#endif
 
     HVServerHandler hv_server;
 
