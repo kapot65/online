@@ -74,7 +74,7 @@ protected:
      */
     ccpc::CamacOp NAF(int n, int a, int f, long &data, bool use24bit = true);
 
-private:
+protected:
 #if QT_VERSION >= 0x040800
     /*!
      * \brief Таймер для установки задержек.

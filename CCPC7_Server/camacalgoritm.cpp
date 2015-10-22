@@ -155,7 +155,7 @@ QVector<Event> CamacAlgoritm::acquirePoint(unsigned short measureTime, bool *man
 #endif
 
 #ifndef VIRTUAL_MODE
-    NAF(settings->getOV1(), 0, 25, NONE);
+    NAF(settings->getOV1(), 0, 25, none);
 #endif
 
     //цикл сбора
