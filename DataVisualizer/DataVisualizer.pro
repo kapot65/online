@@ -8,7 +8,7 @@ QT       += core gui
 
 
 DEFINES += TEST_MODE \
-           APD_MODE
+           #APD_MODE
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets printsupport
 

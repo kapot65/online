@@ -59,6 +59,8 @@ OnlineForm::OnlineForm(CCPC7Handler *ccpc7Handler, HVHandler *hvHandler,
             dataVisualizerForm, SLOT(clear()), Qt::QueuedConnection);
 
     connect(online, SIGNAL(at_step(int)), this, SLOT(setScenarioStage(int)), Qt::QueuedConnection);
+
+    on_checkUserForNextStep_stateChanged(ui->checkUserForNextStep->checkState());
 }
 
 OnlineForm::~OnlineForm()
@@ -448,4 +450,19 @@ void OnlineForm::on_groupEdit_editingFinished()
         groupOk = 1;
 
     updateEnabledButton();
+}
+
+void OnlineForm::on_checkUserForNextStep_stateChanged(int arg1)
+{
+    switch (arg1) {
+    case Qt::Unchecked:
+        disconnect(online, SIGNAL(at_step(int)), online, SLOT(pause()));
+        disconnect(online, SIGNAL(at_step(int)), this, SLOT(on_pauseButton_clicked()));
+        break;
+    case Qt::Checked:
+        connect(online, SIGNAL(at_step(int)), online, SLOT(pause()));
+        connect(online, SIGNAL(at_step(int)), this, SLOT(on_pauseButton_clicked()));
+    default:
+        break;
+    }
 }

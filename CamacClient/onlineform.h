@@ -59,6 +59,8 @@ private slots:
 
     void on_groupEdit_editingFinished();
 
+    void on_checkUserForNextStep_stateChanged(int arg1);
+
 private:
     CCPC7Handler *ccpc7Handler;
     HVHandler *hvHandler;

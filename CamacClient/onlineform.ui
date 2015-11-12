@@ -157,6 +157,16 @@
       <number>10</number>
      </property>
      <item>
+      <widget class="QCheckBox" name="checkUserForNextStep">
+       <property name="text">
+        <string>Ожидать команды пользователя на продолжение.</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QPushButton" name="openScenarioButton">
        <property name="text">
         <string>открыть файл сценария</string>

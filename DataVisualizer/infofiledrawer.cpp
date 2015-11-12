@@ -102,10 +102,10 @@ void InfoFileDrawer::update()
     fileBuffer = file->readAll();
 
     //удаление старых объектов
-    for(int i = 0 ; i < items.size(); i++)
-    {
-        plot->removeItem(items[i]);
-    }
+//    for(int i = 0 ; i < items.size(); i++)
+//    {
+//        plot->removeItem(items[i]);
+//    }
     //определение текущего состояния видисомти графика
     bool curr_visibility;
     if(items.isEmpty())
@@ -129,29 +129,29 @@ void InfoFileDrawer::update()
 
             //отрисовка комментария на графике
             //добавление бокса с текстом
-            QCPItemText *textItem = new QCPItemText(plot);
-            plot->addItem(textItem);
-            textItem->setPositionAlignment(Qt::AlignTop|Qt::AlignHCenter);
-            textItem->position->setType(QCPItemPosition::ptAxisRectRatio);
-            textItem->position->setCoords(x, y);
-            x += 0.1;
-            textItem->setText(curr_comment["comment"].toString());
-            //textItem->setFont(QFont(font().family(), 16));
-            textItem->setPen(QPen(Qt::black));
-            textItem->setVisible(curr_visibility);
-            items.push_back(textItem);
-            textItem->setParent(this);
+//            QCPItemText *textItem = new QCPItemText(plot);
+//            plot->addItem(textItem);
+//            textItem->setPositionAlignment(Qt::AlignTop|Qt::AlignHCenter);
+//            textItem->position->setType(QCPItemPosition::ptAxisRectRatio);
+//            textItem->position->setCoords(x, y);
+//            x += 0.1;
+//            textItem->setText(curr_comment["comment"].toString());
+//            //textItem->setFont(QFont(font().family(), 16));
+//            textItem->setPen(QPen(Qt::black));
+//            textItem->setVisible(curr_visibility);
+//            items.push_back(textItem);
+//            textItem->setParent(this);
 
-            // add the arrow:
-            QCPItemLine *arrow = new QCPItemLine(plot);
-            plot->addItem(arrow);
-            arrow->start->setParentAnchor(textItem->bottom);
-            QDateTime dtime = QDateTime::fromString(curr_comment["date_time"].toString(), Qt::ISODate);
-            arrow->end->setCoords(dtime.toMSecsSinceEpoch(), 0);
-            arrow->setHead(QCPLineEnding::esSpikeArrow);
-            arrow->setVisible(curr_visibility);
-            items.push_back(arrow);
-            arrow->setParent(this);
+//            // add the arrow:
+//            QCPItemLine *arrow = new QCPItemLine(plot);
+//            plot->addItem(arrow);
+//            arrow->start->setParentAnchor(textItem->bottom);
+//            QDateTime dtime = QDateTime::fromString(curr_comment["date_time"].toString(), Qt::ISODate);
+//            arrow->end->setCoords(dtime.toMSecsSinceEpoch(), 0);
+//            arrow->setHead(QCPLineEnding::esSpikeArrow);
+//            arrow->setVisible(curr_visibility);
+//            items.push_back(arrow);
+//            arrow->setParent(this);
         }
     }
     emit updated();

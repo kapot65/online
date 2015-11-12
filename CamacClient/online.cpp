@@ -21,6 +21,7 @@ Online::Online(IniManager *settingsManager, CCPC7Handler *ccpcHandler, HVHandler
 
     //настройка паузы
     connect(this, SIGNAL(stop_pauseLoop()), &pauseLoop, SLOT(quit()));
+    connect(this, SIGNAL(stop_scenario()), &pauseLoop, SLOT(quit()));
 
     if(!settingsManager->getSettingsValue("Online", "voltage_reload_time").isValid())
         settingsManager->setSettingsValue("Online", "voltage_reload_time", 5);
@@ -188,17 +189,18 @@ bool Online::processScenario(QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> > sc
     {
         emit at_step(i);
 
+        if(need_pause)
+        {
+            emit sendInfoMessage("Pause now.\n");
+            pauseLoop.exec();
+        }
+
         if(stop_flag)
         {
             emit sendInfoMessage("Stop acquisition by user request.\n");
             stopHvMonitor(hvMonitor);
             folderOk = 0;
             return true;
-        }
-        if(need_pause)
-        {
-            emit sendInfoMessage("Pause now.\n");
-            pauseLoop.exec();
         }
 
         QPair<SCENARIO_COMMAND_TYPE, QVariant> command = scenario[i];
