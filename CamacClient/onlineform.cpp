@@ -184,13 +184,13 @@ bool OnlineForm::copyRecursively(const QString &srcFilePath,
     QFileInfo srcFileInfo(srcFilePath);
     if (srcFileInfo.isDir())
     {
-        QDir targetDir(tgtFilePath);
-        targetDir.cdUp();
+        QDir targetDir = QFileInfo(tgtFilePath).absoluteDir();
 #ifdef TEST_MODE
         qDebug()<<QFileInfo(tgtFilePath).fileName();
 #endif
         if (!targetDir.mkpath(QFileInfo(tgtFilePath).fileName()))
             return false;
+
         QDir sourceDir(srcFilePath);
         QStringList fileNames = sourceDir.entryList(QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot | QDir::Hidden | QDir::System);
         foreach (const QString &fileName, fileNames) {
@@ -206,6 +206,44 @@ bool OnlineForm::copyRecursively(const QString &srcFilePath,
             return false;
     }
     return true;
+}
+
+void OnlineForm::flushData(QString output_folder)
+{
+    QString outputCurrFolder = output_folder + "/" +online->getCurrSubFolder();
+
+    QFileInfo fi(outputCurrFolder);
+    QStringList foldersList = fi.absoluteDir().entryList(QDir::Dirs);
+
+    //поиск максимального индекса
+    int max_idx = 0;
+    for(int i = 0; i < foldersList.size(); i++)
+    {
+        QStringList splittedName = foldersList.at(i).split("_");
+        if(splittedName.size() >= 2)
+        {
+            int currIdx = splittedName.at(1).toInt();
+
+            if(currIdx > max_idx)
+                max_idx = currIdx;
+        }
+    }
+
+    QByteArray binaryTime;
+    QDataStream ds(&binaryTime, QIODevice::WriteOnly);
+    qint64 time = QDateTime::currentMSecsSinceEpoch();
+    ds.writeRawData((const char*)(&(time)), sizeof(qint64));
+
+    QString timeHex = binaryTime.toHex();
+
+    outputCurrFolder = fi.absolutePath() + QDir::separator() + tr("set_%1_%2").arg(max_idx + 1).arg(timeHex);
+
+    if(!copyRecursively("temp/" + online->getCurrSubFolder(), outputCurrFolder))
+    {
+        QMessageBox::warning(this, "Copy error", tr("Can't copy temp/%1 to %2. Please do it"
+                                                    "manually and then press ok.")
+                                                 .arg(online->getCurrSubFolder()).arg(outputCurrFolder));
+    }
 }
 
 void OnlineForm::on_startButton_clicked()
@@ -346,14 +384,7 @@ void OnlineForm::on_startButton_clicked()
         }
 
         //переписывание файлов в конечную папку
-        QString outputCurrFolder = output_folder + "/" +online->getCurrSubFolder();
-
-        if(!copyRecursively("temp/" + online->getCurrSubFolder(), outputCurrFolder))
-        {
-            QMessageBox::warning(this, "Copy error", tr("Can't copy temp/%1 to %2. Please do it"
-                                                        "manually and then press ok.")
-                                                     .arg(online->getCurrSubFolder()).arg(outputCurrFolder));
-        }
+        flushData(output_folder);
     }
     ui->finishOnThisIterationBox->setVisible(false);
 

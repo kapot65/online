@@ -85,6 +85,12 @@ private:
 
     void updateEnabledButton();
 
+    /*!
+     * \brief Сохранение данных набора в окончательную папку.
+     * \todo Перенести в Online.
+     */
+    void flushData(QString output_folder);
+
     Online *online;
     IniManager *settingsManager;
     Ui::OnlineForm *ui;
