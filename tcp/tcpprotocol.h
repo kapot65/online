@@ -16,6 +16,7 @@
 
 /*!
  * \brief Коды ошибок серверов.
+ * \anchor errType
  */
 enum ERROR_TYPE
 {
