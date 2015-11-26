@@ -23,4 +23,4 @@
 - **DataVisualizer** - Необязательная программа. Позволяет визуализировать уже набранные данные сценарии.
 
 ## Сборка проекта
-Сборка проекта описана в [документации](http://kapot.bitbucket.org/index.html#srcPrepare)
+Сборка проекта описана в [документации](http://kapot.bitbucket.org/online/index.html#srcPrepare)
