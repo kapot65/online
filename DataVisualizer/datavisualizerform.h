@@ -71,6 +71,8 @@ private slots:
     void processMouseMove(QMouseEvent *ev);
     void clearRuler();
     void processMouseRelease(QMouseEvent *ev);
+    void onGraphDestroyed();
+    void onTextDestroyed();
 
 private:
     double y;

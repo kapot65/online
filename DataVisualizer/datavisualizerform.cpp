@@ -492,9 +492,7 @@ Ruler::Ruler(QCustomPlot *plot, QObject *parent) : QObject(parent)
     mouseJustMovedFlag = 0;
 
     text = 0;
-
-    graph = plot->addGraph();
-    graph->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, 5));
+    graph = 0;
 
     connect(plot, SIGNAL(mouseRelease(QMouseEvent*)),
             this, SLOT(processMouseRelease(QMouseEvent*)));
@@ -526,7 +524,11 @@ void Ruler::clearRuler()
         text = 0;
     }
 
-    graph->removeDataAfter(0);
+    if(graph)
+    {
+        graph->removeDataAfter(0);
+    }
+
     plot->replot();
 }
 
@@ -540,6 +542,13 @@ void Ruler::processMouseRelease(QMouseEvent *ev)
     else
         if(ev->button() == Qt::LeftButton)
         {
+            if(!graph)
+            {
+                graph = plot->addGraph();
+                graph->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, 5));
+                connect(graph, SIGNAL(destroyed()), this, SLOT(onGraphDestroyed()));
+            }
+
             if(x1 == 0)
             {
                 clearRuler();
@@ -564,6 +573,7 @@ void Ruler::processMouseRelease(QMouseEvent *ev)
                     }
 
                     text = new QCPItemText(plot);
+                    connect(text, SIGNAL(destroyed()), this, SLOT(onTextDestroyed()));
 
                     plot->addItem(text);
 
@@ -579,4 +589,14 @@ void Ruler::processMouseRelease(QMouseEvent *ev)
                     processMouseRelease(ev);
                 }
         }
+}
+
+void Ruler::onGraphDestroyed()
+{
+    graph = 0;
+}
+
+void Ruler::onTextDestroyed()
+{
+    text = 0;
 }

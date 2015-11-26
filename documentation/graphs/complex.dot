@@ -1,23 +1,28 @@
 graph Online
 {
-	splines=polyline
-	node [shape=box];
-	esep=20;
+        //splines=polyline
+        node [shape=box];
+        //esep=20;
 
 	
 
 	subgraph cluster_0
 	{
-		label="Пользовалели";
-		User;
-		Programmer;	
+                label="Пользовалели";
+                User[label="Пользователь"];
+                Programmer[label="Программист"];
 	}
 	
 
 	User -- OnlineForm[label="Управление"]
-	Programmer -- OnlineForm[label="Управление"]
-	Programmer -- HVHandlerForm[label="Управление"]
-	Programmer -- CCPCHandlerForm[label="Управление"]
+
+        "helpSplit"[width=0,height=0,style=invis,label=""];
+
+        Programmer -- "helpSplit"[label="Управление"];
+
+        "helpSplit" -- OnlineForm
+        "helpSplit" -- HVHandlerForm
+        "helpSplit" -- CCPCHandlerForm
 
 
 	subgraph cluster_1
@@ -60,10 +65,17 @@ graph Online
 	subgraph cluster_3
 	{
 		label="HV_Server";
+
+                "helpSplitHV"[width=0,height=0,style=invis,label=""];
+
+                HVServer -- "helpSplitHV"[label="Управление\nчерез\nCom порты", style="dashed"];
 		
-		HVServer -- Voltmeter1[label="Управление\nчерез\nCom порт", style="dashed"];
-		HVServer -- Voltmeter2[label="Управление\nчерез\nCom порт", style="dashed"];
-		HVServer --  Block1[label="Управление\nчерез\nCom порт", style="dashed"];
-		HVServer -- Block2[label="Управление\nчерез\nCom порт", style="dashed"];
+                "helpSplitHV" --  Block1[style="dashed"];
+                "helpSplitHV" -- Block2[style="dashed"];
+                "helpSplitHV" -- Voltmeter1[style="dashed"];
+                "helpSplitHV" -- Voltmeter2[style="dashed"];
+
+                HVServer --  Block1[label="Управление\nчерез\nCamac", style="dashed"];
+
 	}
 }
