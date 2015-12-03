@@ -46,7 +46,6 @@ void HVHandlerForm::on_portEdit_editingFinished()
 void HVHandlerForm::on_reconnectButton_clicked()
 {
     hvHandler->reconnect(ui->ipEdit->text(), ui->portEdit->value());
-    hvHandler->connectToServer();
     haveWarning = 0;
 }
 

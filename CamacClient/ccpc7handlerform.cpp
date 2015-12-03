@@ -83,8 +83,7 @@ void CCPC7HandlerForm::on_countersFileSelect_clicked()
 
 void CCPC7HandlerForm::on_acquirePointButton_clicked()
 {
-    connect(ccpc7Handler, SIGNAL(pointAcquired(MachineHeader,QVariantMap,QVector<Event>)),
-            this, SLOT(drawAcquiredPoint(MachineHeader,QVariantMap,QVector<Event>)));
+    dataVisualizerForm->openDir("temp");
 
 #if QT_VERSION >= 0x050300
     ccpc7Handler->acquirePoint(ui->acquisitionTimeBox->currentData().toInt());

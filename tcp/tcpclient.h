@@ -60,13 +60,6 @@ signals:
 
 public slots:
     /*!
-     * \brief Собирает и отправляет сообщение на сервер.
-     * \param message метаданные посылки
-     * \param binaryData бинарные данные
-     * \param *ok статус отправки
-     * */
-    void sendMessage(QVariantMap message, QByteArray binaryData = QByteArray(), bool *ok = NULL);
-    /*!
      * \brief Переподключает клиент к серверу.
      * \details При успешном переподключении вырабатывает сигнал TcpClient::socketConnected
      * */
@@ -103,6 +96,10 @@ private:
      * \brief порт сервера
      */
     int peerPort;
+
+    // TcpBase interface
+protected:
+    virtual bool handleError(QVariantMap err);
 };
 
 #endif // TCPCLIENT_H

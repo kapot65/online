@@ -1,4 +1,5 @@
 #include "hvhandler.h"
+#include <QTimer>
 
 HVHandler::HVHandler(QString ip, int port, QObject *parent) : ServerHandler(ip, port, parent)
 {
@@ -170,4 +171,32 @@ void HVHandler::processMessage(MachineHeader machineHeader, QVariantMap metaData
             {
                 emit unhandledMessage(machineHeader, metaData, binaryData);
             }
+}
+
+bool HVHandler::handleError(QVariantMap err)
+{
+    if(ServerHandler::handleError(err))
+        return true;
+
+    unsigned int errCode = err["error_code"].toUInt();
+    switch(errCode)
+    {
+        case SERVER_BUSY_ERROR:
+        {
+            LOG(WARNING) << tr("%1 cacth err: SERVER_BUSY_ERROR").arg(metaObject()->className()).toStdString();
+            //Ожидаем 5 с, затем снова пересылаем пакет
+            // М.б. стоит перенести в предка
+
+            QEventLoop el;
+            QTimer::singleShot(5000, &el, SLOT(quit()));
+            el.exec();
+
+            sendRawMessage(lastSentMessage);
+
+            return true;
+        }
+
+        default:
+            return false;
+    }
 }

@@ -332,7 +332,10 @@ void OnlineForm::on_startButton_clicked()
 
     ui->finishOnThisIterationBox->setChecked(false);
     ui->finishOnThisIterationBox->setVisible(true);
-    for(int i = 0 ; (!iterations) || (i < iterations); i++)
+
+    stopFlag = false;
+
+    for(int i = 0 ; ((!iterations) || (i < iterations)) && !stopFlag; i++)
     {
         //dataVisualizerForm->clear();
 
@@ -423,6 +426,7 @@ void OnlineForm::on_sendComment_clicked()
 
 void OnlineForm::on_stopButton_clicked()
 {
+    stopFlag = true;
     if(QMessageBox::question(this, tr("Предупреждение"), tr("Вы точно хотите остановить набор?")) == QMessageBox::Yes)
     {
         QTimer::singleShot(0, online, SLOT(stop()));

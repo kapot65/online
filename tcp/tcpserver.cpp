@@ -1,4 +1,5 @@
 #include "tcpserver.h"
+#include <easylogging++.h>
 
 TcpServer::TcpServer(int port, QObject *parent) : TcpBase(parent)
 {
@@ -120,27 +121,6 @@ void TcpServer::sendReady()
     //                     .arg(ipAddress).arg(tcpServer->serverPort()).toStdString();
 
     emit serverReady(ipAddress, port);
-}
-
-void TcpServer::sendMessage(QVariantMap message, QByteArray binaryData,  bool *ok, QTcpSocket *socket)
-{
-    if(!socket)
-        socket = connection;
-    if(!socket)
-        return;
-
-    QByteArray prepairedMessage = TcpProtocol::createMessage(message, binaryData);
-    sendRawMessage(prepairedMessage, socket);
-}
-
-void TcpServer::sendRawMessage(QByteArray message, QTcpSocket *socket)
-{
-    if(!socket)
-        socket = connection;
-    if(!socket)
-        return;
-
-    socket->write(message);
 }
 
 void TcpServer::on_error(QVariantMap info)

@@ -74,6 +74,11 @@ protected slots:
      * \brief Метод перехватывает сообщения и парсит ответы.
      */
     virtual void processMessage(MachineHeader machineHeader, QVariantMap metaData, QByteArray binaryData);
+
+
+    // TcpBase interface
+protected:
+    bool handleError(QVariantMap err);
 };
 
 #endif // HVHANDLER_H

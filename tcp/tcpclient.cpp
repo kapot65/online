@@ -65,6 +65,15 @@ void TcpClient::connectToServer()
     }
 
     connection->connectToHost(peerName, peerPort);
+    if(!connection->waitForConnected(5000))
+    {
+        LOG(WARNING) << tr("%1: Catch socket err: %2").arg(metaObject()->className())
+                        .arg(connection->errorString()).toStdString();
+        QVariantMap err;
+        err["error_code"] = UNKNOWN_ERROR;
+        emit error(TcpProtocol::wrapErrorInfo(err));
+    }
+
     connect(connection, SIGNAL(readyRead()), this, SLOT(readMessage()));
 }
 
@@ -110,6 +119,41 @@ void TcpClient::sessionOpened()
     connect(connection, SIGNAL(readyRead()), this, SLOT(readMessage()));
 }
 
+bool TcpClient::handleError(QVariantMap err)
+{
+    if(TcpBase::handleError(err))
+        return true;
+
+    unsigned int errCode = err["error_code"].toUInt();
+    switch(errCode)
+    {
+        case CLIENT_NO_ERROR:
+            LOG(WARNING) << tr("%1 cacth err: CLIENT_NO_ERROR").arg(metaObject()->className()).toStdString();
+            return true;
+
+        case CLIENT_DISCONNECT:
+        {
+            LOG(WARNING) << tr("%1 cacth err: CLIENT_DISCONNECT").arg(metaObject()->className()).toStdString();
+
+            //Возможно сервер переподключили вручную
+            //Ожидание подключения
+            if(!waitForConnect(1000))
+            {
+                connectToServer();
+                return waitForConnect(1000);
+            }
+            else
+            {
+                LOG(WARNING) << "Catch manual recconection.";
+                return true;
+            }
+        }
+
+        default:
+            return false;
+    }
+}
+
 void TcpClient::onSocketConnected()
 {
     peerName = connection->peerName();
@@ -121,23 +165,4 @@ void TcpClient::onSocketConnected()
 void TcpClient::onSocketDisconnected()
 {
     emit socketDisconnected();
-}
-
-void TcpClient::sendMessage(QVariantMap message, QByteArray binaryData,  bool *ok)
-{
-    if(!haveOpenedConnection())
-    {
-        TcpProtocol::setOk(0, ok);
-        return;
-    }
-
-    QByteArray preparedMessage = TcpProtocol::createMessage(message, binaryData);
-
-    if(connection->write(preparedMessage) == -1)
-    {
-        TcpProtocol::setOk(0, ok);
-        return;
-    }
-
-    TcpProtocol::setOk(1, ok);
 }

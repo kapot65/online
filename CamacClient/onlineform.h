@@ -65,6 +65,8 @@ private:
     CCPC7Handler *ccpc7Handler;
     HVHandler *hvHandler;
 
+    bool stopFlag;
+
     /*!
      * \brief curr_scenario_raw
      * \details строка с текущим исходником сценария. Нужна, чтобы записать

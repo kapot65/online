@@ -30,12 +30,15 @@ Online::Online(IniManager *settingsManager, CCPC7Handler *ccpcHandler, HVHandler
         settingsManager->setSettingsValue("Online", "output_folder", "output");
 
     this->ccpcHandler = ccpcHandler;
-    connect(ccpcHandler, SIGNAL(error(QVariantMap)), this, SLOT(handleCCPCError(QVariantMap)));
+    connect(ccpcHandler, SIGNAL(error(QVariantMap)), this, SLOT(storeCCPCError(QVariantMap)));
     lastCCPCError = CLIENT_NO_ERROR;
 
     this->hvHandler = hvHandler;
-    connect(hvHandler, SIGNAL(error(QVariantMap)), this, SLOT(handleHVError(QVariantMap)));
+    connect(hvHandler, SIGNAL(error(QVariantMap)), this, SLOT(storeHVError(QVariantMap)));
     lastHVError = CLIENT_NO_ERROR;
+
+    connect(ccpcHandler, SIGNAL(unhandledError(QVariantMap)), this, SLOT(processUnhandledError(QVariantMap)));
+    connect(hvHandler, SIGNAL(unhandledError(QVariantMap)), this, SLOT(processUnhandledError(QVariantMap)));
 
     connect(ccpcHandler, SIGNAL(pointAcquired(MachineHeader,QVariantMap,QVector<Event>)),
             this, SLOT(savePoint(MachineHeader,QVariantMap,QVector<Event>)));
@@ -224,7 +227,7 @@ bool Online::processScenario(QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> > sc
                 emit setting_voltage(args["block"].toInt(), args["voltage"].toDouble());
 #ifndef VIRTUAL_MODE
                 connect(hvHandler, SIGNAL(setVoltageDone(QVariantMap)), &el, SLOT(quit()));
-                connect(hvHandler, SIGNAL(error(QVariantMap)), &el, SLOT(quit()));
+                connect(hvHandler, SIGNAL(unhandledError(QVariantMap)), &el, SLOT(quit()));
                 connect(this, SIGNAL(stop_scenario()), &el, SLOT(quit()));
 
                 hvHandler->setVoltage(args["block"].toInt(), args["voltage"].toDouble());
@@ -275,7 +278,7 @@ bool Online::processScenario(QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> > sc
                 connect(this, SIGNAL(stop_scenario()), &el, SLOT(quit()));
 #ifndef VIRTUAL_MODE
                 connect(ccpcHandler, SIGNAL(pointAcquired(MachineHeader,QVariantMap,QVector<Event>)), &el, SLOT(quit()));
-                connect(ccpcHandler, SIGNAL(error(QVariantMap)), &el, SLOT(quit()));
+                connect(ccpcHandler, SIGNAL(unhandledError(QVariantMap)), &el, SLOT(quit()));
 
 
                 ccpcHandler->acquirePoint(time, ext_metadata);
@@ -291,7 +294,7 @@ bool Online::processScenario(QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> > sc
                     QEventLoop elLastPoint;
                     connect(ccpcHandler, SIGNAL(pointAcquired(MachineHeader,QVariantMap,QVector<Event>)),
                             &elLastPoint, SLOT(quit()));
-                    connect(ccpcHandler, SIGNAL(error(QVariantMap)),
+                    connect(ccpcHandler, SIGNAL(unhandledError(QVariantMap)),
                             &elLastPoint, SLOT(quit()));
 
                     ccpcHandler->breakAcquisition();
@@ -561,6 +564,12 @@ void Online::addFileToScenario(QString filename, QByteArray data)
     binaryFile.close();
 }
 
+void Online::processUnhandledError(QVariantMap info)
+{
+    LOG(ERROR) << "Catched unhandled error. Pause Acquisition";
+    pause();
+}
+
 void Online::updateInfo(QVariant infoBlock, bool addAsComment)
 {
     //создание структуры файла с комментариями
@@ -648,26 +657,18 @@ void Online::stop()
     emit stop_scenario();
 }
 
-void Online::handleCCPCError(QVariantMap info)
+void Online::storeCCPCError(QVariantMap info)
 {
     info["error_type"] = "CCPC error";
     info["timestamp"] = QDateTime::currentDateTime();
     updateInfo(info, true);
 }
 
-void Online::handleHVError(QVariantMap info)
+void Online::storeHVError(QVariantMap info)
 {
     info["error_type"] = "HV error";
     info["timestamp"] = QDateTime::currentDateTime();
     updateInfo(info, true);
-#ifdef TEST_MODE
-    qDebug() << "handling hv server error by re initing";
-    qDebug() << info;
-#endif
-    QString ip = settingsManager->getSettingsValue("HV_handler", "ip").toString();
-    int port = settingsManager->getSettingsValue("HV_handler", "port").toInt();
-    hvHandler->reconnect(ip, port);
-    hvHandler->initServer();
 }
 
 void Online::savePoint(MachineHeader machineHeader, QVariantMap meta, QVector<Event> data)
@@ -870,17 +871,12 @@ void HVMonitor::run()
 
     while(!stopHvMonitorFlag)
     {
-        if(hvHandler->hasError())
+        while(hvHandler->hasError())
         {
-#ifdef TEST_MODE
-            qDebug()<<"Error occured in hv handler. Waiting while it will be solved";
-#endif
+            LOG(WARNING) << tr("Catch hvHandler error in %1. Wait 5 sec").arg(metaObject()->className()).toStdString();
             QEventLoop elError;
-            connect(hvHandler, SIGNAL(ready()), &elError, SLOT(quit()));
+            QTimer::singleShot(5000, &elError, SLOT(quit()));
             elError.exec();
-#ifdef TEST_MODE
-            qDebug()<<"Solved error in hv handler.";
-#endif
         }
 
 #ifdef TEST_MODE

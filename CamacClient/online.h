@@ -355,19 +355,24 @@ public slots:
 
 private slots:
     /*!
-     * \brief Обработка ошибок CCPC. В данный момент метод только записывает
-     * код и время ошибки в метаданные проекта
+     * \brief Обработка ошибки, которую не смогли обработать CCPC7Handler и HVHandler.
+     */
+    void processUnhandledError(QVariantMap info);
+
+    /*!
+     * \brief Метод записывает
+     * код и время ошибки CCPC в метаданные проекта.
      * \param info Метаданные сообщения об ошибке.
      * \todo Сделать обработку ошибок.
      */
-    void handleCCPCError(QVariantMap info);
+    void storeCCPCError(QVariantMap info);
 
     /*!
-     * \brief Обработка ошибок CCPC. Метод записывает
-     * код и время ошибки в метаданные проекта и переиницализирует сервер.
+     * \brief Метод записывает
+     * код и время ошибки HV в метаданные проекта.
      * \param info Метаданные сообщения об ошибке.
      */
-    void handleHVError(QVariantMap info);
+    void storeHVError(QVariantMap info);
 
     /*!
      * \brief Записывает полученную точку в файл.

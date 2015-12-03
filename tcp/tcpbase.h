@@ -31,13 +31,18 @@ public:
     /*!
      * \brief Ручная проверка подключения.
      * */
-    bool haveOpenedConnection(){return (connection && connection->isOpen());}
+    bool haveOpenedConnection(){return (connection && connection->state() == QAbstractSocket::ConnectedState);}
 
 protected:
     /*!
      * \brief Последнее полученное сообщение.
      */
     QVariantMap lastMessage;
+
+    /*!
+     * \brief Последнее посланное сообщение в сыром виде.
+     */
+    QByteArray lastSentMessage;
 
 
     void readMessageFromStream(QIODevice *dev,
@@ -84,7 +89,53 @@ signals:
     void testReseivedMessage(QByteArray message);
 #endif
 
+    /*!
+     * \brief Сигнал для передачи сообщений об ошибках в орбаботчики.
+     * \param err описание ошибки. Для корректной работы должно содержать
+     * поле "error code" подробнее о кодах ошибок можно посмотреть в /ref errType.
+     */
+    void error(QVariantMap err);
+
+    void unhandledError(QVariantMap err);
+
+    /*!
+     * \brief сигнал вырабатывается при готовности класса после создания
+     * или при устранении ошибки
+     */
+    void ready();
+
+protected:
+    /*!
+     * \brief Обработчик ошибок.
+     * \note Для корректной работы, необходимо, чтобы перед кодом каждой реализации была вставка
+     *
+     *        if(baseClass::handleError)
+     *          return true;
+     *
+     * или подобная ей. Здесь baseClass - ближайший предок класса. Таким образом не будет нарушена рекурсивная последовательность вызовов обработчиков ошибок.
+     *
+     * \param err Описание ошибки.
+     * \return true - ошибка обработана, false - обработчик не смог обработать ошибку
+     */
+    virtual bool handleError(QVariantMap err);
+
+private slots:
+    /*!
+     * \brief Частный слот для обработки ошибок.
+     * Вызывает виртуальную фунцию TcpBase::handleError, и, если она не справляется с ошибкой - испускает сигнал TcpBase::unhandledError.
+     * \param err Описание ошибки.
+     */
+    void handleErrorImpl(QVariantMap err);
+
 protected slots:
+    void sendMessage(QVariantMap message, QByteArray binaryData = QByteArray(), bool *ok = NULL,
+                     QTcpSocket *socket = 0);
+
+    /*!
+     * \brief лучше пользоваться TcpBase::sendMessage()
+     * \todo Добавить сигнализирование и обработку ошибок.
+     */
+    void sendRawMessage(QByteArray message, bool *ok = NULL, QTcpSocket *socket = 0);
 
     /*!
      * \brief Чтение сообщения

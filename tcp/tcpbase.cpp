@@ -2,6 +2,7 @@
 #include <easylogging++.h>
 #include <QEventLoop>
 #include <QTimer>
+#include <QDateTime>
 
 TcpBase::TcpBase(QObject *parent): QThread(parent)
 {
@@ -14,6 +15,9 @@ TcpBase::TcpBase(QObject *parent): QThread(parent)
     connect(this, SIGNAL(receiveMessage(MachineHeader,QVariantMap,QByteArray)),
             this, SLOT(saveLastMessage(MachineHeader,QVariantMap,QByteArray)),
             Qt::DirectConnection);
+
+    connect(this, SIGNAL(error(QVariantMap)),
+            this, SLOT(handleErrorImpl(QVariantMap)));
 }
 
 void TcpBase::readMessageFromStream(QIODevice *dev,
@@ -81,6 +85,19 @@ void TcpBase::readMessageFromStream(QIODevice *dev,
             header = this->header;
         }
     }
+}
+
+bool TcpBase::handleError(QVariantMap err)
+{
+    return false;
+}
+
+void TcpBase::handleErrorImpl(QVariantMap err)
+{
+    if(!handleError(err))
+        emit unhandledError(err);
+    else
+       emit ready();
 }
 
 void TcpBase::readMessage()
@@ -151,4 +168,34 @@ bool TcpBase::waitForConnect(int timeout)
 void TcpBase::saveLastMessage(MachineHeader machineHeader, QVariantMap metaData, QByteArray binaryData)
 {
     lastMessage = metaData;
+}
+
+void TcpBase::sendMessage(QVariantMap message, QByteArray binaryData,  bool *ok, QTcpSocket *socket)
+{
+    QByteArray prepairedMessage = TcpProtocol::createMessage(message, binaryData);
+    sendRawMessage(prepairedMessage, ok, socket);
+}
+
+void TcpBase::sendRawMessage(QByteArray message, bool *ok, QTcpSocket *socket)
+{
+    lastSentMessage = message;
+
+    if(!socket)
+        socket = connection;
+    if(!socket || !socket->isOpen())
+    {
+        if(!socket->isOpen())
+            LOG(ERROR) << tr("Catch socket not open error on %1").arg(metaObject()->className()).toStdString();
+
+        TcpProtocol::setOk(false, ok);
+        return;
+    }
+
+    if(socket->write(message) != -1)
+        TcpProtocol::setOk(true, ok);
+    else
+    {
+        LOG(ERROR) << tr("Catch socket->write error on %1: %2").arg(metaObject()->className()).arg(socket->errorString()).toStdString();
+        TcpProtocol::setOk(false, ok);
+    }
 }

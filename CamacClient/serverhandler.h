@@ -37,17 +37,6 @@ public:
     inline bool hasInited(){return initFlag;}
 
 signals:
-    /*!
-     * \brief сигнал вырабатывается при готовности класса после создания
-     * или при устранении ошибки
-     */
-    void ready();
-
-    /*!
-     * \brief Сигнализирует о наличии ошибки класса
-     * \param err описание ошибки
-     */
-    void error(QVariantMap err);
 
     /*!
      * \brief serverInited
@@ -82,6 +71,9 @@ protected slots:
     virtual void processMessage(MachineHeader machineHeader, QVariantMap metaData, QByteArray binaryData) = 0;
 
 private slots:
+    /*!
+     * \todo Нужен ли слот?
+     */
     void on_Connected(QString ip, int port);
     void on_Disconnected();
     void on_ServerInited();

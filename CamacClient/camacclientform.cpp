@@ -21,7 +21,7 @@ void CamacClientForm::setCCPC7Handler()
     ccpc7Handler->start();
 
     connect(ccpc7Handler, SIGNAL(ready()), this, SLOT(camacMarkReady()));
-    connect(ccpc7Handler, SIGNAL(error(QVariantMap)), this, SLOT(camacMarkError()));
+    connect(ccpc7Handler, SIGNAL(unhandledError(QVariantMap)), this, SLOT(camacMarkError()));
 #ifdef TEST_MODE
     connect(ccpc7Handler, SIGNAL(testReseivedMessage(QByteArray)), this, SLOT(showTextOutput(QByteArray)));
 #endif
@@ -40,8 +40,8 @@ void CamacClientForm::setHVHandler()
     hvHandler = new HVHandler(QString(), -1, this);
     hvHandler->start();
 
-    connect(hvHandler, SIGNAL(ready()), this, SLOT(HVMarkReady()));
-    connect(hvHandler, SIGNAL(error(QVariantMap)), this, SLOT(HVMarkError()));
+    connect(hvHandler, SIGNAL(ready()), this, SLOT(HVMarkReady()), Qt::DirectConnection);
+    connect(hvHandler, SIGNAL(unhandledError(QVariantMap)), this, SLOT(HVMarkError()), Qt::DirectConnection);
 #ifdef TEST_MODE
     connect(hvHandler, SIGNAL(testReseivedMessage(QByteArray)), this, SLOT(showTextOutput(QByteArray)));
 #endif

@@ -41,7 +41,6 @@ public:
     int getPort(){return port;}
 
 signals:
-    void error(QVariantMap info);
     void serverReady(QString ip, int port);
     void newConnection(QString peerName, int peerPort);
 
@@ -52,11 +51,6 @@ private slots:
 
 private:
     void serverReady();
-
-public slots:
-    void sendMessage(QVariantMap message, QByteArray binaryData = QByteArray(), bool *ok = NULL,
-                     QTcpSocket *socket = 0);
-    void sendRawMessage(QByteArray message, QTcpSocket *socket = 0);
 
 protected:
     QTcpServer *tcpServer;
