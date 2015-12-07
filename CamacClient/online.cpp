@@ -388,20 +388,33 @@ QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> > Online::constructReverseScenari
 
    for(int i = scenario.size() - 1; i >= 2; i -= 3)
    {
-       if(scenario[i].first == ACQUIRE_POINT &&
+       if(i >= 3 &&
+          scenario[i].first == ACQUIRE_POINT &&
           scenario[i - 1].first == WAIT &&
-          scenario[i - 2].first == SET_VOLTAGE)
+          scenario[i - 2].first == SET_VOLTAGE &&
+          scenario[i - 3].first == SET_VOLTAGE)
        {
+           reverse_scenario.push_back(scenario[i - 3]);
            reverse_scenario.push_back(scenario[i - 2]);
            reverse_scenario.push_back(scenario[i - 1]);
            reverse_scenario.push_back(scenario[i]);
+           i--;
        }
        else
-       {
-           //при конструировании произошла ошибка
-           reverse_scenario.clear();
-           return reverse_scenario;
-       }
+           if(scenario[i].first == ACQUIRE_POINT &&
+              scenario[i - 1].first == WAIT &&
+              scenario[i - 2].first == SET_VOLTAGE)
+           {
+               reverse_scenario.push_back(scenario[i - 2]);
+               reverse_scenario.push_back(scenario[i - 1]);
+               reverse_scenario.push_back(scenario[i]);
+           }
+           else
+               {
+                   //при конструировании произошла ошибка
+                   reverse_scenario.clear();
+                   return reverse_scenario;
+               }
    }
 
    return reverse_scenario;
@@ -416,6 +429,80 @@ QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> > Online::parseScenario(QString s
     int point_index = 0;
     for(int i = 0; i < elements.size(); i++, command_number++)
     {
+        if(elements[i].isEmpty())
+            continue;
+
+        if(!elements[i].compare("POINT", Qt::CaseInsensitive))
+        {
+            //проверка граничности
+            if( elements.size() < i + 3 )
+            {
+                LOG(ERROR) << tr("Error in command #%1 (%2): not enough arguments")
+                              .arg(command_number).arg(elements[i]).toStdString();
+                TcpProtocol::setOk(0, ok);
+                return QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> >();
+            }
+
+            //сборка аргументов
+            bool parseOk;
+            int time = elements[i+1].toInt(&parseOk);
+            //проверка правильности парсинга
+            if(!parseOk)
+            {
+                LOG(ERROR) << tr("Error in command #%1 (%2): can not interpretate"
+                                 "'%3' as int")
+                              .arg(command_number).arg(elements[i]).arg(elements[i+1]).toStdString();
+                TcpProtocol::setOk(0, ok);
+                return QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> >();
+            }
+
+            double voltageMain = elements[i+2].toDouble(&parseOk);
+            //проверка правильности парсинга
+            if(!parseOk)
+            {
+                LOG(ERROR) << tr("Error in command #%1 (%2): can not interpretate"
+                                 "'%3' as double")
+                              .arg(command_number).arg(elements[i]).arg(elements[i+2]).toStdString();
+                TcpProtocol::setOk(0, ok);
+                return QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> >();
+            }
+
+            double voltageShift = elements[i+3].toDouble(&parseOk);
+            //проверка правильности парсинга
+            if(!parseOk)
+            {
+                LOG(ERROR) << tr("Error in command #%1 (%2): can not interpretate"
+                                 "'%3' as double")
+                              .arg(command_number).arg(elements[i]).arg(elements[i+3]).toStdString();
+                TcpProtocol::setOk(0, ok);
+                return QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> >();
+            }
+
+            QVariantMap args;
+            args["block"] = "1";
+            args["voltage"] = voltageMain;
+
+            scenario.push_back(qMakePair(SET_VOLTAGE, args));
+
+            args["block"] = "2";
+            args["voltage"] = voltageShift;
+
+            scenario.push_back(qMakePair(SET_VOLTAGE, args));
+
+            scenario.push_back(qMakePair(WAIT, 20000));
+
+            args.clear();
+
+            args["time"] = tr("%1").arg(time);
+            args["index"] = tr("%1").arg(point_index++);
+
+            scenario.push_back(qMakePair(ACQUIRE_POINT, args));
+
+            i += 3;
+            continue;
+
+        }
+
         if(!elements[i].compare("SET_VOLTAGE", Qt::CaseInsensitive))
         {
             //cчитывание аргументов
@@ -429,7 +516,6 @@ QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> > Online::parseScenario(QString s
             }
 
             //сборка аргументов
-            //block
             bool parseOk;
             int block = elements[i+1].toInt(&parseOk);
             //проверка правильности парсинга

@@ -27,7 +27,7 @@ TARGET = HV_Server
 TEMPLATE = app
 
 
-include(../revision_info.pri )
+include(../common.pri )
 include(../tcp/tcp.pri)
 include(../easylogging.pri)
 include(../ccpc/ccpc.pri)

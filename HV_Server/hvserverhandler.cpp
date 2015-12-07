@@ -7,7 +7,7 @@ HVServerHandler::HVServerHandler(QObject *parent) :
     qDebug() << "HVServerHandler thread:" << QThread::currentThreadId();
 #endif
 
-    manager = new IniManager("HVServerSettings.ini", this);
+    manager = new IniManager(tr("%1Settings.ini").arg(BIN_NAME), this);
 
     hvServer = new HVServer(manager, 33669, this);
 

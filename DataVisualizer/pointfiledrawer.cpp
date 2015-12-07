@@ -175,10 +175,25 @@ void PointFileDrawer::update()
         QVector<unsigned short> data(events.size());
         for(int i = 0; i < events.size(); i++)
            data[i] = events[i].data;
-        bars.push_back(createHist<unsigned short>(data, plot));
-        plot->addPlottable(bars.last());
+
+//        bars.push_back(createHist<unsigned short>(data, plot));
+//        plot->addPlottable(bars.last());
+//        bars.last()->setVisible(false);
+//        bars.last()->setParent(this);
+
+        QVector<double> binVal, binCoord;
+        double minVal = 0, maxVal = 4096;
+
+        generateHistFromData<unsigned short>(data, binVal, binCoord, minVal, maxVal);
+
+        QCPGraph *barGraph = createGraphHistFromData(plot, binVal, binCoord, minVal, maxVal);
+        bars.push_back(barGraph);
+
         bars.last()->setVisible(false);
+        bars.last()->setPen(QPen(color));
+        bars.last()->setLineStyle(QCPGraph::lsStepCenter);
         bars.last()->setParent(this);
+        plot->addPlottable(barGraph);
     }
 
     emit updated();

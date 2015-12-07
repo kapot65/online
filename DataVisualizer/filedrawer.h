@@ -110,8 +110,8 @@ protected:
      * \param [in] data Вектор входных данных
      * \param [out] binVal Количество событий в бине.
      * \param [out] binCoord Координата бина.
-     * \param [out] minVal Минимальное значение данных.
-     * \param [out] maxVal Максимальное значение данных.
+     * \param [in, out] minVal Минимальное значение данных.
+     * \param [in, out] maxVal Максимальное значение данных.
      * \param bins Количество бинов.
      * \param [out] binMax Максимальное количество элементов в бине.
      * \param abs Брать модуль амплитуд событий. \note Работает только если \p minVal и \p maxVal неположительны.

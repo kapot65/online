@@ -8,7 +8,7 @@ DataVisualizerWindow::DataVisualizerWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::DataVisualizerWindow)
 {
-    this->settings = new QSettings(tr("%1.ini").arg(metaObject()->className()),
+    this->settings = new QSettings(tr("%1Settings.ini").arg(BIN_NAME),
                                    QSettings::IniFormat);
 
     settings->beginGroup("DataVisualizerForm");

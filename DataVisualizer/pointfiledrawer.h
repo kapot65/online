@@ -28,7 +28,7 @@ private:
     /// \brief Графики с относительным временен.
     QVector<QCPGraph*> graph_relative;
     /// \brief Графики гистограмм.
-    QVector<QCPBars*> bars;
+    QVector<QCPGraph*> bars;
 
     /*!
      * \brief Доступные времена набора.

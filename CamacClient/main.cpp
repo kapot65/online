@@ -322,6 +322,8 @@
  *
  * Сценарий представляет из себя текстовый файл с набором комманд и их аргументами. Команды и аргументы разделяются любыми разделительными знаками (пробел, табуляция, перенос строки и их комбинации). Ниже приведен пример файла сценария:
  *
+ *      POINT 10 1000 0
+ *
  *      SET_VOLTAGE 1 20
  *      WAIT 4000
  *      ACQUIRE_POINT 10
@@ -334,13 +336,20 @@
  *      WAIT 4000
  *      ACQUIRE_POINT 5
  *
- * На данный момент сценарий поддерживает 3 типа команд:
+ *      BREAK
+ *
+ * На данный момент сценарий поддерживает 5 типов команд:
  * - **SET_VOLTAGE** - выставляет напряжение. После этой команды должно идти 2 числа:
  *  блок, на котором должно быть выставлено напряжение (1 или 2) и напряжение в вольтах.
  * - **WAIT** - ожидание. После команды должно идти одно число - время ожидания в миллисекундах.
  * - **ACQUIRE_POINT** - сбор точки. После этой команды должно идти число - время сбора
  * в секундах (5, 10, 15, 20, 50, 100, 200. Можно ставить и произвольное число, но оно будет
  * преобразовано к ближайшему из доступных).
+ * - **BREAK** - Остановка сценария. Команда не имеет параметров.
+ * - **POINT** - Набор точки с заданным напряжением. После команды через пробел должны идти 3 аргумента: время набора точки в секундах,
+ * Напряжение на основном блоке в вольтах и напряжение в вольтах на блоке смещения соответственно.
+ *
+ *
  * Программа CamacClient позволяет вести итеративный набор со сменой направления, однако эта возможность
  * доступна только для сценариев с четко определенной структурой: сценарий должен состоять
  * исключительно из блоков SET_VOLTAGE -> WAIT -> ACQUIRE_POINT. Приведенный выше пример
@@ -682,6 +691,8 @@
 #include <QTextCodec>
 #include <easylogging++.h>
 
+#include <../common.h>
+
 // настройки логгера
 #if __cplusplus == 201103L
     INITIALIZE_EASYLOGGINGPP
@@ -689,70 +700,18 @@
     _INITIALIZE_EASYLOGGINGPP
 #endif
 
-#ifdef Q_OS_LINUX
-    #define LOG_DIRECTORY "/home/Logs/CamacClient/"
-#endif
-
-#ifdef Q_OS_WIN
-    #define LOG_DIRECTORY "D:\\Logs\\CamacClient\\"
-#endif
-
 int main(int argc, char *argv[])
 {
-#if QT_VERSION <= 0x050000
-     QTextCodec::setCodecForTr(QTextCodec::codecForName("UTF-8"));
-     QTextCodec::setCodecForCStrings(QTextCodec::codecForName("UTF-8"));
-#endif
-
-#ifdef TEST_MODE
-    LOG(INFO) << "Programm run in test mode";
-#endif
-
-#ifdef VIRTUAL_MODE
-    LOG(INFO) << "Programm run in virtual mode";
-#endif
-
-    QDateTime curr_datetime = QDateTime::currentDateTime();
-
-#if __cplusplus == 201103L
-    START_EASYLOGGINGPP(argc, argv);
-#else
-    _START_EASYLOGGINGPP(argc, argv);
-#endif
-
-#ifdef Q_OS_LINUX
-    QDir().mkpath(QDir::homePath() + LOG_DIRECTORY);
-#endif
-
-#ifdef Q_OS_WIN
-    QDir().mkpath(LOG_DIRECTORY);
-#endif
-
-#if __cplusplus == 201103L
-    el::Loggers::reconfigureAllLoggers(el::ConfigurationType::Filename,
-                                         (LOG_DIRECTORY +
-                                          curr_datetime.toString("/log_yyyyMMdd-hhmmss.zzz")).toStdString());
-#else
-    easyloggingpp::Loggers::reconfigureAllLoggers(easyloggingpp::ConfigurationType::Filename,
-                                     (LOG_DIRECTORY +
-                                      curr_datetime.toString("/log_yyyyMMdd-hhmmss.zzz")).toStdString());
-#endif
+    setCodecs();
+    initLogging(argc, argv);
+    logModes();
 
     LOG(INFO) << "Programm started";
 
     QApplication a(argc, argv);
-    /*
-    MainWindow w;
-    w.show();
-    /*/
 
     CamacClientForm cF;
     cF.showMaximized();
-    //SeverTester st;
-    //st.show();
-    //AlgoritmForm af;
-    //af.show();
-    //*/
 
     
     return a.exec();

@@ -21,7 +21,7 @@ greaterThan(QT_MAJOR_VERSION, 4){
     #QMAKE_CXXFLAGS += -std=c++11
 }
 
-include(../revision_info.pri )
+include(../common.pri )
 include(datavisualizer.pri)
 include(../easylogging.pri)
 include(../tcp/tcp.pri)
