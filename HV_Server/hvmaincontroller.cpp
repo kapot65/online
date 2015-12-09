@@ -113,14 +113,15 @@ void HvMainController::setVoltage(double voltage, bool &ok)
 
 long HvMainController::encodeVoltage(double voltage)
 {
-    //Преобразование напряжения в единицы измерения ccpc
-    voltage = a0 + a1 * voltage;
-
-    if(voltage > 3.5 || voltage < 0)
+    if(voltage > 26000 || voltage < 0)
     {
         LOG(WARNING) << tr("Bad voltage value: %1. Changing to zero.").arg(voltage).toStdString();
         return 0xffffff;
     }
+
+
+    //Преобразование напряжения в единицы измерения ccpc
+    voltage = a0 + a1 * voltage;
 
     QString voltageString = tr("%1").arg((voltage * 100000), 6, 'f', 0, QChar('0'));
 

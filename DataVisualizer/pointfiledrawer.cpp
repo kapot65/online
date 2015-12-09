@@ -88,7 +88,7 @@ void PointFileDrawer::setColor(QColor color)
         graph_relative[i]->setPen(color);
 
     for(int i = 0; i < bars.size(); i++)
-        bars[i]->setBrush(color);
+        bars[i]->setPen(color);
 
 }
 
