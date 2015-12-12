@@ -20,4 +20,4 @@ HEADERS  += $$PWD/qcustomplot.h \
     $$PWD/pointfiledrawer.h \
     $$PWD/voltagefiledrawer.h
 
-FORMS  += $$PWD/datavisualizerform.ui
+FORMS  += $$PWD/DataVisualizerForm.ui

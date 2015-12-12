@@ -51,6 +51,19 @@ void initLogging(int argc, char *argv[])
 #endif
 }
 
+QString getStyleSheet()
+{
+    if(!QFile::exists("styleSheets.qss"))
+        QFile::copy(":/common/recources/styleSheets.qss", "styleSheets.qss");
+
+    QFile file("styleSheets.qss");
+    file.open(QIODevice::ReadOnly);
+    QString styleSheet = file.readAll();
+    file.close();
+
+    return styleSheet;
+}
+
 void setCodecs()
 {
     #if QT_VERSION <= 0x050000

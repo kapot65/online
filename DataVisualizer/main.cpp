@@ -4,7 +4,7 @@
 
 #include <easylogging++.h>
 
-#include <../common.h>
+#include <common.h>
 
 // настройки логгера
 #if __cplusplus == 201103L
@@ -20,6 +20,8 @@ int main(int argc, char *argv[])
     logModes();
 
     QApplication a(argc, argv);
+
+    qApp->setStyleSheet(getStyleSheet());
 
     DataVisualizerWindow w;
     w.show();

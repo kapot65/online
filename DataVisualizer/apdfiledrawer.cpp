@@ -301,35 +301,6 @@ void APDFileDrawer::update()
     emit updated();
 }
 
-template<typename T>
-void APDFileDrawer::getMinMaxInd(T &vector, double min, double max,
-                                 quint64 &minInd, quint64 &maxInd)
-{
-    minInd = 0;
-    maxInd = vector.size() - 1;
-
-    bool minFound = false;
-    bool maxFound = false;
-    for(quint64 i = 0; i < vector.size(); i++)
-    {
-        if(!minFound && vector[i] > min)
-        {
-            minFound = true;
-            if(i == 0)
-                minInd = 0;
-            else
-                minInd = i - 1;
-        }
-
-        if(!maxFound && vector[i] > max)
-        {
-            maxFound = true;
-            maxInd = i;
-            break;
-        }
-    }
-}
-
 void APDFileDrawer::sendHistEventsInWindow(QCPRange range, APDHist &apdHist)
 {
     if(apdHist.hist->visible())

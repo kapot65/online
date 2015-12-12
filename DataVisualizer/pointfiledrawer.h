@@ -20,6 +20,9 @@ public slots:
     ///\todo Добавить пересчет через коэфициент пересчета из метаданных.
     virtual void update();
 
+private slots:
+    void sendHistEventsInWindow(QCPRange range);
+
 private:
     ///\brief Файл загружен.
     bool loaded;
@@ -29,6 +32,10 @@ private:
     QVector<QCPGraph*> graph_relative;
     /// \brief Графики гистограмм.
     QVector<QCPGraph*> bars;
+
+    QVector<double> binVal;
+    QVector<double> binCoord;
+
 
     /*!
      * \brief Доступные времена набора.

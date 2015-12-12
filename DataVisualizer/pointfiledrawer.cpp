@@ -3,12 +3,53 @@
 PointFileDrawer::PointFileDrawer(QTableWidget *table, QCustomPlot *plot, QString filename, QObject *parent)
     : FileDrawer(table, plot, filename, parent)
 {
+    connect(plot->xAxis, SIGNAL(rangeChanged(QCPRange)), this, SLOT(sendHistEventsInWindow(QCPRange)));
+
     loaded = 0;
     update();
 }
 
 PointFileDrawer::~PointFileDrawer()
 {
+}
+
+void PointFileDrawer::sendHistEventsInWindow(QCPRange range)
+{
+    if(bars.size() && bars[0]->visible())
+    {
+        bool minFound = 0;
+        bool maxFound = 0;
+        int minInd = 0;
+        int maxInd = binCoord.size() - 1;
+
+
+        for(int i = 0; i < binCoord.size(); i++)
+        {
+            if(minFound && maxFound)
+                break;
+
+            if(!minFound && (binCoord[i] > range.lower))
+            {
+                minInd = qMax(0, i - 1);
+                minFound = true;
+            }
+
+            if(binCoord[i] > range.upper)
+            {
+                maxInd = i;
+                maxFound = true;
+            }
+        }
+
+        //подсчет количества событий в окне
+        quint64 sum = 0;
+        for(int i = minInd; i <= maxInd; i++)
+            sum += binVal[i];
+
+        emit sendTextInfo(QFileInfo(*file).fileName(),
+                          tr("Событий в окне: %1 ")
+                          .arg(sum));
+    }
 }
 
 void PointFileDrawer::setMetaDataToTable()
@@ -181,10 +222,12 @@ void PointFileDrawer::update()
 //        bars.last()->setVisible(false);
 //        bars.last()->setParent(this);
 
-        QVector<double> binVal, binCoord;
+        binVal.clear();
+        binCoord.clear();
+
         double minVal = 0, maxVal = 4096;
 
-        generateHistFromData<unsigned short>(data, binVal, binCoord, minVal, maxVal);
+        generateHistFromData<unsigned short>(data, binVal, binCoord, minVal, maxVal, 205);
 
         QCPGraph *barGraph = createGraphHistFromData(plot, binVal, binCoord, minVal, maxVal);
         bars.push_back(barGraph);

@@ -5,7 +5,7 @@
 #include <iostream>
 #include <QDateTime>
 
-#include <../common.h>
+#include <common.h>
 
 #if __cplusplus == 201103L
     INITIALIZE_EASYLOGGINGPP

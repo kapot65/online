@@ -27,6 +27,9 @@ DataVisualizerForm::DataVisualizerForm(bool interactive, QSettings *settings, QW
 
     ui->setupUi(this);
 
+    ui->metaTable->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+
+
 #ifndef APD_MODE
     ui->saveGraphs->setVisible(false);
 #endif
@@ -98,6 +101,9 @@ void DataVisualizerForm::visualizeFile(QString filepath)
 
 void DataVisualizerForm::clear()
 {
+    clearText();
+    ui->metaTable->clear();
+
     if(opened_files.isEmpty())
         return;
 
@@ -246,15 +252,25 @@ void CustomItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &op
 
     if(opt.state & QStyle::State_Selected)
     {
+        painter->setPen(QPen(QBrush(Qt::black), 3));
         painter->drawRect(QRect(rect.x() + 1, rect.y() + 1, rect.width() - 2, rect.height() - 2));
+        painter->setPen(QPen());
     }
 
     painter->drawText(QRect(rect.x() + rect.height(), rect.y() , rect.width() - rect.height(), rect.height()),
                       opt.displayAlignment, index.data().toString());
 }
 
+void DataVisualizerForm::clearText()
+{
+    curr_info.clear();
+    ui->infoLabel->clear();
+}
+
 void DataVisualizerForm::on_fileBrowser_doubleClicked(const QModelIndex &index)
 {
+    clearText();
+
     QString filepath = model->filePath(index);
 
     QFileInfo fileInfo(filepath);
@@ -269,6 +285,8 @@ void DataVisualizerForm::on_fileBrowser_doubleClicked(const QModelIndex &index)
 
 void DataVisualizerForm::on_fileBrowser_clicked(const QModelIndex &index)
 {
+    ui->metaTable->clear();
+
     QString filepath = model->filePath(index);
 
     if(!(opened_files.contains(filepath)))

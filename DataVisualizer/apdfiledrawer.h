@@ -68,17 +68,6 @@ public slots:
 
 protected:
     /*!
-     * \brief Получить индексы элементов, ограничивающих минимальное и максимальные значения.
-     * \param vector Вектор элементов.
-     * \param min Минимальное значение элемента.
-     * \param max Максимальное значение элемента
-     * \param [out] minInd Найденый элемент, соотвествующий \p min.
-     * \param [out] maxInd Найденый элемент, соотвествующий \p max.
-     */
-    template<typename T>
-    void getMinMaxInd(T &vector, double min, double max, quint64 &minInd, quint64 &maxInd);
-
-    /*!
      * \brief Вычисляет количество событий в окне гистограммы и посылает сообщение
      * о них.
      * \param range Интервал окна.

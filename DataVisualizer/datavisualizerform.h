@@ -149,6 +149,9 @@ public slots:
      */
     void clear();
 
+    /// Очистка текста.
+    void clearText();
+
 private:
     /*!
      * \brief Подгон размера дерева файлов под содержимое.

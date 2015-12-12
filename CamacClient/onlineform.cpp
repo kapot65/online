@@ -175,6 +175,12 @@ void OnlineForm::visualizeScenario(QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant
         }
     }
 
+    //Нумерация операций
+    for(int i = 0; i < scenarioList.size(); i++)
+    {
+        scenarioList[i].push_front(tr("%1. ").arg(i + 1));
+    }
+
     ui->scenarioView->addItems(scenarioList);
 }
 
@@ -448,6 +454,8 @@ void OnlineForm::setScenarioStage(int stage)
         else
             ui->scenarioView->item(i)->setBackground(QColor(Qt::white));
     }
+
+    ui->scenarioView->scrollToItem(ui->scenarioView->item(stage));
 }
 
 void OnlineForm::on_iterationsBox_valueChanged(int arg1)

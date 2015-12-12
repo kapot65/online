@@ -18,7 +18,7 @@ greaterThan(QT_MAJOR_VERSION, 4){
 }
 
 include(../easylogging.pri )
-include(../common.pri )
+include(../common/common.pri )
 include(../DataVisualizer/datavisualizer.pri)
 include(../tcp/tcp.pri)
 

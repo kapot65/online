@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>Online</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QHBoxLayout" name="horizontalLayout_2">
@@ -164,7 +164,7 @@
      <x>0</x>
      <y>0</y>
      <width>1280</width>
-     <height>31</height>
+     <height>30</height>
     </rect>
    </property>
   </widget>

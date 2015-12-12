@@ -1,0 +1,9 @@
+QPushButton {
+    border:3px solid #000000
+}
+QPushButton:pressed{
+    border:3px solid #999999
+}
+QPushButton:disabled{
+    border:3px solid #999999
+}

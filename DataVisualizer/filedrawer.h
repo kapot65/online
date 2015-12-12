@@ -79,6 +79,42 @@ public slots:
     virtual void update() = 0;
 
 protected:
+    /*!
+     * \brief Получить индексы элементов, ограничивающих минимальное и максимальные значения.
+     * \param vector Вектор элементов.
+     * \param min Минимальное значение элемента.
+     * \param max Максимальное значение элемента
+     * \param [out] minInd Найденый элемент, соотвествующий \p min.
+     * \param [out] maxInd Найденый элемент, соотвествующий \p max.
+     */
+    template<typename T>
+    void getMinMaxInd(T &vector, double min, double max,
+                                     quint64 &minInd, quint64 &maxInd)
+    {
+        minInd = 0;
+        maxInd = vector.size() - 1;
+
+        bool minFound = false;
+        bool maxFound = false;
+        for(quint64 i = 0; i < vector.size(); i++)
+        {
+            if(!minFound && vector[i] > min)
+            {
+                minFound = true;
+                if(i == 0)
+                    minInd = 0;
+                else
+                    minInd = i - 1;
+            }
+
+            if(!maxFound && vector[i] > max)
+            {
+                maxFound = true;
+                maxInd = i;
+                break;
+            }
+        }
+    }
 
     /*!
      * \brief Создать график гистограммы по данным.

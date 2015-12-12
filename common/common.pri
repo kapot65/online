@@ -11,7 +11,7 @@ win32:msvc{
     QMAKE_CXXFLAGS_DEBUG += /openmp
 }
 
-include( easylogging.pri )
+include( ../easylogging.pri )
 
 INCLUDEPATH *= $${PWD}
 
@@ -19,3 +19,6 @@ DEFINES *= BIN_NAME=\\\"$$TARGET\\\"
 
 HEADERS *= \
     $${PWD}/common.h
+
+RESOURCES += \
+    $${PWD}/recources.qrc
