@@ -157,5 +157,9 @@ private:
 
     QWidget *graphSetWidget;
     QRadioButton *graphSetButtons[2];
+
+    // FileDrawer interface
+public slots:
+    void sendHistEventsInWindow(QCPRange range);
 };
 #endif //APDFILEDRAWER_H

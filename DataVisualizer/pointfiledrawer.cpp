@@ -71,10 +71,10 @@ void PointFileDrawer::setMetaDataToTable()
     setMetaTableText(0, 5, tr("время сбора"));
     setMetaTableText(1, 5, meta["external_meta"].toMap()
                            ["acquisition_time"].toString());
-    setMetaTableText(0, 6, tr("установленное напряжение на блоке 1"));
+    setMetaTableText(0, 6, tr("основной блок"));
     setMetaTableText(1, 6, meta["external_meta"].toMap()
                            ["HV1_value"].toString());
-    setMetaTableText(0, 7, tr("установленное напряжение на блоке 2"));
+    setMetaTableText(0, 7, tr("блок смещения"));
     setMetaTableText(1, 7, meta["external_meta"].toMap()
                            ["HV2_value"].toString());
     table->resizeColumnsToContents();

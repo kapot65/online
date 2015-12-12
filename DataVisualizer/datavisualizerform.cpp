@@ -43,7 +43,7 @@ DataVisualizerForm::DataVisualizerForm(bool interactive, QSettings *settings, QW
     pol.setVerticalPolicy(QSizePolicy::Expanding);
     plot->setSizePolicy(pol);
 
-    ruler = new Ruler(plot, this);
+    ruler = new Ruler(this, plot, this);
 
     model = new QFileSystemModel(this);
     model->setFilter(QDir::AllEntries | QDir::NoDotAndDotDot);
@@ -265,6 +265,18 @@ void DataVisualizerForm::clearText()
 {
     curr_info.clear();
     ui->infoLabel->clear();
+}
+
+void DataVisualizerForm::updateEventsInfo(QCPRange range)
+{
+    clearText();
+
+    QMap<QString, FileDrawer*>::iterator it;
+
+    for(it = opened_files.begin(); it != opened_files.end(); it++)
+    {
+        it.value()->sendHistEventsInWindow(range);
+    }
 }
 
 void DataVisualizerForm::on_fileBrowser_doubleClicked(const QModelIndex &index)
@@ -500,8 +512,9 @@ void DataVisualizerForm::updateText(QString sender, QString info)
     ui->infoLabel->setText(text);
 }
 
-Ruler::Ruler(QCustomPlot *plot, QObject *parent) : QObject(parent)
+Ruler::Ruler(DataVisualizerForm *form, QCustomPlot *plot, QObject *parent) : QObject(parent)
 {
+    this->form = form;
     this->plot = plot;
     x1 = 0;
     x2 = 0;
@@ -590,13 +603,40 @@ void Ruler::processMouseRelease(QMouseEvent *ev)
                         text = 0;
                     }
 
-                    text = new QCPItemText(plot);
-                    connect(text, SIGNAL(destroyed()), this, SLOT(onTextDestroyed()));
+                    switch(form->getCurrentGraphMode())
+                    {
+                        case ABSOLUTE_TIME:
+                        case RELATIVE_TIME:
+                        {
+                            text = new QCPItemText(plot);
+                            connect(text, SIGNAL(destroyed()), this, SLOT(onTextDestroyed()));
 
-                    plot->addItem(text);
+                            plot->addItem(text);
 
-                    text->setText(tr("%1 нс").arg(qAbs(x2 - x1)));
-                    text->position->setCoords((x2 + x1) / 2., y);
+                            text->setText(tr("\n%1 нс").arg(qAbs(x2 - x1)));
+                            text->position->setCoords((x2 + x1) / 2., y);
+
+                            break;
+                        }
+
+                        case HISTOGRAMM:
+                        {
+                            text = new QCPItemText(plot);
+                            connect(text, SIGNAL(destroyed()), this, SLOT(onTextDestroyed()));
+
+                            plot->addItem(text);
+
+                            text->setText(tr("\n Окно обновлено: (%1, %2)").arg(qMin(x1, x2)).arg(qMax(x1, x2)));
+                            text->position->setCoords((x2 + x1) / 2., y);
+
+                            form->updateEventsInfo(QCPRange(qMin(x1, x2), qMax(x1, x2)));
+
+                            break;
+                        }
+                    }
+
+
+
                     plot->replot();
                 }
                 else

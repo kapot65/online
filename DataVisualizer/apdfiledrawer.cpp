@@ -163,6 +163,12 @@ void APDFileDrawer::setGraphVisible(bool visible)
 
 }
 
+void APDFileDrawer::sendHistEventsInWindow(QCPRange range)
+{
+    sendHistEventsInWindow(range, amplHist);
+    sendHistEventsInWindow(range, intervalHist);
+}
+
 QPair<QVector<double>, QVector<double> > APDFileDrawer::getAmplHistValues() const
 {
     return amplHist.histValues;

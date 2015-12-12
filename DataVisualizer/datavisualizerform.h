@@ -26,9 +26,13 @@
 #include <pointfiledrawer.h>
 #include <voltagefiledrawer.h>
 
+#include <qcustomplot.h>
+
 namespace Ui {
 class DataVisualizerForm;
 }
+
+class DataVisualizerForm;
 
 /*!
  * \brief Делегат для таблицы с файлами.
@@ -64,7 +68,7 @@ class Ruler : public QObject
 {
     Q_OBJECT
 public:
-    Ruler(QCustomPlot *plot, QObject *parent = 0);
+    Ruler(DataVisualizerForm *form, QCustomPlot *plot, QObject *parent = 0);
 
 private slots:
 
@@ -83,6 +87,8 @@ private:
     QCPGraph *graph;
 
     QCPItemText *text;
+
+    DataVisualizerForm *form;
     QCustomPlot *plot;
 
     bool mouseJustMovedFlag;
@@ -152,6 +158,15 @@ public slots:
     /// Очистка текста.
     void clearText();
 
+    /*!
+     * \brief Обновление информации о событиях в окне.
+     */
+    void updateEventsInfo(QCPRange range);
+
+public:
+    ///\brief Получить текущее представление графиков, указанное на форме.
+    GraphMode getCurrentGraphMode();
+
 private:
     /*!
      * \brief Подгон размера дерева файлов под содержимое.
@@ -162,9 +177,6 @@ private:
 
     ///\brief Флаг интерактивности.
     bool interactive;
-
-    ///\brief Получить текущее представление графиков, указанное на форме.
-    GraphMode getCurrentGraphMode();
 
     /// \brief Ось времени.
     QCPAxis *timeAxis;
