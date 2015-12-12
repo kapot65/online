@@ -272,18 +272,6 @@ void OnlineForm::on_startButton_clicked()
         return;
     }
 
-    //блокировка кнопки открыть
-    ui->openScenarioButton->setEnabled(false);
-
-    processingOk = 0;
-    updateEnabledButton();
-
-    //сохранение информации о сборе, набраной вручную
-    QVariantMap operatorInfo;
-    operatorInfo["name"] = "operator";
-    operatorInfo["value"] = ui->operatorSurnameEdit->text();
-    online->updateInfo(operatorInfo);
-
 
     //считывание параметров сбора из интерфейса
     int iterations = ui->iterationsBox->value();
@@ -300,6 +288,18 @@ void OnlineForm::on_startButton_clicked()
             return;
         }
     }
+
+    //блокировка кнопки открыть
+    ui->openScenarioButton->setEnabled(false);
+
+    //сохранение информации о сборе, набраной вручную
+    QVariantMap operatorInfo;
+    operatorInfo["name"] = "operator";
+    operatorInfo["value"] = ui->operatorSurnameEdit->text();
+    online->updateInfo(operatorInfo);
+
+    processingOk = 0;
+    updateEnabledButton();
 
     if(!ui->acquisitionCommentsBox->toPlainText().isEmpty())
     {
