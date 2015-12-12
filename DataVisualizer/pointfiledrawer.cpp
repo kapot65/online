@@ -46,7 +46,7 @@ void PointFileDrawer::sendHistEventsInWindow(QCPRange range)
         for(int i = minInd; i <= maxInd; i++)
             sum += binVal[i];
 
-        emit sendTextInfo(QFileInfo(*file).fileName(),
+        emit sendTextInfo(QFileInfo(*file).filePath(),
                           tr("Событий в окне: %1 ")
                           .arg(sum));
     }

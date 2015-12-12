@@ -322,7 +322,7 @@ void APDFileDrawer::sendHistEventsInWindow(QCPRange range, APDHist &apdHist)
         for(quint64 i = minInd; i < maxInd; i++)
             sum += apdHist.histValues.first[i];
 
-        emit sendTextInfo(QFileInfo(*file).fileName(),
+        emit sendTextInfo(QFileInfo(*file).filePath(),
                           tr("Событий в окне: %1 ")
                           .arg(sum));
     }
@@ -406,7 +406,7 @@ void APDFileDrawer::drawPart(QCPRange range)
         }
 
         int eventsInWindow = (maxInd - minInd)/2;
-        emit sendTextInfo(QFileInfo(*file).fileName(),
+        emit sendTextInfo(QFileInfo(*file).filePath(),
                           tr("Событий в окне: %1 (%2 показано, %3 скрыто)")
                           .arg(eventsInWindow)
                           .arg(eventsInWindow/step)
