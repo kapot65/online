@@ -87,7 +87,13 @@ void DividerReader::getVoltage()
     serialPort->write("READ?\r\n");
 
     if(!waitForMessageReady(8000))
+    {
+        LOG(WARNING) << "Catch timeout error while get Voltage. Reinit Voltmeter.";
+        initVoltmeter();
+        busyFlag = 0;
+
         return;
+    }
 
     double raw_voltage = curr_data.toDouble();
 

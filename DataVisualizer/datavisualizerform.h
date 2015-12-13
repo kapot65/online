@@ -34,6 +34,16 @@ class DataVisualizerForm;
 
 class DataVisualizerForm;
 
+class QFileSystemModelCustom: public QFileSystemModel
+{
+public:
+    QFileSystemModelCustom(QObject *parent = 0) : QFileSystemModel(parent){}
+
+    // QAbstractItemModel interface
+public:
+    virtual QVariant data(const QModelIndex &index, int role) const;
+};
+
 /*!
  * \brief Делегат для таблицы с файлами.
  * Работает с объектами типа FileDrawer, ячейки, указывающие на них в
@@ -200,6 +210,12 @@ private:
 
     /// \brief Текущая текстовая информация о графиках
     QMap<QString, QString> curr_info;
+
+    /// \brief Сохранение пользовательских цветов в конфигурационный файл
+    void storeCustomColors();
+
+    /// \brief Загрузка пользовательских цветов из конфигурационного файла
+    void restoreCustomColors();
 };
 
 #endif // DATAVISUALIZERFORM_H

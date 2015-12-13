@@ -17,6 +17,8 @@
 #include <QDebug>
 #endif
 
+#include <QCompleter>
+
 namespace Ui {
 class OnlineForm;
 }
@@ -61,7 +63,32 @@ private slots:
 
     void on_checkUserForNextStep_stateChanged(int arg1);
 
+    void refreshGroupCompleter();
+
 private:
+    /*!
+     * \brief Проинициализировать и обновить список фамилий операторов для автодополнения.
+     * \param operatorSurname Фамилия оператора. Если пустая строка - то фамилия не будет добавлена в список
+     */
+    void refreshNameCompleter(QString operatorSurname = QString());
+
+    /*!
+     * \brief Поиск максимального индекса в папке с данными.
+     * \param output_folder Путь к данным.
+     * \return Текущий максимальный индекс.
+     */
+    int findMaxIndexInFolder(QString output_folder);
+
+    /*!
+     * \brief Отобразить на дисплее путь, куда будет записана текущая итерация.
+     * Функция должна вызываться только после функции Online::prepareFolder.
+     */
+    void displayCurrentSetFolder();
+
+    QCompleter *nameCompleter;
+    QCompleter *groupCompleter;
+
+
     CCPC7Handler *ccpc7Handler;
     HVHandler *hvHandler;
 

@@ -4,6 +4,8 @@
 
 #include <QTimer>
 
+#include <QDataStream>
+
 DataVisualizerForm::DataVisualizerForm(bool interactive, QSettings *settings, QWidget *parent) :
     QWidget(parent),
     ui(new Ui::DataVisualizerForm)
@@ -45,7 +47,7 @@ DataVisualizerForm::DataVisualizerForm(bool interactive, QSettings *settings, QW
 
     ruler = new Ruler(this, plot, this);
 
-    model = new QFileSystemModel(this);
+    model = new QFileSystemModelCustom(this);
     model->setFilter(QDir::AllEntries | QDir::NoDotAndDotDot);
     model->setResolveSymlinks(true);
     ui->fileBrowser->setModel(model);
@@ -74,10 +76,42 @@ DataVisualizerForm::DataVisualizerForm(bool interactive, QSettings *settings, QW
         ui->graphButton->setVisible(false);
         change_mode();
     }
+
+    restoreCustomColors();
+}
+
+void DataVisualizerForm::restoreCustomColors()
+{
+    settings->beginGroup(metaObject()->className());
+    QStringList customColors = settings->value("customColors").toStringList();
+    settings->endGroup();
+
+
+    for(int i = 0; i < customColors.size(); i++)
+    {
+        QColorDialog::setCustomColor(i, QColor(customColors[i]));
+    }
+}
+
+
+void DataVisualizerForm::storeCustomColors()
+{
+    QStringList customColors;
+
+    for(int i = 0; i < QColorDialog::customCount(); i++)
+        customColors.push_back(QColorDialog::customColor(i).name());
+
+    settings->beginGroup(metaObject()->className());
+    settings->setValue("customColors", customColors);
+    settings->endGroup();
+
+    settings->sync();
 }
 
 DataVisualizerForm::~DataVisualizerForm()
 {
+    storeCustomColors();
+
     delete ui;
 }
 
@@ -657,4 +691,32 @@ void Ruler::onGraphDestroyed()
 void Ruler::onTextDestroyed()
 {
     text = 0;
+}
+
+
+QVariant QFileSystemModelCustom::data(const QModelIndex &index, int role) const
+{
+    if(role == Qt::ToolTipRole)
+    {
+        if(QFile::exists(filePath(index) + QDir::separator() + "meta") )
+        {
+            QFile metaFile(filePath(index) + QDir::separator() + "meta");
+            metaFile.open(QIODevice::ReadOnly);
+
+            QByteArray message = metaFile.readAll();
+            metaFile.close();
+
+            QVariantMap meta;
+            QByteArray data;
+
+            TcpProtocol::parceMessage(message, meta, data);
+
+            QString description = meta["description"].toString();
+
+            return description;
+        }
+
+    }
+    else
+        return QFileSystemModel::data(index, role);
 }

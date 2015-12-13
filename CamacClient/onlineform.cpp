@@ -2,6 +2,36 @@
 #include "ui_onlineform.h"
 #include <QTime>
 
+void OnlineForm::refreshGroupCompleter()
+{
+    QDir dir(settingsManager->getSettingsValue("Online","output_folder").toString() + QDir::separator() + ui->sessionEdit->text());
+
+    QDirIterator dirIt(dir,
+                       QDirIterator::Subdirectories);
+
+    QRegExp rx("*set_*_*");
+    rx.setPatternSyntax(QRegExp::Wildcard);
+
+    QStringList dirs;
+
+    while(dirIt.hasNext())
+    {
+        QString currDir = dir.relativeFilePath(QFileInfo(dirIt.next()).absoluteFilePath());
+
+        if(!rx.exactMatch(currDir) && !dirs.contains(currDir))
+            dirs.push_back(currDir);
+    }
+
+    if(groupCompleter)
+        groupCompleter->deleteLater();
+
+    groupCompleter = new QCompleter(dirs, this);
+
+    groupCompleter->setCaseSensitivity(Qt::CaseInsensitive);
+
+    ui->groupEdit->setCompleter(groupCompleter);
+}
+
 OnlineForm::OnlineForm(CCPC7Handler *ccpc7Handler, HVHandler *hvHandler,
                        DataVisualizerForm *dataVisualizerForm, Online *online,
                        IniManager *settingsManager, QWidget *parent) :
@@ -15,6 +45,9 @@ OnlineForm::OnlineForm(CCPC7Handler *ccpc7Handler, HVHandler *hvHandler,
     processingOk = 1;
 
     curr_scenario_process_time = 0;
+
+    nameCompleter = NULL;
+    groupCompleter = NULL;
 
     ui->setupUi(this);
 
@@ -61,6 +94,11 @@ OnlineForm::OnlineForm(CCPC7Handler *ccpc7Handler, HVHandler *hvHandler,
     connect(online, SIGNAL(at_step(int)), this, SLOT(setScenarioStage(int)), Qt::QueuedConnection);
 
     on_checkUserForNextStep_stateChanged(ui->checkUserForNextStep->checkState());
+
+    refreshNameCompleter();
+    refreshGroupCompleter();
+
+    connect(ui->sessionEdit, SIGNAL(editingFinished()), this, SLOT(refreshGroupCompleter()));
 }
 
 OnlineForm::~OnlineForm()
@@ -214,12 +252,9 @@ bool OnlineForm::copyRecursively(const QString &srcFilePath,
     return true;
 }
 
-void OnlineForm::flushData(QString output_folder)
+int OnlineForm::findMaxIndexInFolder(QString output_folder)
 {
-    QString outputCurrFolder = output_folder + "/" +online->getCurrSubFolder();
-
-    QFileInfo fi(outputCurrFolder);
-    QStringList foldersList = fi.absoluteDir().entryList(QDir::Dirs);
+    QStringList foldersList = QDir(output_folder).entryList(QDir::Dirs);
 
     //поиск максимального индекса
     int max_idx = 0;
@@ -234,6 +269,16 @@ void OnlineForm::flushData(QString output_folder)
                 max_idx = currIdx;
         }
     }
+
+    return max_idx;
+}
+
+void OnlineForm::flushData(QString output_folder)
+{
+    QString outputCurrFolder = output_folder + "/" +online->getCurrSubFolder();
+
+    QFileInfo fi(outputCurrFolder);
+    int max_idx = findMaxIndexInFolder(fi.absoluteDir().absolutePath());
 
     QByteArray binaryTime;
     QDataStream ds(&binaryTime, QIODevice::WriteOnly);
@@ -250,10 +295,44 @@ void OnlineForm::flushData(QString output_folder)
                                                     "manually and then press ok.")
                                                  .arg(online->getCurrSubFolder()).arg(outputCurrFolder));
     }
+
+    //обновление автодополнения
+    refreshGroupCompleter();
+}
+
+void OnlineForm::refreshNameCompleter(QString operatorSurname)
+{
+    QStringList operators = settingsManager->getSettingsValue(metaObject()->className(), "operatorSurnames").toStringList();
+    if(!operatorSurname.isEmpty() && !operators.contains(operatorSurname))
+        operators.push_back(operatorSurname);
+    settingsManager->setSettingsValue(metaObject()->className(), "operatorSurnames", operators);
+
+    if(nameCompleter)
+    {
+        nameCompleter->deleteLater();
+        nameCompleter = NULL;
+    }
+
+    nameCompleter = new QCompleter(operators);
+
+    nameCompleter->setCaseSensitivity(Qt::CaseInsensitive);
+
+    ui->operatorSurnameEdit->setCompleter(nameCompleter);
+}
+
+void OnlineForm::displayCurrentSetFolder()
+{
+    QString output_folder = settingsManager->getSettingsValue("Online","output_folder").toString();
+
+    QFileInfo fi(output_folder + QDir::separator() + online->getCurrSubFolder());
+    QString outGroupFolder = fi.absoluteDir().absolutePath();
+    int maxInd = findMaxIndexInFolder(outGroupFolder);
+    ui->outputPathLabel->setText(QDir(output_folder).relativeFilePath(outGroupFolder + QDir::separator() + tr("set_%1").arg(maxInd + 1)));
 }
 
 void OnlineForm::on_startButton_clicked()
 {
+    ui->outputPathLabel->clear();
     ui->infoLabel->clear();
 
     dataVisualizerForm->clear();
@@ -297,6 +376,8 @@ void OnlineForm::on_startButton_clicked()
     operatorInfo["name"] = "operator";
     operatorInfo["value"] = ui->operatorSurnameEdit->text();
     online->updateInfo(operatorInfo);
+
+    refreshNameCompleter(operatorInfo["value"].toString());
 
     processingOk = 0;
     updateEnabledButton();
@@ -355,6 +436,9 @@ void OnlineForm::on_startButton_clicked()
             updateEnabledButton();
             return;
         }
+
+        displayCurrentSetFolder();
+
         //запись сценария в отдельный файл
         online->addFileToScenario(tr("scenario"), curr_scenario_raw.toLatin1());
 

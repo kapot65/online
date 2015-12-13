@@ -974,7 +974,23 @@ void HVMonitor::run()
 #ifdef TEST_MODE
         qDebug()<<"Start wait for get_volatge messages.";
 #endif
+
+        //Таймаут на случай ошибки
+        QTimer timer;
+        timer.setSingleShot(true);
+        connect(&timer, SIGNAL(timeout()), &el, SLOT(quit()));
+        timer.start(30000);
+
         el.exec();
+
+        if(timer.isActive())
+        {
+            timer.stop();
+
+            LOG(WARNING) << "Catch timeout in HV Monitor.";
+            blockDone[0] = 0;
+            blockDone[1] = 0;
+        }
 #ifdef TEST_MODE
         qDebug()<<"Stop wait for get_volatge messages.";
 #endif
