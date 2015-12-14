@@ -1011,14 +1011,15 @@ void HVMonitor::run()
 
         el.exec();
 
-        if(timer.isActive())
+        if(!timer.isActive())
         {
-            timer.stop();
-
             LOG(WARNING) << "Catch timeout in HV Monitor.";
             blockDone[0] = 0;
             blockDone[1] = 0;
         }
+        else
+            timer.stop();
+
 #ifdef TEST_MODE
         qDebug()<<"Stop wait for get_volatge messages.";
 #endif
