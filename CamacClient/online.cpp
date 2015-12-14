@@ -70,6 +70,17 @@ bool Online::prepareFolder(QString session, QString group, int iteration, bool a
 
 bool Online::init(QString ccpcIp, int ccpcPort, QString HVIp, int HVPort)
 {
+    emit workStatusChanged(true);
+
+    bool ok = initImpl(ccpcIp, ccpcPort, HVIp, HVPort);
+
+    emit workStatusChanged(false);
+
+    return ok;
+}
+
+bool Online::initImpl(QString ccpcIp, int ccpcPort, QString HVIp, int HVPort)
+{
     //Переподключение к CCPC
     emit sendInfoMessage("Reconnecting to CCPC server.\n");
 
@@ -157,11 +168,23 @@ void Online::stopHvMonitor(HVMonitor *hvMonitor)
 #endif
 }
 
+
 bool Online::processScenario(QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> > scenario)
 {
+    emit workStatusChanged(true);
+
+    bool ok = processScenarioImpl(scenario);
+
+    emit workStatusChanged(false);
+
+    return ok;
+}
+
+bool Online::processScenarioImpl(QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> > scenario)
+{   
     if(!folderOk)
     {
-        //проверка подлготовленности папки
+        //проверка подготовленности папки
         emit sendInfoMessage(tr("Folder %1 has not prepaired. Stop processing.\n").arg(currSubFolder));
 #ifdef TEST_MODE
         qDebug()<<tr("Folder %1 has not prepaired. Stop processing.").arg(currSubFolder);
@@ -195,7 +218,12 @@ bool Online::processScenario(QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> > sc
         if(need_pause)
         {
             emit sendInfoMessage("Pause now.\n");
+
+            emit workStatusChanged(false);
+
             pauseLoop.exec();
+
+            emit workStatusChanged(true);
         }
 
         if(stop_flag)

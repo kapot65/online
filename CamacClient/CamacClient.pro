@@ -22,6 +22,8 @@ include(../common/common.pri )
 include(../DataVisualizer/datavisualizer.pri)
 include(../tcp/tcp.pri)
 
+
+
 #включение тестовых функций
 DEFINES += TEST_MODE
 #виртуальный режим
@@ -58,3 +60,6 @@ FORMS    += \
     camacclientform.ui \
     hvhandlerform.ui \
     onlineform.ui
+
+RESOURCES += \
+    recource.qrc

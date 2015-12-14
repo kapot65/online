@@ -32,6 +32,23 @@ void OnlineForm::refreshGroupCompleter()
     ui->groupEdit->setCompleter(groupCompleter);
 }
 
+void OnlineForm::processWorkStatus(bool working)
+{
+    if(working)
+        ui->waitSpinnerLabel->show();
+    else
+        ui->waitSpinnerLabel->hide();
+}
+
+void OnlineForm::processInfoMessage(QString message)
+{
+    if(!message.endsWith("\n"))
+        message += "\n";
+    ui->infoLabel->setText(ui->infoLabel->text() + message);
+
+    infoMessageWipeTimer.start(10000);
+}
+
 OnlineForm::OnlineForm(CCPC7Handler *ccpc7Handler, HVHandler *hvHandler,
                        DataVisualizerForm *dataVisualizerForm, Online *online,
                        IniManager *settingsManager, QWidget *parent) :
@@ -50,6 +67,11 @@ OnlineForm::OnlineForm(CCPC7Handler *ccpc7Handler, HVHandler *hvHandler,
     groupCompleter = NULL;
 
     ui->setupUi(this);
+
+    QMovie *waitSpinnerMovie = new QMovie(":/gif/recources/ajax-loader.gif", QByteArray(), this);
+    ui->waitSpinnerLabel->setMovie(waitSpinnerMovie);
+    ui->waitSpinnerLabel->hide();
+    waitSpinnerMovie->start();
 
     ui->operatorSurnameLabel->setToolTip(tr("Обязательный параметр."));
     ui->sessionLabel->setToolTip(tr("Обязательный параметр."));
@@ -81,8 +103,14 @@ OnlineForm::OnlineForm(CCPC7Handler *ccpc7Handler, HVHandler *hvHandler,
     ui->finishOnThisIterationBox->setVisible(false);
 
     qRegisterMetaType<QVector<Event> >("QVector<Event>");
+
+
     connect(online, SIGNAL(sendInfoMessage(QString)),
-            ui->infoLabel, SLOT(setText(QString)), Qt::QueuedConnection);
+            this, SLOT(processInfoMessage(QString)), Qt::QueuedConnection);
+    connect(&infoMessageWipeTimer, SIGNAL(timeout()),
+            ui->infoLabel, SLOT(clear()), Qt::QueuedConnection);
+
+
     connect(ui->pauseButton, SIGNAL(clicked()), online, SLOT(pause()));
     connect(ui->resumeButton, SIGNAL(clicked()), online, SLOT(resume()));
 
@@ -92,6 +120,8 @@ OnlineForm::OnlineForm(CCPC7Handler *ccpc7Handler, HVHandler *hvHandler,
             dataVisualizerForm, SLOT(clear()), Qt::QueuedConnection);
 
     connect(online, SIGNAL(at_step(int)), this, SLOT(setScenarioStage(int)), Qt::QueuedConnection);
+
+    connect(online, SIGNAL(workStatusChanged(bool)), this, SLOT(processWorkStatus(bool)), Qt::QueuedConnection);
 
     on_checkUserForNextStep_stateChanged(ui->checkUserForNextStep->checkState());
 

@@ -65,6 +65,10 @@ private slots:
 
     void refreshGroupCompleter();
 
+    void processWorkStatus(bool working);
+
+    void processInfoMessage(QString message);
+
 private:
     /*!
      * \brief Проинициализировать и обновить список фамилий операторов для автодополнения.
@@ -123,6 +127,12 @@ private:
     Online *online;
     IniManager *settingsManager;
     Ui::OnlineForm *ui;
+
+
+    /*!
+     * \brief Таймер очистки информационного лейбла.
+     */
+    QTimer infoMessageWipeTimer;
 
     QStringListModel *model;
     void visualizeScenario(QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> > scenario);

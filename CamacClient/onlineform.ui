@@ -235,6 +235,16 @@
       </widget>
      </item>
      <item>
+      <widget class="QLabel" name="waitSpinnerLabel">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QCheckBox" name="finishOnThisIterationBox">
        <property name="text">
         <string>сделать эту итерацию последней</string>

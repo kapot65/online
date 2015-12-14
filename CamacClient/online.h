@@ -225,11 +225,21 @@ public:
     bool init(QString ccpcIp, int ccpcPort, QString HVIp, int HVPort);
 
     /*!
+     * \brief Подфункция для Online::init
+     */
+    bool initImpl(QString ccpcIp, int ccpcPort, QString HVIp, int HVPort);
+
+    /*!
      * \brief Выполняет сценарий и записывает результат во временную папку.
      * \param scenario Сценарий.
      * \return Успешность выполнения сценария.
      */
     bool processScenario(QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> > scenario);
+
+    /*!
+     * \brief Подфункция для Online::processScenario
+     */
+    bool processScenarioImpl(QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> > scenario);
 
     /*!
      * \brief Метод вычисляет примерное время обработки сигнала.
@@ -314,6 +324,12 @@ signals:
      * \brief Остановка паузы. Испускается слотом Online::resume.
      */
     void stop_pauseLoop();
+
+    /*!
+     * \brief Изменение режима работы класса.
+     * \param working true - класс в работе, false - класс бездействует.
+     */
+    void workStatusChanged(bool working);
 
 public slots:
     /*!

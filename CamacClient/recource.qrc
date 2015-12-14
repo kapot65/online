@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/gif">
+        <file>recources/ajax-loader.gif</file>
+    </qresource>
+</RCC>
