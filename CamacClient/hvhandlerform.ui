@@ -62,14 +62,14 @@
           <bool>true</bool>
          </property>
          <property name="text">
-          <string>Divider1</string>
+          <string>&amp;Divider1</string>
          </property>
         </widget>
        </item>
        <item>
         <widget class="QRadioButton" name="block2Button">
          <property name="text">
-          <string>Divider2</string>
+          <string>D&amp;ivider2</string>
          </property>
          <property name="checked">
           <bool>true</bool>
@@ -89,6 +89,9 @@
        </item>
        <item>
         <widget class="QDoubleSpinBox" name="voltageBox">
+         <property name="decimals">
+          <number>0</number>
+         </property>
          <property name="maximum">
           <double>800.000000000000000</double>
          </property>
@@ -120,51 +123,6 @@
        </item>
        <item>
         <spacer name="horizontalSpacer_2">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>40</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-      </layout>
-     </item>
-     <item>
-      <layout class="QHBoxLayout" name="horizontalLayout_2">
-       <item>
-        <widget class="QCheckBox" name="monitorVoltmeterBox">
-         <property name="text">
-          <string>Строить График напряжения</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QLabel" name="label_2">
-         <property name="text">
-          <string>  Интервал</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QSpinBox" name="monitorIntervalBox">
-         <property name="minimum">
-          <number>5</number>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QLabel" name="label_5">
-         <property name="text">
-          <string>сек</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <spacer name="horizontalSpacer_3">
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
          </property>
