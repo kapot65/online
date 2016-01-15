@@ -127,3 +127,14 @@ void HVHandlerForm::on_monitorVoltmeterBox_clicked(bool checked)
         timer.stop();
     }
 }
+
+void HVHandlerForm::on_setHVAndCheckButton_clicked()
+{
+    int block;
+    if(ui->block1Button->isChecked())
+        block = 1;
+    else
+        block = 2;
+
+    hvHandler->setVoltageAndCheck(block, ui->voltageBox->value());
+}

@@ -1,7 +1,7 @@
 #include "hvmaincontroller.h"
 
-HvMainController::HvMainController(IniManager *manager, QString controllerName, bool *ok, QObject *parent)
-    : HVControler(manager, controllerName, ok, parent), CCPCCommands()
+HvMainController::HvMainController(IniManager *manager, QString controllerName, double *voltage, bool *ok, QObject *parent)
+    : HVControler(manager, controllerName, voltage, ok, parent), CCPCCommands()
 {
     bool coefOk = true;
 
@@ -54,7 +54,9 @@ HvMainController::HvMainController(IniManager *manager, QString controllerName, 
 
 HvMainController::~HvMainController()
 {
+#ifndef TEST_MODE
     delete camac;
+#endif
 }
 
 void HvMainController::setVoltage(double voltage)
@@ -64,7 +66,6 @@ void HvMainController::setVoltage(double voltage)
         LOG(ERROR) << QString("%1 has not inited succesfully. Exit setting voltage step.").arg(controllerName).toStdString();
         return;
     }
-    \
     busyFlag = 1;
 
     bool ok;

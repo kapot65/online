@@ -96,6 +96,43 @@ void HVHandler::setVoltage(int block, double value)
     sendMessage(message);
 }
 
+void HVHandler::setVoltageAndCheck(int block, double value, double max_error, int timeout)
+{
+    if(hasError())
+        return;
+
+    if(block != 1 && block != 2)
+        return;
+
+    QString divider;
+    if(block == 1)
+        divider = "1";
+    else
+        divider = "2";
+
+    //создание посылки
+    QVariantMap message;
+
+    message.insert("type", "command");
+    message.insert("command_type", "set_voltage_and_check");
+    message.insert("block", divider);
+    message.insert("voltage", QString("%1").arg(value));
+    message["max_error"] = QString("%1").arg(max_error);
+    message["timeout"] = QString("%1").arg(timeout);
+
+#ifdef TEST_MODE
+    #ifdef USE_QTJSON
+    QByteArray serializedMessage = QJsonDocument::fromVariant(message).toJson();
+    #else
+    QJson::Serializer serializer;
+    QByteArray serializedMessage = serializer.serialize(message);
+    #endif
+    emit sendTestJsonMessage(serializedMessage);
+#endif
+
+    sendMessage(message);
+}
+
 void HVHandler::getVoltage(int block)
 {
     if(hasError())

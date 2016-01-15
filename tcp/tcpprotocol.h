@@ -32,7 +32,10 @@ enum ERROR_TYPE
     INCORRECT_MESSAGE_PARAMS = 9, ///< неправильные параметры в сообщении
     ///попытка подключится к серверу, у которого уже есть активное соединение
     ///\warning не используется
-    MULTIPLE_CONNECTION = 10
+    MULTIPLE_CONNECTION = 10,
+    COM_PORT_ERROR  = 11, ///< Ошибка, специфичная для com порта.
+    COM_PORT_CLOSE = 12, ///< Закрытие com порта
+    AGILENT34401A_ERROR = 13 ///< Специфичная ошибка вольтметра Agilent 34401A
 };
 
 /*!

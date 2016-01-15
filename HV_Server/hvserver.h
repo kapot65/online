@@ -33,35 +33,20 @@ public:
     ~HVServer();
 
 signals:
-    /*!
-     * \brief Присоединен к divider1->initVoltmeter.
-     */
-    void initDivider1();
-
-    /*!
-     * \brief Присоединен к divider1->getVoltage.
-     */
-    void getDivider1Voltage();
 
     /*!
      * \brief Присоединен к hvControlerDivider1->setVoltage.
      */
     void setDivider1Voltage(double voltage);
 
-    /*!
-     * \brief Присоединен к divider2->initVoltmeter.
-     */
-    void initDivider2();
-
-    /*!
-     * \brief Присоединен к divider2->getVoltage.
-     */
-    void getDivider2Voltage();
+    void setDivider1VoltageAndCheck(QVariantMap params);
 
     /*!
      * \brief Присоединен к hvControlerDivider2->setVoltage.
      */
     void setDivider2Voltage(double voltage);
+
+    void setDivider2VoltageAndCheck(QVariantMap params);
 
 private slots:
     /*!
@@ -76,23 +61,28 @@ private slots:
    void processMessage(MachineHeader header, QVariantMap meta, QByteArray data);
 
    void onDivider1GetVoltageDone(double voltage);
-   void onInitDivider1Done();
    void onDivider1SetVoltageDone();
-   void onDivider2SetVoltageDone();
+
+   void onBlock1SetVoltageAndCheckDone(QVariantMap answer);
 
    void onDivider2GetVoltageDone(double voltage);
-   void onInitDivider2Done();
+   void onDivider2SetVoltageDone();
+
+   void onBlock2SetVoltageAndCheckDone(QVariantMap answer);
 
 private:
    void processCommand(QVariantMap message);
    void processReply(QVariantMap message);
 
    void dividerGetVoltageDone(QString dividerName, double voltage);
-   void initDividerDone(QString dividerName);
+   void setVoltageAndCheckDone(QString blockName, QVariantMap status);
    void dividerSetVoltageDone(QString dividerName);
 
+   /*!
+    * \todo Убрать функцию
+    */
    void sendBusyMessage(QString block);
-   void sendInitError(QString block);
+
    void sendUnknownBlockError(QString block);
    void sendUnknownCommandError(QString commandType);
 
@@ -101,6 +91,9 @@ private:
    DividerReader *divider2;
    HVControler *hvControlerDivider1;
    HVControler *hvControlerDivider2;
+
+   double voltage1Block;
+   double voltage2Block;
 };
 
 #endif // HVSERVER_H

@@ -11,7 +11,7 @@
 class HvMainController : public HVControler, public CCPCCommands
 {
 public:
-    HvMainController(IniManager *manager, QString controllerName, bool *ok = 0,  QObject *parent = 0);
+    HvMainController(IniManager *manager, QString controllerName, double *voltage, bool *ok = 0,  QObject *parent = 0);
 
     ~HvMainController();
 

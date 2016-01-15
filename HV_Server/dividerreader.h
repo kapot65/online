@@ -22,6 +22,12 @@ public:
      * \param manager Менеджер настроек.
      */
     explicit DividerReader(QString DividerName, IniManager *manager, QObject *parent = 0);
+
+    /*!
+     * \brief Инициализация класса.
+     */
+    bool init();
+
     ~DividerReader();
 
     /*!
@@ -30,6 +36,7 @@ public:
      */
     bool checkInited(){return inited;}
 
+    bool openPort();
 signals:
     /*!
      * \brief Вольтметр прошел инициализацию.
@@ -45,8 +52,9 @@ signals:
 public slots:
     /*!
      * \brief Проводит инициализацию вольтметра.
+     * \todo Добавить отслеживание ошибок
      */
-    void initVoltmeter();
+    bool initVoltmeter();
 
     /*!
      * \brief Снимает текущее напряжение. По окончании испускает сигнал DividerReader::getVoltageDone
@@ -54,21 +62,49 @@ public slots:
      */
     void getVoltage();
 
-protected slots:
+    void getLastVoltage(double &lastVoltage, QDateTime &lastVoltageTimestamp);
+
+protected:
+    virtual void run();
+
+    /*!
+     * \brief Проверка наличия ошибки в вольтметре.
+     * \warning Функия вытаскивает только одну ошибку из стэка вольтметра.
+     * \return Пустая строка - ошибки нет. "timeout" ответ не получен, выход по таймауту.
+     * Другая строка - Ошибка вольтметра, в строке находится описание ошибки.
+     */
+    QString checkError();
+
+private slots:
+    /*!
+     * \brief Мониторинг напряжения.
+     */
+    void monitorVoltage();
 
 private:
-    /*!
-     * \brief Флаг инициализации вольтметра.
-     */
+    ///\brief Флаг инициализации вольтметра.
     bool inited;
+    /// \brief Флаг инициализации класса.
+    bool classInited;
 
-    /*!
-     * \brief Коэфициент делителя.
-     */
+    bool stopFlag;
+
+    ///\brief Коэфициент делителя.
     double dividerNormCoeff;
-
     /// \brief Имя текущего вольтметра.
     QString divierReaderName;
+    /// \brief Имя COM порта
+    QString portName;
+
+    ///\brief Последнее измеренное напряжение.
+    double lastVoltage;
+
+    /// \brief Время посделнего измерения напряжения.
+    QDateTime lastVoltageTimestamp;
+
+    // ComPort interface
+protected:
+    bool handleError(QVariantMap err);
 };
 
 #endif // DIVIDERREADER_H

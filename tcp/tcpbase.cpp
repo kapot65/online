@@ -184,6 +184,13 @@ void TcpBase::sendRawMessage(QByteArray message, bool *ok, QTcpSocket *socket)
         socket = connection;
     if(!socket || !socket->isOpen())
     {
+        if(!socket)
+        {
+            LOG(WARNING) << tr("%1:Socket doesn't exist. Sending Message to nowhere.").arg(metaObject()->className()).toStdString();
+            TcpProtocol::setOk(false, ok);
+            return;
+        }
+
         if(!socket->isOpen())
             LOG(ERROR) << tr("Catch socket not open error on %1").arg(metaObject()->className()).toStdString();
 

@@ -40,9 +40,11 @@ bool HVControler::loadSettings(QString controllerName, IniManager *manager)
     return true;
 }
 
-HVControler::HVControler(IniManager *manager, QString controllerName, bool *ok, QObject *parent) : ComPort(manager, parent)
+HVControler::HVControler(IniManager *manager, QString controllerName, double *voltage, bool *ok, QObject *parent) : ComPort(manager, parent)
 {
     this->controllerName = controllerName;
+
+    actualVoltage = voltage;
 
     busyFlag = 0;
 
@@ -148,4 +150,56 @@ void HVControler::setVoltage(double voltage)
     qDebug() << QThread::currentThreadId() << tr("%1: setting %2 volts on block done.")
                                                 .arg(controllerName).arg(voltage);
 #endif
+}
+
+void HVControler::setVoltageAndCheck(QVariantMap params)
+{
+    QVariantMap answer;
+
+    //Проверка корректности входных параметров
+    if(!params.contains("voltage"))
+        answer["description"] = answer["description"].toString() + tr("params doesnt contains field\"voltage\"\n");
+    if(!params.contains("max_error"))
+        answer["description"] = answer["description"].toString() + tr("params doesnt contains field\"max_error\"\n");
+    if(!params.contains("timeout"))
+        answer["description"] = answer["description"].toString() + tr("params doesnt contains field\"timeout\"\n");
+
+    if(answer.contains("description"))
+    {
+        answer["status"] = "bad_params";
+        emit voltageSetAndCheckDone(answer);
+        return;
+    }
+
+    int timeout = params["timeout"].toInt();
+    double voltage = params["voltage"].toDouble();
+    double max_error = params["max_error"].toDouble();
+
+    QElapsedTimer timer;
+    QEventLoop el;
+    QTimer secondsTimer;
+    connect(&secondsTimer, SIGNAL(timeout()), &el, SLOT(quit()));
+    timer.start();
+    secondsTimer.start(1000);
+
+    while(timer.elapsed()/1000 < timeout)
+    {
+        el.exec();
+        if(qAbs(actualVoltage[0] - voltage) < max_error)
+        {
+            //Нужное наряжение установлено
+            answer["status"] = "ok";
+            answer["error"] = actualVoltage[0] - voltage;
+
+            emit voltageSetAndCheckDone(answer);
+            return;
+        }
+    }
+
+    //Выход из функции по таймауту
+    answer["status"] = "timeout";
+    answer["error"] = actualVoltage[0] - voltage;
+
+    emit voltageSetAndCheckDone(answer);
+    return;
 }

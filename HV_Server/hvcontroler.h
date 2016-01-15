@@ -16,9 +16,11 @@ public:
      * \brief Загружает настройки и открывает порт.
      * \param manager Менеджер настроек.
      * \param controllerName Имя контролера HV. Используется при загрузке настроек из ini файла.
+     * \param voltage [out] Переменная, в которую будет записываться настоящее напряжение на блоке.
+     * Напряжения вычисляются в HVServer::onDivider1GetVoltageDone и HVServer::onDivider2GetVoltageDone соответственно.
      * \param ok Успешность создания класса. Если происходят ошибки при создании - они записываются в лог.
      */
-    explicit HVControler(IniManager *manager, QString controllerName, bool *ok = 0,  QObject *parent = 0);
+    explicit HVControler(IniManager *manager, QString controllerName, double* voltage, bool *ok = 0,  QObject *parent = 0);
 
 signals:
     /*!
@@ -27,14 +29,37 @@ signals:
      */
     void setVoltageDone();
 
+    /*!
+     * \brief Сигнал испускается функцией HVControler::setVoltageAndCheck.
+     * \param status Ответ. Содержит тэги:
+     * - "status" - "ok" - Если напряжение установлено,
+     *              "timeout" - если напряжение не установилось.
+     *              "bad_params" - в функцию поданы неверные аргументы.
+     * - "error" - Разница между фактическим напряжением и установленным в вольтах. Этого тега нету в случает "bad_params".
+     * - "description" - Описание ошибки. Поле присутствует только в случае "bad_params".
+     */
+    void voltageSetAndCheckDone(QVariantMap status);
+
 public slots:
     /*!
      * \brief Устанавливает напряжение. Если напряжение выходит за границы
      * диапазона - устанавливает граничное значение и записывает предупреждение в лог.
      * Диапазоны устанавливаются в ini файле в полях "minTreshold" и "maxTreshold".
      * \param voltage Напряжение в вольтах.
+     * \todo Добавить вывод ошибок.
      */
     virtual void setVoltage(double voltage);
+
+    /*!
+     * \brief Выставить напряжение на блоке и проверить установку напряжения.
+     * \param params Аргументы. Поле должног содержать тэги:
+     * - "voltage" Выставляемое напряжение в вольтах.
+     * - "max_error" Допустимое отклонение в вольтах.
+     * - "timeout" Таймаут в секундах.
+     * \return По окончании работы функция испускает сигнал HVControler::voltageSetAndCheckDone.
+     * \todo Нужен флаг busy?
+     */
+    void setVoltageAndCheck(QVariantMap params);
 
 protected:
     /*!
@@ -81,6 +106,12 @@ protected:
      * \brief Имя COM порта, к которому подключен контроллер.
      */
     QString portName;
+
+    /*!
+     * \brief Указатель на переменную, содержащую настоящее напряжение на блоке. Т.е. снятое с соответсвующего делителя и
+     * умноженное на коэффициент.
+     */
+    double* actualVoltage;
 
 
     /// \brief Название контролера.
