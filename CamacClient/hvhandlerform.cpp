@@ -84,47 +84,22 @@ void HVHandlerForm::on_voltageBox_editingFinished()
     settingsManager->setSettingsValue("HV_handler","last_voltage", ui->voltageBox->value());
 }
 
-void HVHandlerForm::on_monitorDrawVoltage(QVariantMap message)
+void HVHandlerForm::on_block1Button_clicked(bool checked)
 {
-    double value = message.value("voltage").toDouble();
-}
-
-void HVHandlerForm::on_monitorCheckVoltage()
-{
-    int block;
-    if(ui->block1Button->isChecked())
-        block = 1;
-    else
-        block = 2;
-
-    hvHandler->getVoltage(block);
-}
-
-void HVHandlerForm::on_monitorVoltmeterBox_clicked(bool checked)
-{
-
-    static bool first_time_here = true;
-    static QTimer timer;
-    //подключение таймера
-    if(first_time_here)
-    {
-        first_time_here = false;
-
-        connect(&timer, SIGNAL(timeout()), this, SLOT(on_monitorCheckVoltage()));
-    }
-
     if(checked)
     {
-        timer.start(ui->monitorIntervalBox->value() * 1000);
-        connect(hvHandler, SIGNAL(getVoltageDone(QVariantMap)),
-                this, SLOT(on_monitorDrawVoltage(QVariantMap)));
+        ui->voltageBox->setMaximum(26000);
+        ui->voltageBox->setMinimum(0);
     }
-    else
-    {
-        disconnect(hvHandler, SIGNAL(getVoltageDone(QVariantMap)),
-                this, SLOT(on_monitorDrawVoltage(QVariantMap)));
+}
 
-        timer.stop();
+
+void HVHandlerForm::on_block2Button_clicked(bool checked)
+{
+    if(checked)
+    {
+        ui->voltageBox->setMaximum(900);
+        ui->voltageBox->setMinimum(0);
     }
 }
 

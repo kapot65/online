@@ -62,4 +62,4 @@ FORMS    += \
     onlineform.ui
 
 RESOURCES += \
-    recource.qrc
+    resource.qrc

@@ -54,7 +54,7 @@ void initLogging(int argc, char *argv[])
 QString getStyleSheet()
 {
     if(!QFile::exists("styleSheets.qss"))
-        QFile::copy(":/common/recources/styleSheets.qss", "styleSheets.qss");
+        QFile::copy(":/common/resources/styleSheets.qss", "styleSheets.qss");
 
     QFile file("styleSheets.qss");
     file.open(QIODevice::ReadOnly);

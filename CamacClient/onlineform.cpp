@@ -68,7 +68,7 @@ OnlineForm::OnlineForm(CCPC7Handler *ccpc7Handler, HVHandler *hvHandler,
 
     ui->setupUi(this);
 
-    QMovie *waitSpinnerMovie = new QMovie(":/gif/recources/ajax-loader.gif", QByteArray(), this);
+    QMovie *waitSpinnerMovie = new QMovie(":/gif/resources/ajax-loader.gif", QByteArray(), this);
     ui->waitSpinnerLabel->setMovie(waitSpinnerMovie);
     ui->waitSpinnerLabel->hide();
     waitSpinnerMovie->start();

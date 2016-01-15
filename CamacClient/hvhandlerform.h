@@ -62,16 +62,9 @@ private slots:
 
     void on_voltageBox_editingFinished();
 
-    void on_monitorVoltmeterBox_clicked(bool checked);
-    void on_monitorCheckVoltage();
+    void on_block1Button_clicked(bool checked);
 
-    /*!
-     * \brief В режиме мониторинга HV, слот подключается к HVHandler::getVoltageDone.
-     * и проводит визуализацию напряжения.
-     * \param message Метаданные сообщения.
-     * \todo Обновить функцию.
-     */
-    void on_monitorDrawVoltage(QVariantMap message);
+    void on_block2Button_clicked(bool checked);
 
     void on_setHVAndCheckButton_clicked();
 

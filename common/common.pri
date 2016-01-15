@@ -21,4 +21,4 @@ HEADERS *= \
     $${PWD}/common.h
 
 RESOURCES += \
-    $${PWD}/recources.qrc
+    $${PWD}/resources.qrc
