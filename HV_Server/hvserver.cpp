@@ -115,7 +115,7 @@ void HVServer::onDivider2GetVoltageDone(double voltage)
     LOG(INFO) << "Voltage 2 block:" << voltage2Block;
 #endif
 
-    //dividerGetVoltageDone("2", voltage);
+    dividerGetVoltageDone("2", voltage);
 }
 
 void HVServer::onDivider1GetVoltageDone(double voltage)
@@ -126,7 +126,7 @@ void HVServer::onDivider1GetVoltageDone(double voltage)
     LOG(INFO) << "Voltage 1 block:" << voltage1Block;
 #endif
 
-    //dividerGetVoltageDone("1", voltage);
+    dividerGetVoltageDone("1", voltage);
 }
 
 void HVServer::onDivider1SetVoltageDone()

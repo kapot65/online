@@ -52,6 +52,7 @@ bool DividerReader::initVoltmeter()
 #ifndef VIRTUAL_MODE
     //Очистка буффера вольтметра
     serialPort->readAll();
+    while(!checkError().isEmpty());
 
     serialPort->write("SYST:REM\r\n"); // Switch voltmeter to remote control (once)
     timer.start(1000);

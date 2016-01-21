@@ -118,6 +118,10 @@ protected:
 
     /// \brief Название контролера.
     QString controllerName;
+
+    // ComPort interface
+protected slots:
+    void readMessage();
 };
 
 #endif // HVCONTROLER_H

@@ -201,6 +201,9 @@ void HVControler::run()
         LOG(ERROR)<<tr("Com port has not pass answer checking: '%1' -> '%2'")
                     .arg("$012\r").arg(QString(curr_data)).toStdString();
 
+        QByteArray missedData = serialPort->readAll().replace("\r", "\\r")
+                                .replace("\n", "\\n");
+
         TcpProtocol::setOk(false, &ok);
         curr_data.clear();
         return;
@@ -211,4 +214,18 @@ void HVControler::run()
 #endif
 
     exec();
+}
+
+void HVControler::readMessage()
+{
+    while(serialPort->bytesAvailable())
+    {
+        curr_data += serialPort->read(1);
+        if(curr_data.endsWith('\r'))
+        {
+            curr_data.chop(1);
+            emit receiveFinished();
+            break;
+        }
+    }
 }
