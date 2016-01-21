@@ -510,21 +510,21 @@ QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> > Online::parseScenario(QString s
             args["block"] = "1";
             args["voltage"] = voltageMain;
 
-            scenario.push_back(qMakePair(SET_VOLTAGE, args));
+            scenario.push_back(qMakePair(SET_VOLTAGE, QVariant(args)));
 
             args["block"] = "2";
             args["voltage"] = voltageShift;
 
-            scenario.push_back(qMakePair(SET_VOLTAGE, args));
+            scenario.push_back(qMakePair(SET_VOLTAGE, QVariant(args)));
 
-            scenario.push_back(qMakePair(WAIT, 20000));
+            scenario.push_back(qMakePair(WAIT, QVariant(20000)));
 
             args.clear();
 
             args["time"] = tr("%1").arg(time);
             args["index"] = tr("%1").arg(point_index++);
 
-            scenario.push_back(qMakePair(ACQUIRE_POINT, args));
+            scenario.push_back(qMakePair(ACQUIRE_POINT, QVariant(args)));
 
             i += 3;
             continue;

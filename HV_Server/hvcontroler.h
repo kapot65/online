@@ -62,6 +62,8 @@ public slots:
     void setVoltageAndCheck(QVariantMap params);
 
 protected:
+    virtual void run();
+
     /*!
      * \brief Загружает настройки из ini файла.
      * \param controllerName Имя HVControler.

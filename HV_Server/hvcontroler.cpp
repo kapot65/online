@@ -61,42 +61,6 @@ HVControler::HVControler(IniManager *manager, QString controllerName, double *vo
         TcpProtocol::setOk(false, ok);
         return;
     }
-
-#ifndef VIRTUAL_MODE
-    serialPort->setPortName(portName);
-
-    if(!serialPort->open(QIODevice::ReadWrite))
-    {
-        LOG(INFO) << "Can not connect to port " << portName.toStdString();
-        TcpProtocol::setOk(false, ok);
-        return;
-    }
-
-    //Проверка подключенности порта
-    serialPort->write("$012\r");
-
-    if(waitForMessageReady(5000) &&
-       curr_data.startsWith('!') && //проверка доступности команды
-       curr_data.size()) ///\bug проверка длины ответа
-    {
-        curr_data.clear();
-        TcpProtocol::setOk(true, ok);
-        LOG(INFO) << tr("%1 Controller connected to port %2").arg(controllerName).arg(portName).toStdString();
-    }
-    else
-    {
-        //если проверка порта не пройдена
-        LOG(ERROR)<<tr("Com port has not pass answer checking: '%1' -> '%2'")
-                    .arg("$012\r").arg(QString(curr_data)).toStdString();
-
-        TcpProtocol::setOk(false, ok);
-        curr_data.clear();
-        return;
-    }
-#else
-    TcpProtocol::setOk(true, ok);
-    LOG(INFO) << tr("%1 Controller working in virtual mode").arg(controllerName).toStdString();
-#endif
 }
 
 void HVControler::setVoltage(double voltage)
@@ -202,4 +166,49 @@ void HVControler::setVoltageAndCheck(QVariantMap params)
 
     emit voltageSetAndCheckDone(answer);
     return;
+}
+
+void HVControler::run()
+{
+    ComPort::run();
+
+    bool ok;
+
+#ifndef VIRTUAL_MODE
+    serialPort->setPortName(portName);
+
+    if(!serialPort->open(QIODevice::ReadWrite))
+    {
+        LOG(INFO) << "Can not connect to port " << portName.toStdString();
+        TcpProtocol::setOk(false, &ok);
+        return;
+    }
+
+    //Проверка подключенности порта
+    serialPort->write("$012\r");
+
+    if(waitForMessageReady(5000) &&
+       curr_data.startsWith('!') && //проверка доступности команды
+       curr_data.size()) ///\bug проверка длины ответа
+    {
+        curr_data.clear();
+        TcpProtocol::setOk(true, &ok);
+        LOG(INFO) << tr("%1 Controller connected to port %2").arg(controllerName).arg(portName).toStdString();
+    }
+    else
+    {
+        //если проверка порта не пройдена
+        LOG(ERROR)<<tr("Com port has not pass answer checking: '%1' -> '%2'")
+                    .arg("$012\r").arg(QString(curr_data)).toStdString();
+
+        TcpProtocol::setOk(false, &ok);
+        curr_data.clear();
+        return;
+    }
+#else
+    TcpProtocol::setOk(true, &ok);
+    LOG(INFO) << tr("%1 Controller working in virtual mode").arg(controllerName).toStdString();
+#endif
+
+    exec();
 }

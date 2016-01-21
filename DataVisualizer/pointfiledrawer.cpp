@@ -1,4 +1,5 @@
 #include "pointfiledrawer.h"
+#include <QFileInfo>
 
 PointFileDrawer::PointFileDrawer(QTableWidget *table, QCustomPlot *plot, QString filename, QObject *parent)
     : FileDrawer(table, plot, filename, parent)

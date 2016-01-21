@@ -1,6 +1,7 @@
 #include "onlineform.h"
 #include "ui_onlineform.h"
 #include <QTime>
+#include <QMovie>
 
 void OnlineForm::refreshGroupCompleter()
 {

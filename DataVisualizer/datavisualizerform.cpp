@@ -28,8 +28,9 @@ DataVisualizerForm::DataVisualizerForm(bool interactive, QSettings *settings, QW
     settings->endGroup();
 
     ui->setupUi(this);
-
+#if QT_VERSION >= 0x050000
     ui->metaTable->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+#endif
 
 
 #ifndef APD_MODE
@@ -89,7 +90,11 @@ void DataVisualizerForm::restoreCustomColors()
 
     for(int i = 0; i < customColors.size(); i++)
     {
+#if QT_VERSION >= 0x050000
         QColorDialog::setCustomColor(i, QColor(customColors[i]));
+#else
+        QColorDialog::setCustomColor(i, QColor(customColors[i]).rgba());
+#endif
     }
 }
 
@@ -99,7 +104,14 @@ void DataVisualizerForm::storeCustomColors()
     QStringList customColors;
 
     for(int i = 0; i < QColorDialog::customCount(); i++)
+    {
+#if QT_VERSION >= 0x050000
         customColors.push_back(QColorDialog::customColor(i).name());
+#else
+        customColors.push_back(QColor(QColorDialog::customColor(i)).name());
+#endif
+
+    }
 
     settings->beginGroup(metaObject()->className());
     settings->setValue("customColors", customColors);
