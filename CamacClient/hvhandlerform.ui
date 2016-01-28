@@ -112,30 +112,6 @@
        </item>
       </layout>
      </item>
-     <item>
-      <layout class="QHBoxLayout" name="horizontalLayout_6">
-       <item>
-        <widget class="QPushButton" name="getHVButton">
-         <property name="text">
-          <string>Считать напряжение</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <spacer name="horizontalSpacer_2">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>40</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-      </layout>
-     </item>
     </layout>
    </item>
    <item>
@@ -159,13 +135,6 @@
     </widget>
    </item>
    <item>
-    <widget class="QPushButton" name="initButton">
-     <property name="text">
-      <string>инициализировать HV</string>
-     </property>
-    </widget>
-   </item>
-   <item>
     <widget class="QPushButton" name="reconnectButton">
      <property name="text">
       <string>переподключиться к устройтву</string>
@@ -177,4 +146,3 @@
  <resources/>
  <connections/>
 </ui>
-

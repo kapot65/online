@@ -58,8 +58,6 @@ private slots:
 
     void on_setHVButton_clicked();
 
-    void on_getHVButton_clicked();
-
     void on_voltageBox_editingFinished();
 
     void on_block1Button_clicked(bool checked);

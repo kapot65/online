@@ -22,8 +22,6 @@ HVHandlerForm::HVHandlerForm(HVHandler *hvHandler, IniManager *settingsManager,
     ui->voltageBox->setValue(settingsManager->getSettingsValue("HV_handler", "last_voltage").toDouble());
 
     connect(this, SIGNAL(serverSettingsChanged()), this, SLOT(on_serverSettingsChanged()));
-    //connect(hvHandler, SIGNAL(error(QString)), ui->statusLabel, SLOT(setText(QString)));
-    connect(ui->initButton, SIGNAL(clicked()), this->hvHandler, SLOT(initServer()));
 }
 
 HVHandlerForm::~HVHandlerForm()
@@ -66,17 +64,6 @@ void HVHandlerForm::on_setHVButton_clicked()
         block = 2;
 
     hvHandler->setVoltage(block, ui->voltageBox->value());
-}
-
-void HVHandlerForm::on_getHVButton_clicked()
-{
-    int block;
-    if(ui->block1Button->isChecked())
-        block = 1;
-    else
-        block = 2;
-
-    //hvHandler->getVoltage(block);
 }
 
 void HVHandlerForm::on_voltageBox_editingFinished()
