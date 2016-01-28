@@ -11,6 +11,8 @@
 #include <QDataStream>
 #include <QDateTime>
 
+#include "hvmonitor.h"
+
 #ifdef VIRTUAL_MODE
 #include <QTimer>
 #endif
@@ -38,143 +40,8 @@ enum SCENARIO_COMMAND_TYPE
     SET_VOLTAGE = 0, ///< Установить напряжение.
     ACQUIRE_POINT = 1, ///< Провести набор точки.
     WAIT = 2, ///< Ждать.
-    BREAK = 4 ///< Остановить сценарий.
-};
-
-/*!
- * \brief Класс для считывания напряжения HV в отдельном потоке.
- * \warning В классе нету проверок вольтметров и таймаутов.
- * \todo Добавить таймауты и улучшить устойчивость к ошибкам.
- * \details Класс, в отдельном потоке отсылает через HVHandler запросы на считывание
- * напряжения и обрабатывает их. За каждую итерацию он отправляет 2 запроса на каждый
- * вольтметр и ждет пока с них обоих не придут ответы. После прихода ответов итерация
- * повторяется. Также класс реагирует на ошибки и ждет, пока они исправятся.
- */
-class HVMonitor : public QThread
-{
-    Q_OBJECT
-public:
-    /*!
-     * \brief Конструктор класса.
-     * \param subFolder Подпапка куда будет писаться файл с напряжением.
-     * Файл будет назваться "voltage"
-     * \param hvHandler
-     */
-    HVMonitor(QString subFolder, HVHandler *hvHandler);
-
-    /*!
-     * \brief Возвращает последнее напряжение считанное с блока.
-     * \param block Номер блока (1 - основной, 2 - блок смещения).
-     * \return Напряжение в вольтах. При некорректном номере блока выдает -1.
-     */
-    double getLastDividerVoltage(int block);
-
-signals:
-    /*!
-     * \brief Сигнал, связанный с HVHandler::getVoltage
-     * \param block Номер блока (1 - основной, 2 - блок смещения).
-     */
-    void getVoltage(int block);
-
-    /*!
-     * \brief Сигнал, испускаемый при успешном получении ответов с обоих вольтметров.
-     */
-    void stepDone();
-
-private slots:
-    /*!
-     * \brief Сохраняет в файл полученное напряжение.
-     * \warning перед сохранением, необходимо подготовить файл
-     * методом HVMonitor::prepareVoltageFile.
-     * \param message Сообщение, присланное с HVHandler.
-     */
-    void saveCurrentVoltage(QVariantMap message);
-
-    /*!
-     * \brief Слот, вызывающийся перед закрытием потока.
-     * Производит остановку основного цикла опроса.
-     * \warning Этот слот только устанваливает флаг на остановку.
-     * Остановку следует определять по сигналу QThread::finished.
-     */
-    void beforeClose();
-
-protected:
-    /*!
-     * \brief Основной цикл опроса вольтметров.
-     */
-    virtual void run();
-
-private:
-    /*!
-     * \brief Последние считанные напряжения с вольтметров.
-     */
-    double last_dividers_voltage[2];
-
-    /*!
-     * \brief Флаги опршенности вольтметров. Значение 0 -
-     * вольтметр еще не опрошен за текущую итерацию, 1 - уже опрожен.
-     * Переменная используется в методе HVMonitor::saveCurrentVoltage для
-     * определения условий для испускания сигнала HVMonitor::stepDone
-     */
-    bool blockDone[2];
-
-    /*!
-     * \brief Путь к подпапке, указанный при создании класса.
-     */
-    QString subFolder;
-
-    /*!
-     * \brief Указатель на HVHandler, указанный при создании класса.
-     */
-    HVHandler *hvHandler;
-
-    /*!
-     * \brief Создает и подготавливает файл для записи напряжения.
-     * \param type Формат записи данных о напряжении.
-     */
-    void prepareVoltageFile(BINARYTYPE type = HV_TEXT_BINARY);
-
-    /*!
-     * \brief Закрывает файл с напряжением. Используется в слоте HVMonitor::beforeClose
-     */
-    void closeVoltageFile();
-
-    /*!
-     * \brief insertVoltageBinary
-     * \details записывает напряжение в блоки в бинарном виде
-     * \param message
-     */
-    void insertVoltageBinary(QVariantMap &message);
-
-    /*!
-     * \brief insertVoltageBinary
-     * \details записывает напряжение в блоки в текстовом виде
-     * \param message
-     */
-    void insertVoltageText(QVariantMap &message);
-
-    /*!
-     * \brief Машинный заголовок для файла с напряжением.
-     */
-    MachineHeader hvFileMachineHeader;
-
-    /*!
-     * \brief Тип данных, в котором будет записываться напряжение.
-     */
-    BINARYTYPE binaryType;
-
-    /*!
-     * \brief Текущий файл с напряжением.
-     */
-    QFile* voltageFile;
-#ifndef VIRTUAL_MODE
-public:
-#endif
-    /*!
-     * \brief Флаг на остановку мониторинга напряжения.
-     * \todo Убрать в private.
-     */
-    bool stopHvMonitorFlag;
+    BREAK = 4, ///< Остановить сценарий.
+    SET_VOLTAGE_AND_CHECK = 5 ///< Установить напряжение у убедится в успешности установки.
 };
 
 /*!
@@ -451,6 +318,8 @@ private:
      * \brief Папка подготовлена.
      */
     bool folderOk;
+
+    bool catchUnhandlerErrorFlag;
 
     /*!
      * \brief Объект для описания информации, записанной вручную.

@@ -214,10 +214,19 @@ void OnlineForm::visualizeScenario(QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant
     {
         switch (scenario[i].first)
         {
-        case SET_VOLTAGE:
+        case SET_VOLTAGE_AND_CHECK:
             {
                 QVariantMap args = scenario[i].second.toMap();
                 scenarioList.push_back(tr("Выставить напряжение %1 на блоке %2")
+                                       .arg(args["voltage"].toDouble())
+                                       .arg(args["block"].toInt())
+                                       );
+                break;
+            }
+        case SET_VOLTAGE:
+            {
+                QVariantMap args = scenario[i].second.toMap();
+                scenarioList.push_back(tr("Выставить с проверкой напряжение %1 на блоке %2")
                                        .arg(args["voltage"].toDouble())
                                        .arg(args["block"].toInt())
                                        );

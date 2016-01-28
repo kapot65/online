@@ -154,6 +154,7 @@ void HVControler::setVoltageAndCheck(QVariantMap params)
             //Нужное наряжение установлено
             answer["status"] = "ok";
             answer["error"] = actualVoltage[0] - voltage;
+            answer["voltage"] = actualVoltage[0];
 
             emit voltageSetAndCheckDone(answer);
             return;
@@ -163,6 +164,7 @@ void HVControler::setVoltageAndCheck(QVariantMap params)
     //Выход из функции по таймауту
     answer["status"] = "timeout";
     answer["error"] = actualVoltage[0] - voltage;
+    answer["voltage"] = actualVoltage[0];
 
     emit voltageSetAndCheckDone(answer);
     return;

@@ -43,7 +43,8 @@ HEADERS  += \
     serverhandler.h \
     ccpc7handler.h \
     online.h \
-    onlineform.h
+    onlineform.h \
+    hvmonitor.h
 
 SOURCES += main.cpp\
     camacclientform.cpp \
@@ -53,7 +54,8 @@ SOURCES += main.cpp\
     serverhandler.cpp \
     ccpc7handler.cpp \
     online.cpp \
-    onlineform.cpp
+    onlineform.cpp \
+    hvmonitor.cpp
 
 FORMS    += \
     ccpc7handlerform.ui \

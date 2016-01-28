@@ -4,3 +4,4 @@ online.pro.user.b54289d
 *.h.*
 documentation/build/
 *.pro.user
+*.pro.user.*

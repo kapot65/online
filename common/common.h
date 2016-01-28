@@ -31,7 +31,7 @@ void initLogging(int argc, char *argv[])
 #endif
 
 #ifdef Q_OS_WIN
-        QDir().mkpath(LOG_DIRECTORY);
+        QDir().mkpath(QDir::homePath() + logDir);
 #endif
 
 #if __cplusplus == 201103L

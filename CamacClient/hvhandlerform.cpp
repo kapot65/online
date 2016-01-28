@@ -76,7 +76,7 @@ void HVHandlerForm::on_getHVButton_clicked()
     else
         block = 2;
 
-    hvHandler->getVoltage(block);
+    //hvHandler->getVoltage(block);
 }
 
 void HVHandlerForm::on_voltageBox_editingFinished()

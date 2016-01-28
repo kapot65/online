@@ -26,6 +26,11 @@ public:
      */
     explicit HVHandler(QString ip = QString(), int port = -1, QObject *parent = 0);
 
+    /*!
+     * \note После получения метаданных, поле lastVoltageAndCheckMeta очищается.
+     */
+    QVariantMap getLastVoltageAndCheckMeta();
+
 signals:
     /*!
      * \brief Испускается при получении с сервера ответа с напряжением.
@@ -39,6 +44,12 @@ signals:
      */
     void setVoltageDone(QVariantMap meta);
 
+    /*!
+     * \brief Испускается при получении с сервера ответа об установке напряжения.
+     * \param meta Метаданные ответа.
+     */
+    void setVoltageAndCheckDone(QVariantMap meta);
+
 #ifdef TEST_MODE
     void sendTestJsonMessage(QByteArray message);
 #endif
@@ -51,7 +62,7 @@ public slots:
      * испускаются сигналы ServerHandler::ready и ServerHandler::serverInited.
      * \warning Метод может занимать до 20 секунд.
      */
-    virtual void initServer(bool *ok = 0);
+    virtual void initServer(bool *ok = 0){TcpProtocol::setOk(true, ok); emit ready(); emit serverInited();}
 
     /*!
      * \brief Установить напряжение на блоке.
@@ -64,22 +75,14 @@ public slots:
 
     /*!
      * \brief Установить напряжение на блоке и проверить установку.
-     * При успешном выполнении испускается сигнал HVHandler::setVoltageDone.
-     * Метод выполняется практически мгновенно.
+     * При успешном выполнении испускается сигнал setVoltageAndCheckDone.
+     * После испускания сигнала завершения метаданные можно взять функцией getLastVoltageAndCheckMeta
      * \param block Номер блока (1 или 2).
      * \param value Устанавлимое напряжение в вольтах.
      * \param max_error Допустимое отклонение от выставляемого напряжения в вольтах
      * \param timeout Таймаут в секундах
      */
     void setVoltageAndCheck(int block, double value, double max_error = 3, int timeout = 20);
-
-    /*!
-     * \brief Считать напряжение с блока.
-     * При успешном выполнении испускается сигнал HVHandler::getVoltageDone.
-     * Выполнение занимает примерно 5 секунд.
-     * \param Номер блока (1 или 2).
-     */
-    void getVoltage(int block);
 
 protected slots:
     /*!
@@ -91,6 +94,9 @@ protected slots:
     // TcpBase interface
 protected:
     bool handleError(QVariantMap err);
+
+private:
+    QVariantMap lastVoltageAndCheckMeta;
 };
 
 #endif // HVHANDLER_H

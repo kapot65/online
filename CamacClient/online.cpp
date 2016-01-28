@@ -1,4 +1,5 @@
 #include "online.h"
+#include <QMessageBox>
 
 Online::Online(IniManager *settingsManager, CCPC7Handler *ccpcHandler, HVHandler *hvHandler, QObject *parent) : QObject(parent)
 {
@@ -7,6 +8,8 @@ Online::Online(IniManager *settingsManager, CCPC7Handler *ccpcHandler, HVHandler
     qRegisterMetaType<MachineHeader>("MachineHeader");
 
     folderOk = 0;
+
+    catchUnhandlerErrorFlag = 0;
 
     //создание папки temp
     QDir dir("temp");
@@ -22,9 +25,6 @@ Online::Online(IniManager *settingsManager, CCPC7Handler *ccpcHandler, HVHandler
     //настройка паузы
     connect(this, SIGNAL(stop_pauseLoop()), &pauseLoop, SLOT(quit()));
     connect(this, SIGNAL(stop_scenario()), &pauseLoop, SLOT(quit()));
-
-    if(!settingsManager->getSettingsValue("Online", "voltage_reload_time").isValid())
-        settingsManager->setSettingsValue("Online", "voltage_reload_time", 5);
 
     if(!settingsManager->getSettingsValue("Online", "output_folder").isValid())
         settingsManager->setSettingsValue("Online", "output_folder", "output");
@@ -148,13 +148,14 @@ bool Online::initImpl(QString ccpcIp, int ccpcPort, QString HVIp, int HVPort)
             return false;
         }
     }
+
+    catchUnhandlerErrorFlag = false;
     return true;
 }
 
 void Online::stopHvMonitor(HVMonitor *hvMonitor)
 {
-#ifndef VIRTUAL_MODE
-    hvMonitor->stopHvMonitorFlag = 1;
+    hvMonitor->stopMonitoring();
 #ifdef TEST_MODE
     qDebug() << "Waiting until hvMonitor thread stops.";
 #endif
@@ -165,9 +166,7 @@ void Online::stopHvMonitor(HVMonitor *hvMonitor)
 #ifdef TEST_MODE
     qDebug() << "hvMonitor thread stops.";
 #endif
-#endif
 }
-
 
 bool Online::processScenario(QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> > scenario)
 {
@@ -196,14 +195,11 @@ bool Online::processScenarioImpl(QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> 
     //создание файла info
     updateInfo();
 
-
     //подготовка файла с напряжением
     HVMonitor *hvMonitor = new HVMonitor(currSubFolder, hvHandler);
     connect(hvMonitor, SIGNAL(finished()), hvMonitor, SLOT(deleteLater()));
 
-#ifndef VIRTUAL_MODE
     hvMonitor->start();
-#endif
 
     double last_hv_1 = -1;
     double last_hv_2 = -1;
@@ -213,16 +209,20 @@ bool Online::processScenarioImpl(QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> 
 
     for(int i = 0; i < scenario.size(); i++)
     {
+        if(catchUnhandlerErrorFlag)
+        {
+            //Откатывание на шаг назад после ошибки
+            catchUnhandlerErrorFlag = false;
+            i = qMax(0, i--);
+        }
+
         emit at_step(i);
 
         if(need_pause)
         {
             emit sendInfoMessage("Pause now.\n");
-
             emit workStatusChanged(false);
-
             pauseLoop.exec();
-
             emit workStatusChanged(true);
         }
 
@@ -253,15 +253,11 @@ bool Online::processScenarioImpl(QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> 
 
                 QEventLoop el;
                 emit setting_voltage(args["block"].toInt(), args["voltage"].toDouble());
-#ifndef VIRTUAL_MODE
                 connect(hvHandler, SIGNAL(setVoltageDone(QVariantMap)), &el, SLOT(quit()));
                 connect(hvHandler, SIGNAL(unhandledError(QVariantMap)), &el, SLOT(quit()));
                 connect(this, SIGNAL(stop_scenario()), &el, SLOT(quit()));
 
                 hvHandler->setVoltage(args["block"].toInt(), args["voltage"].toDouble());
-#else
-                QTimer::singleShot(100, &el, SLOT(quit()));
-#endif
                 el.exec();
 
                 switch (args["block"].toInt())
@@ -275,7 +271,79 @@ bool Online::processScenarioImpl(QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> 
                 }
 
                 break;
+            } 
+        case SET_VOLTAGE_AND_CHECK:
+            {
+                QVariantMap args = command.second.toMap();
+                if(!args.contains("block") || !args.contains("voltage"))
+                {
+                    LOG(ERROR) << tr("Process scenario error: args 'block'"
+                                     "or 'voltage' not set (operation #%1: SET_VOLTAGE_AND_CHECK)."
+                                     "Stop processing")
+                                  .arg(i).toStdString();
+                    stopHvMonitor(hvMonitor);
+                    folderOk = 0;
+                    return false;
+                }
+
+                QEventLoop el;
+                emit setting_voltage(args["block"].toInt(), args["voltage"].toDouble());
+                connect(hvHandler, SIGNAL(setVoltageAndCheckDone(QVariantMap)), &el, SLOT(quit()));
+                connect(hvHandler, SIGNAL(unhandledError(QVariantMap)), &el, SLOT(quit()));
+                connect(this, SIGNAL(stop_scenario()), &el, SLOT(quit()));
+
+
+                hvHandler->setVoltageAndCheck(args["block"].toInt(),
+                                              args["voltage"].toDouble());
+                el.exec();
+
+                QVariantMap answerMeta = hvHandler->getLastVoltageAndCheckMeta();
+
+                if(answerMeta.isEmpty())
+                    continue; //Поймана необрабатываемая ошибка остановка будет произведена
+                              //функцией processUnhandledError на следующем этапе
+
+                if(answerMeta["status"].toString() != "ok")
+                {
+                    switch (QMessageBox::question(NULL, tr("Не удалось выставить напряжение"),
+                                          tr("Не удалось выставить напряжение на блоке %1. "
+                                             "Сбор будет поставлен на паузу\n"
+                                             "Требуемое напряжение: %2 В\n"
+                                             "Фактическое напряжение: %3 В\n"
+                                             "Ошибка: %4 В\n"
+                                             "Статус операции: %5")
+                                             .arg(answerMeta["block"].toInt())
+                                             .arg(args["voltage"].toDouble())
+                                             .arg(answerMeta["voltage"].toDouble())
+                                             .arg(answerMeta["error"].toDouble())
+                                             .arg(answerMeta["status"].toString()),
+                                             QMessageBox::Ok | QMessageBox::Ignore | QMessageBox::Retry))
+                    {
+                        case QMessageBox::Ok:
+                            i--;
+                            pause();
+                            break;
+                        case QMessageBox::Ignore:
+                            break;
+                        case QMessageBox::Retry:
+                            i--;
+                            break;
+                    }
+                }
+
+                switch (args["block"].toInt())
+                {
+                    case 1:
+                        last_hv_1 = args["voltage"].toDouble();
+                        break;
+                    case 2:
+                        last_hv_2 = args["voltage"].toDouble();
+                        break;
+                }
+
+                break;
             }
+
         case ACQUIRE_POINT:
             {
                 QVariantMap meta = command.second.toMap();
@@ -304,18 +372,13 @@ bool Online::processScenarioImpl(QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> 
 
                 QEventLoop el;
                 connect(this, SIGNAL(stop_scenario()), &el, SLOT(quit()));
-#ifndef VIRTUAL_MODE
                 connect(ccpcHandler, SIGNAL(pointAcquired(MachineHeader,QVariantMap,QVector<Event>)), &el, SLOT(quit()));
                 connect(ccpcHandler, SIGNAL(unhandledError(QVariantMap)), &el, SLOT(quit()));
 
 
                 ccpcHandler->acquirePoint(time, ext_metadata);
-#else
-                QTimer::singleShot(time * 1000, &el, SLOT(quit()));
-#endif
                 el.exec();
 
-#ifndef VIRTUAL_MODE
                 //если выход прошел по стопу - остановка сбора точки
                 if(stop_flag)
                 {
@@ -330,7 +393,6 @@ bool Online::processScenarioImpl(QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> 
                     //ожидание загрузки точки
                     elLastPoint.exec();
                 }
-#endif
                 break;
             }
 
@@ -510,12 +572,12 @@ QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> > Online::parseScenario(QString s
             args["block"] = "1";
             args["voltage"] = voltageMain;
 
-            scenario.push_back(qMakePair(SET_VOLTAGE, QVariant(args)));
+            scenario.push_back(qMakePair(SET_VOLTAGE_AND_CHECK, QVariant(args)));
 
             args["block"] = "2";
             args["voltage"] = voltageShift;
 
-            scenario.push_back(qMakePair(SET_VOLTAGE, QVariant(args)));
+            scenario.push_back(qMakePair(SET_VOLTAGE_AND_CHECK, QVariant(args)));
 
             scenario.push_back(qMakePair(WAIT, QVariant(20000)));
 
@@ -584,6 +646,61 @@ QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> > Online::parseScenario(QString s
             i += 2;
             continue;
         }
+
+        if(!elements[i].compare("SET_VOLTAGE_AND_CHECK", Qt::CaseInsensitive))
+        {
+            //cчитывание аргументов
+            //проверка граничности
+            if( elements.size() < i + 2 )
+            {
+                LOG(ERROR) << tr("Error in command #%1 (%2): not enough arguments")
+                              .arg(command_number).arg(elements[i]).toStdString();
+                TcpProtocol::setOk(0, ok);
+                return QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> >();
+            }
+
+            //сборка аргументов
+            bool parseOk;
+            int block = elements[i+1].toInt(&parseOk);
+            //проверка правильности парсинга
+            if(!parseOk)
+            {
+                LOG(ERROR) << tr("Error in command #%1 (%2): can not interpretate"
+                                 "'%3' as int")
+                              .arg(command_number).arg(elements[i]).arg(elements[i+1]).toStdString();
+                TcpProtocol::setOk(0, ok);
+                return QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> >();
+            }
+            //проверка правильности блока
+            if(block !=1 && block !=2)
+            {
+                LOG(ERROR) << tr("Error in command #%1 (%2): block number is not correct."
+                                 "Aviable block numbers: 1,2")
+                              .arg(command_number).arg(elements[i]).toStdString();
+                TcpProtocol::setOk(0, ok);
+                return QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> >();
+            }
+
+            double voltage = elements[i+2].toDouble(&parseOk);
+            if(!parseOk)
+            {
+                LOG(ERROR) << tr("Error in command #%1 (%2): can not interpretate"
+                                 "'%3' as double")
+                              .arg(command_number).arg(elements[i]).arg(elements[i+2]).toStdString();
+                TcpProtocol::setOk(0, ok);
+                return QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> >();
+            }
+
+            QVariantMap args;
+            args["block"] = block;
+            args["voltage"] = voltage;
+
+            scenario.push_back(QPair<SCENARIO_COMMAND_TYPE, QVariant>
+                               (SET_VOLTAGE_AND_CHECK, args));
+            i += 2;
+            continue;
+        }
+
         if(!elements[i].compare("ACQUIRE_POINT", Qt::CaseInsensitive))
         {
             //проверка граничности
@@ -680,6 +797,11 @@ void Online::addFileToScenario(QString filename, QByteArray data)
 
 void Online::processUnhandledError(QVariantMap info)
 {
+    QMessageBox::warning(NULL, tr("Поймана необрабатываемая ошибка"),
+                         tr("В процессе работы цикла поймана необрабатываемая ошибка: %1.\n"
+                            "Сбор поставлен на паузу.").arg(info["description"].toString()));
+
+    catchUnhandlerErrorFlag = true;
     LOG(ERROR) << "Catched unhandled error. Pause Acquisition";
     pause();
 }
@@ -813,217 +935,4 @@ void Online::savePoint(MachineHeader machineHeader, QVariantMap meta, QVector<Ev
     pointFile.write(file_data);
 
     pointFile.close();
-}
-
-HVMonitor::HVMonitor(QString subFolder, HVHandler *hvHandler):QThread(0)
-{
-    this->subFolder = subFolder;
-    this->hvHandler = hvHandler;
-    stopHvMonitorFlag = 0;
-
-    blockDone[0] = 0;
-    blockDone[1] = 0;
-
-
-    last_dividers_voltage[0] = -1;
-    last_dividers_voltage[1] = -1;
-
-    connect(hvHandler, SIGNAL(getVoltageDone(QVariantMap)),
-            this, SLOT(saveCurrentVoltage(QVariantMap)), Qt::QueuedConnection);
-    connect(this, SIGNAL(getVoltage(int)), hvHandler, SLOT(getVoltage(int)), Qt::QueuedConnection);
-
-    connect(this, SIGNAL(finished()), this, SLOT(beforeClose()));
-}
-
-double HVMonitor::getLastDividerVoltage(int block)
-{
-    if(block != 1 && block != 2)
-        return -1.;
-
-    return last_dividers_voltage[block - 1];
-}
-
-void HVMonitor::prepareVoltageFile(BINARYTYPE type)
-{
-    if(type != HV_BINARY && type != HV_TEXT_BINARY)
-        type = HV_BINARY;
-
-    this->binaryType = type;
-
-    stopHvMonitorFlag = 0;
-    voltageFile = new QFile(tr("temp/%1/voltage").arg(subFolder));
-    bool ok = voltageFile->open(QIODevice::WriteOnly);
-
-    //создание метаданных
-    QVariantMap meta;
-    meta["type"] = "voltage";
-    switch (type)
-    {
-        case HV_BINARY:
-            meta["format_description"] = "https://drive.google.com/open?id=1FY_twMu3VFa-WNzFpMab-d2Fgb_QlAZtM1EQV0Io7i0";
-            break;
-        case HV_TEXT_BINARY:
-            meta["format_description"] = "https://drive.google.com/open?id=1onpiq0FB7m1B86fy2zy3pzfw-8j9YxzDWZFoOKG3ySk";
-            break;
-    }
-    meta["programm_revision"] = APP_REVISION;
-
-    QByteArray serializedMeta = TcpProtocol::createMessage(meta, QByteArray(), JSON_METATYPE, type);
-    hvFileMachineHeader = TcpProtocol::readMachineHeader(serializedMeta);
-
-    voltageFile->write(serializedMeta);
-    if(!ok)
-    {
-        LOG(ERROR) << tr("Could not create file: %1. Will try again at next point.")
-                      .arg(voltageFile->errorString()).toStdString();
-        voltageFile->deleteLater();
-    }
-}
-
-void HVMonitor::closeVoltageFile()
-{
-    stopHvMonitorFlag = 1;
-
-    voltageFile->close();
-    voltageFile->deleteLater();
-}
-
-void HVMonitor::insertVoltageBinary(QVariantMap &message)
-{
-    //запись напряжения в файл
-    //обновление бинарного хедера
-    hvFileMachineHeader.dataLenght += (sizeof(unsigned char)
-                                       + sizeof(unsigned long long int)
-                                       + sizeof(double));
-    hvFileMachineHeader.dataType = HV_BINARY;
-    voltageFile->seek(0);
-    voltageFile->write(TcpProtocol::writeMachineHeader(hvFileMachineHeader));
-
-    //записывание бинарных данных
-    voltageFile->seek(voltageFile->size());
-    unsigned char block = message["block"].toInt();
-    unsigned long long int time = QDateTime::currentDateTime().toMSecsSinceEpoch();
-    double voltage = message["voltage"].toDouble();
-    voltageFile->write((const char*)&block, sizeof(block));
-    voltageFile->write((const char*)&time, sizeof(time));
-    voltageFile->write((const char*)&voltage, sizeof(voltage));
-}
-
-void HVMonitor::insertVoltageText(QVariantMap &message)
-{
-    //запись напряжения в файл
-    //обновление бинарного хедера
-    QByteArray voltageLine = tr("%1 %2 %3\n").arg(QDateTime::currentDateTime().toString(Qt::ISODate))
-                                             .arg(message["block"].toInt())
-                                             .arg(message["voltage"].toDouble()).toLatin1();
-
-    hvFileMachineHeader.dataLenght += voltageLine.size();
-    hvFileMachineHeader.dataType = HV_TEXT_BINARY;
-    voltageFile->seek(0);
-    voltageFile->write(TcpProtocol::writeMachineHeader(hvFileMachineHeader));
-
-    //записывание бинарных данных
-    voltageFile->seek(voltageFile->size());
-    voltageFile->write(voltageLine);
-}
-
-void HVMonitor::saveCurrentVoltage(QVariantMap message)
-{
-    if(!message.contains("block") || !message.contains("voltage"))
-        return;
-
-    int block = message["block"].toInt();
-
-    if(block != 1 && block != 2)
-        return;
-
-    blockDone[block - 1] = 1;
-    if(blockDone[0] && blockDone[1])
-    {
-        blockDone[0] = 0;
-        blockDone[1] = 0;
-        emit stepDone();
-    }
-
-    double voltage = message["voltage"].toDouble();
-
-    last_dividers_voltage[block - 1] = voltage;
-
-    switch (hvFileMachineHeader.dataType)
-    {
-        case HV_BINARY:
-            insertVoltageBinary(message);
-            break;
-        case HV_TEXT_BINARY:
-            insertVoltageText(message);
-            break;
-    }
-}
-
-void HVMonitor::beforeClose()
-{
-#ifdef TEST_MODE
-    qDebug()<<"closing hv monitor thread";
-#endif
-
-    closeVoltageFile();
-    stopHvMonitorFlag = 1;
-}
-
-void HVMonitor::run()
-{
-#ifdef TEST_MODE
-    qDebug()<<QThread::currentThreadId();
-#endif
-
-    prepareVoltageFile();
-
-    QEventLoop el;
-    //connect(hvHandler, SIGNAL(getVoltageDone(QVariantMap)), &el, SLOT(quit()));
-    connect(this, SIGNAL(stepDone()), &el, SLOT(quit()));
-    connect(this, SIGNAL(destroyed()), &el, SLOT(quit()));
-
-    while(!stopHvMonitorFlag)
-    {
-        while(hvHandler->hasError())
-        {
-            LOG(WARNING) << tr("Catch hvHandler error in %1. Wait 5 sec").arg(metaObject()->className()).toStdString();
-            QEventLoop elError;
-            QTimer::singleShot(5000, &elError, SLOT(quit()));
-            elError.exec();
-        }
-
-#ifdef TEST_MODE
-        qDebug()<<"Sending get_voltage messages.";
-#endif
-        emit getVoltage(1);
-        emit getVoltage(2);
-
-#ifdef TEST_MODE
-        qDebug()<<"Start wait for get_volatge messages.";
-#endif
-
-        //Таймаут на случай ошибки
-        QTimer timer;
-        timer.setSingleShot(true);
-        connect(&timer, SIGNAL(timeout()), &el, SLOT(quit()));
-        timer.start(30000);
-
-        el.exec();
-
-        if(!timer.isActive())
-        {
-            LOG(WARNING) << "Catch timeout in HV Monitor.";
-            blockDone[0] = 0;
-            blockDone[1] = 0;
-        }
-        else
-            timer.stop();
-
-#ifdef TEST_MODE
-        qDebug()<<"Stop wait for get_volatge messages.";
-#endif
-        if(stopHvMonitorFlag)
-            return;
-    }
 }
