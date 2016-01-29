@@ -478,33 +478,41 @@ QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> > Online::constructReverseScenari
 
    for(int i = scenario.size() - 1; i >= 2; i -= 3)
    {
-       if(i >= 3 &&
-          scenario[i].first == ACQUIRE_POINT &&
-          scenario[i - 1].first == WAIT &&
-          scenario[i - 2].first == SET_VOLTAGE &&
-          scenario[i - 3].first == SET_VOLTAGE)
+       if(scenario[i].first == ACQUIRE_POINT &&
+          scenario[i - 1].first == SET_VOLTAGE_AND_CHECK &&
+          scenario[i - 2].first == SET_VOLTAGE_AND_CHECK)
        {
-           reverse_scenario.push_back(scenario[i - 3]);
            reverse_scenario.push_back(scenario[i - 2]);
            reverse_scenario.push_back(scenario[i - 1]);
            reverse_scenario.push_back(scenario[i]);
-           i--;
        }
-       else
-           if(scenario[i].first == ACQUIRE_POINT &&
+           if(i >= 3 &&
+              scenario[i].first == ACQUIRE_POINT &&
               scenario[i - 1].first == WAIT &&
-              scenario[i - 2].first == SET_VOLTAGE)
+              scenario[i - 2].first == SET_VOLTAGE &&
+              scenario[i - 3].first == SET_VOLTAGE)
            {
+               reverse_scenario.push_back(scenario[i - 3]);
                reverse_scenario.push_back(scenario[i - 2]);
                reverse_scenario.push_back(scenario[i - 1]);
                reverse_scenario.push_back(scenario[i]);
+               i--;
            }
            else
+               if(scenario[i].first == ACQUIRE_POINT &&
+                  scenario[i - 1].first == WAIT &&
+                  scenario[i - 2].first == SET_VOLTAGE)
                {
-                   //при конструировании произошла ошибка
-                   reverse_scenario.clear();
-                   return reverse_scenario;
+                   reverse_scenario.push_back(scenario[i - 2]);
+                   reverse_scenario.push_back(scenario[i - 1]);
+                   reverse_scenario.push_back(scenario[i]);
                }
+               else
+                   {
+                       //при конструировании произошла ошибка
+                       reverse_scenario.clear();
+                       return reverse_scenario;
+                   }
    }
 
    return reverse_scenario;
@@ -578,8 +586,6 @@ QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> > Online::parseScenario(QString s
             args["voltage"] = voltageShift;
 
             scenario.push_back(qMakePair(SET_VOLTAGE_AND_CHECK, QVariant(args)));
-
-            scenario.push_back(qMakePair(WAIT, QVariant(20000)));
 
             args.clear();
 

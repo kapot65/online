@@ -146,6 +146,8 @@ void HVControler::setVoltageAndCheck(QVariantMap params)
     timer.start();
     secondsTimer.start(1000);
 
+    setVoltage(voltage);
+
     while(timer.elapsed()/1000 < timeout)
     {
         el.exec();
