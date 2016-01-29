@@ -26,8 +26,8 @@ Online::Online(IniManager *settingsManager, CCPC7Handler *ccpcHandler, HVHandler
     connect(this, SIGNAL(stop_pauseLoop()), &pauseLoop, SLOT(quit()));
     connect(this, SIGNAL(stop_scenario()), &pauseLoop, SLOT(quit()));
 
-    if(!settingsManager->getSettingsValue("Online", "output_folder").isValid())
-        settingsManager->setSettingsValue("Online", "output_folder", "output");
+    if(!settingsManager->getSettingsValue(metaObject()->className(), "output_folder").isValid())
+        settingsManager->setSettingsValue(metaObject()->className(), "output_folder", "output");
 
     this->ccpcHandler = ccpcHandler;
     connect(ccpcHandler, SIGNAL(error(QVariantMap)), this, SLOT(storeCCPCError(QVariantMap)));
@@ -36,6 +36,17 @@ Online::Online(IniManager *settingsManager, CCPC7Handler *ccpcHandler, HVHandler
     this->hvHandler = hvHandler;
     connect(hvHandler, SIGNAL(error(QVariantMap)), this, SLOT(storeHVError(QVariantMap)));
     lastHVError = CLIENT_NO_ERROR;
+
+    if(!settingsManager->getSettingsValue(metaObject()->className(), "checkVoltageTimeout").isValid())
+        settingsManager->setSettingsValue(metaObject()->className(), "checkVoltageTimeout", 20);
+
+    checkVoltageTimeout = settingsManager->getSettingsValue(metaObject()->className(), "checkVoltageTimeout").toInt();
+
+    if(!settingsManager->getSettingsValue(metaObject()->className(), "checkVoltageError").isValid())
+        settingsManager->setSettingsValue(metaObject()->className(), "checkVoltageError", 5);
+
+    checkVoltageError = settingsManager->getSettingsValue(metaObject()->className(), "checkVoltageError").toDouble();
+
 
     connect(ccpcHandler, SIGNAL(unhandledError(QVariantMap)), this, SLOT(processUnhandledError(QVariantMap)));
     connect(hvHandler, SIGNAL(unhandledError(QVariantMap)), this, SLOT(processUnhandledError(QVariantMap)));
@@ -294,7 +305,7 @@ bool Online::processScenarioImpl(QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> 
 
 
                 hvHandler->setVoltageAndCheck(args["block"].toInt(),
-                                              args["voltage"].toDouble());
+                                              args["voltage"].toDouble(), checkVoltageError, checkVoltageTimeout);
                 el.exec();
 
                 QVariantMap answerMeta = hvHandler->getLastVoltageAndCheckMeta();
@@ -462,6 +473,11 @@ int Online::approximateScenarioTime(QVector<QPair<SCENARIO_COMMAND_TYPE, QVarian
                 timeMSec += 200;
                 break;
             }
+            case SET_VOLTAGE_AND_CHECK:
+            {
+                timeMSec += 12000;
+                break;
+            }
             case BREAK:
             {
                 return timeMSec / 1000;
@@ -486,6 +502,7 @@ QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> > Online::constructReverseScenari
            reverse_scenario.push_back(scenario[i - 1]);
            reverse_scenario.push_back(scenario[i]);
        }
+       else
            if(i >= 3 &&
               scenario[i].first == ACQUIRE_POINT &&
               scenario[i - 1].first == WAIT &&
@@ -577,13 +594,13 @@ QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> > Online::parseScenario(QString s
             }
 
             QVariantMap args;
-            args["block"] = "1";
-            args["voltage"] = voltageMain;
+            args["block"] = "2";
+            args["voltage"] = voltageShift;
 
             scenario.push_back(qMakePair(SET_VOLTAGE_AND_CHECK, QVariant(args)));
 
-            args["block"] = "2";
-            args["voltage"] = voltageShift;
+            args["block"] = "1";
+            args["voltage"] = voltageMain;
 
             scenario.push_back(qMakePair(SET_VOLTAGE_AND_CHECK, QVariant(args)));
 
@@ -881,6 +898,7 @@ void Online::pause()
     emit sendInfoMessage("Pause signal received. Will stop at next step.\n");
     //добавление комментария о паузе в информацию
     updateInfo(tr("Сбор поставлен на паузу."), true);
+    emit paused();
     need_pause = 1;
 }
 

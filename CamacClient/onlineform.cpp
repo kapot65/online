@@ -113,7 +113,9 @@ OnlineForm::OnlineForm(CCPC7Handler *ccpc7Handler, HVHandler *hvHandler,
 
 
     connect(ui->pauseButton, SIGNAL(clicked()), online, SLOT(pause()));
+    connect(online, SIGNAL(paused()), this, SLOT(onPauseApplied()), Qt::QueuedConnection);
     connect(ui->resumeButton, SIGNAL(clicked()), online, SLOT(resume()));
+    connect(online, SIGNAL(stop_pauseLoop()), this, SLOT(onResumeApplied()), Qt::QueuedConnection);
 
     connect(online, SIGNAL(foldersPrepaired(QString)),
             dataVisualizerForm, SLOT(openDir(QString)), Qt::QueuedConnection);
@@ -217,7 +219,7 @@ void OnlineForm::visualizeScenario(QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant
         case SET_VOLTAGE_AND_CHECK:
             {
                 QVariantMap args = scenario[i].second.toMap();
-                scenarioList.push_back(tr("Выставить напряжение %1 на блоке %2")
+                scenarioList.push_back(tr("Выставить с проверкой напряжение %1 на блоке %2")
                                        .arg(args["voltage"].toDouble())
                                        .arg(args["block"].toInt())
                                        );
@@ -226,7 +228,7 @@ void OnlineForm::visualizeScenario(QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant
         case SET_VOLTAGE:
             {
                 QVariantMap args = scenario[i].second.toMap();
-                scenarioList.push_back(tr("Выставить с проверкой напряжение %1 на блоке %2")
+                scenarioList.push_back(tr("Выставить напряжение %1 на блоке %2")
                                        .arg(args["voltage"].toDouble())
                                        .arg(args["block"].toInt())
                                        );
@@ -531,13 +533,13 @@ void OnlineForm::on_startButton_clicked()
     updateEnabledButton();
 }
 
-void OnlineForm::on_pauseButton_clicked()
+void OnlineForm::onPauseApplied()
 {
     ui->pauseButton->setVisible(false);
     ui->resumeButton->setVisible(true);
 }
 
-void OnlineForm::on_resumeButton_clicked()
+void OnlineForm::onResumeApplied()
 {
     ui->pauseButton->setVisible(true);
     ui->resumeButton->setVisible(false);
@@ -624,11 +626,9 @@ void OnlineForm::on_checkUserForNextStep_stateChanged(int arg1)
     switch (arg1) {
     case Qt::Unchecked:
         disconnect(online, SIGNAL(at_step(int)), online, SLOT(pause()));
-        disconnect(online, SIGNAL(at_step(int)), this, SLOT(on_pauseButton_clicked()));
         break;
     case Qt::Checked:
         connect(online, SIGNAL(at_step(int)), online, SLOT(pause()));
-        connect(online, SIGNAL(at_step(int)), this, SLOT(on_pauseButton_clicked()));
     default:
         break;
     }

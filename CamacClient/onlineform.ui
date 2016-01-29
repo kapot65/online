@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>594</width>
-    <height>671</height>
+    <height>684</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -168,7 +168,7 @@
         <string>Ожидать команды пользователя на продолжение.</string>
        </property>
        <property name="checked">
-        <bool>true</bool>
+        <bool>false</bool>
        </property>
       </widget>
      </item>

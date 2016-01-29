@@ -45,9 +45,9 @@ private slots:
 
     void on_startButton_clicked();
 
-    void on_pauseButton_clicked();
+    void onPauseApplied();
 
-    void on_resumeButton_clicked();
+    void onResumeApplied();
 
     void on_sendComment_clicked();
 

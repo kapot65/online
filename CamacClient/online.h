@@ -136,6 +136,11 @@ public:
 
 signals:
     /*!
+     * \brief Сигнал испускаестя при поставовке сценария на паузу с помощью функции Online::pause.
+     */
+    void paused();
+
+    /*!
      * \brief Папка подготовлена. Сигнал испускается методом Online::prepareFolder.
      * \param путь к папке.
      */
@@ -330,6 +335,17 @@ private:
      * \brief Менеджер настроек.
      */
     IniManager *settingsManager;
+
+    /*!
+     * \brief Таймаут проверки напряжения в секундах для HVHandler::setVoltageAndCheck. Задается в конфигурационном файле.
+     */
+    int checkVoltageTimeout;
+
+    /*!
+     * \brief Максимальное допустимое отклонение напряжения от заданного для функции HVHandler::setVoltageAndCheck. Задается в конфигурационном файле.
+     */
+    double checkVoltageError;
 };
+
 
 #endif // ONLINE_H
