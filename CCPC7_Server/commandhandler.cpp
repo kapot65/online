@@ -256,7 +256,9 @@ void CommandHandler::processAcquirePoint(QVariantMap message)
         return;
     }
 
-    unsigned short acqisitionTime = message.value("acquisition_time").toInt();
+    int acqisitionTime = message.value("acquisition_time").toInt();
+    //корректирование длительности набора
+    acqisitionTime = TcpProtocol::correctMeasureTime(acqisitionTime);
 
 
     bool manuallyBreak;
@@ -279,6 +281,7 @@ void CommandHandler::processAcquirePoint(QVariantMap message)
     messageToSend.insert("reply_type", "aquired_point");
     messageToSend.insert("status", "ok");
     messageToSend.insert("total_events", QString().number(events.size()));
+    messageToSend["acquisition_time"] = acqisitionTime;
     //протаскивание мета информации
     if(message.contains("external_meta"))
         messageToSend["external_meta"] = message["external_meta"];

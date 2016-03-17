@@ -71,7 +71,7 @@ protected:
      * \param [out] manuallyBreak Флаг прерывания программы пользователем.
      * \return Вектор набранных событий в формате Event.
      */
-    QVector<Event> acquirePoint(unsigned short measureTime, bool *manuallyBreak = NULL);
+    QVector<Event> acquirePoint(int measureTime, bool *manuallyBreak = NULL);
 
     /*!
      * \brief Обнуление каунтеров.
@@ -86,7 +86,6 @@ protected:
      * \return Значение на каунтере.
      */
     unsigned int getCounterValue(int counterNum, int channelNum, bool withReset);
-
 
 private:
     /*!

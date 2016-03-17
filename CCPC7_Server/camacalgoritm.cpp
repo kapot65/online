@@ -83,7 +83,7 @@ unsigned int CamacAlgoritm::getCounterValue(int counterNum, int channelNum, bool
     return fullData;
 }
 
-QVector<Event> CamacAlgoritm::acquirePoint(unsigned short measureTime, bool *manuallyBreak)
+QVector<Event> CamacAlgoritm::acquirePoint(int measureTime, bool *manuallyBreak)
 {
     breakFlag = 0;
 
@@ -443,12 +443,12 @@ void CamacAlgoritm::readMADCData(unsigned short &data, long &time, bool &valid)
 
 void CamacAlgoritm::setMADCAddr(long &addr, unsigned short &measureTime)
 {
-    unsigned short tw;
-
     QMap<int, unsigned short>::iterator it = aviableMeasureTimes.lowerBound(measureTime);
 
     if(measureTime != it.key())
         LOG(WARNING) << "Measure time " << measureTime << " is not correct, changing to " << it.key();
+
+    unsigned short tw;
 
     tw = it.value();
 

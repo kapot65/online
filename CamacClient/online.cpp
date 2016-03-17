@@ -375,7 +375,6 @@ bool Online::processScenarioImpl(QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> 
                 emit acquiring_point(time);
                 //формирование метаданных
                 QVariantMap ext_metadata;
-                ext_metadata["acquisition_time"] = tr("%1").arg(time);
                 ext_metadata["HV1_value"] = tr("%1").arg(last_hv_1);
                 ext_metadata["HV2_value"] = tr("%1").arg(last_hv_2);
                 if(meta.contains("index"))
@@ -561,6 +560,8 @@ QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> > Online::parseScenario(QString s
             //сборка аргументов
             bool parseOk;
             int time = elements[i+1].toInt(&parseOk);
+            //корректировка времени
+            time = TcpProtocol::correctMeasureTime(time);
             //проверка правильности парсинга
             if(!parseOk)
             {
@@ -739,7 +740,7 @@ QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> > Online::parseScenario(QString s
             //block
             bool parseOk;
             QVariantMap meta;
-            meta["time"] = tr("%1").arg(elements[i+1].toInt(&parseOk));
+            meta["time"] = tr("%1").arg(TcpProtocol::correctMeasureTime(elements[i+1].toInt(&parseOk)));
             meta["index"] = tr("%1").arg(point_index++);
             if(!parseOk)
             {
@@ -941,8 +942,8 @@ void Online::savePoint(MachineHeader machineHeader, QVariantMap meta, QVector<Ev
         filename = tr("%1%2").arg(filename).arg(ext_meta["point_index"].toInt());
     else
         filename = tr("%1%2").arg(filename).arg(QDateTime::currentDateTime().toString("yyyyMMddhhmmss"));
-    if(ext_meta.contains("acquisition_time"))
-        filename += tr("(%1s)").arg(ext_meta["acquisition_time"].toInt());
+    if(meta.contains("acquisition_time"))
+        filename += tr("(%1s)").arg(meta["acquisition_time"].toInt());
     if(ext_meta.contains("HV1_value") && ext_meta["HV1_value"].toInt() != -1)
         filename += tr("(HV1=%1)").arg(ext_meta["HV1_value"].toInt());
     if(ext_meta.contains("HV2_value") && ext_meta["HV2_value"].toInt() != -1)

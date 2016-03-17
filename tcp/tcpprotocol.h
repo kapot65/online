@@ -187,6 +187,13 @@ public:
      */
     static double madsTimeToNSecCoeff(int measureTime);
 
+    /*!
+     * \brief Корректирование длительности набора в соответсвиии с допустимыми MADS временами
+     * \param measureTime длительность набора
+     * \return скорректированная длительность набора
+     */
+    static int correctMeasureTime(unsigned short measureTime);
+
 #ifdef TEST_MODE
     /*!
      * \brief Преобразует QByteArray в корректную QString

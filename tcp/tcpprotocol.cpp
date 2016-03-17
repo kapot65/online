@@ -72,6 +72,12 @@ double TcpProtocol::madsTimeToNSecCoeff(int measureTime)
     return coeff;
 }
 
+int TcpProtocol::correctMeasureTime(unsigned short measureTime)
+{
+    QMap<int, unsigned short>::iterator it = TcpProtocol::getAviableMeasuteTimes().lowerBound(measureTime);
+    return it.key();
+}
+
 MachineHeader  TcpProtocol::readMachineHeader(QByteArray &message, bool *ok)
 {
     MachineHeader header;
@@ -225,7 +231,7 @@ QByteArray TcpProtocol::createMessageWithPoints(QVariantMap meta, QVector<Event>
         //сериализация данных обычным способом
         case POINT_DIRECT_BINARY:
         {
-            meta["format_description"] = "https://drive.google.com/open?id=1xh_SF1k2F0leS-8apDR37x7-4b-YrQMlXkL4PMH-YxM";
+            meta["format_description"] = "https://drive.google.com/open?id=1G2EQgzmAx_BJCpg9xU_fk3AEVWZ7J6VFio76ae6kOW4";
             for(int i = 0; i < events.size(); i++)
             {
                 ds.writeRawData((const char*)(&(events[i].data)), sizeof(unsigned short));
@@ -237,7 +243,7 @@ QByteArray TcpProtocol::createMessageWithPoints(QVariantMap meta, QVector<Event>
         //сериализация с помощью Qt
         case POINT_QDATASTREAM_BINARY:
         {
-            meta["format_description"] = "https://drive.google.com/open?id=1eV-Slm44V_G50y9jMO__dSh9tZr53-VkbryoFzsWX2U";
+            meta["format_description"] = "https://drive.google.com/open?id=1n1Phtf9i2KySqDYBTY5pz2QyMBEZoKNXvOCYzc4DyAY";
             ds << events;
             break;
         }

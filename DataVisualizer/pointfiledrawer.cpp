@@ -70,8 +70,7 @@ void PointFileDrawer::setMetaDataToTable()
     setMetaTableText(0, 4, tr("количество событий"));
     setMetaTableText(1, 4, meta["total_events"].toString());
     setMetaTableText(0, 5, tr("время сбора"));
-    setMetaTableText(1, 5, meta["external_meta"].toMap()
-                           ["acquisition_time"].toString());
+    setMetaTableText(1, 5, meta["acquisition_time"].toString());
     setMetaTableText(0, 6, tr("основной блок"));
     setMetaTableText(1, 6, meta["external_meta"].toMap()
                            ["HV1_value"].toString());
@@ -170,9 +169,9 @@ void PointFileDrawer::update()
 
         int acquisitionTime = 5;
         //попытка получить точное время из метаданных
-        if(meta["external_meta"].toMap().contains("acquisition_time"))
+        if(meta.contains("acquisition_time"))
         {
-            acquisitionTime = meta["external_meta"].toMap()["acquisition_time"].toInt();
+            acquisitionTime = meta["acquisition_time"].toInt();
             acquisitionTime = aviableMeasureTimes.lowerBound(acquisitionTime).key();
         }
         else
