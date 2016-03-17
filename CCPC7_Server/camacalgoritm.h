@@ -67,7 +67,7 @@ protected:
 
     /*!
      * \brief Проведение набора точки, с заданным временем набора.
-     * \param measureTime Код времени набора.
+     * \param measureTime Время набора в секундах.
      * \param [out] manuallyBreak Флаг прерывания программы пользователем.
      * \return Вектор набранных событий в формате Event.
      */
@@ -77,7 +77,6 @@ protected:
      * \brief Обнуление каунтеров.
      */
     void resetCounters();
-
 
     /*!
      * \brief Получение значения на каунтере.

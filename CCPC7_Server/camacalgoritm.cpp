@@ -179,17 +179,7 @@ QVector<Event> CamacAlgoritm::acquirePoint(unsigned short measureTime, bool *man
     while(!addrOverflow && !endOfMeasurement && !breakFlag);
 #else
     //Ожидание времени сбора или флага остановки.
-
-    //определение времени в секундах.
-    int seconds = 5;
-    QMap<int, unsigned short>::iterator it;
-    for(it = aviableMeasureTimes.begin(); it != aviableMeasureTimes.end(); it++)
-        if(it.value() == measureTime)
-        {
-            seconds = it.key();
-            break;
-        }
-    waitMSec(seconds * 1000);
+    waitMSec(measureTime * 1000);
 
 #endif
 
@@ -204,11 +194,15 @@ QVector<Event> CamacAlgoritm::acquirePoint(unsigned short measureTime, bool *man
 #ifdef VIRTUAL_MODE
     //Имитация набранных событий
     QVector<Event> events;
-    for(int i = 0; i < 100; i++)
+    int eventsInSecond = 20; //количество генерируемых событий в секунду
+    //получение коэффициента перевода из сырого времени MADS в наносекунды
+    double coeff = TcpProtocol::madsTimeToNSecCoeff(measureTime);
+
+    for(int i = 0; i < measureTime * eventsInSecond; i++)
     {
         Event e;
         e.data = 500 + qrand() % 2000;
-        e.time = i * qPow(10, 6);
+        e.time = ((double)i / (double)eventsInSecond) * (qPow(10, 9) / coeff);
         e.valid = true;
 
         events.push_back(e);
