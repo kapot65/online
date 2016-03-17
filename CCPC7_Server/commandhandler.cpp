@@ -262,22 +262,20 @@ void CommandHandler::processAcquirePoint(QVariantMap message)
 
 
     bool manuallyBreak;
-    QDate acqDate = QDate::currentDate();
-    QTime acqTimeStart = QTime::currentTime();
+    QDateTime acqDateTimeStart = QDateTime::currentDateTime();
 
     //сбор точки
     QVector<Event> events = acquirePoint(acqisitionTime, &manuallyBreak);
 
-    QTime acqTimeEnd = QTime::currentTime();
+    QDateTime acqDateTimeEnd = QDateTime::currentDateTime();
 
     //создание сообщения
     QVariantMap messageToSend;
     messageToSend["programm_revision"] = APP_REVISION;
     messageToSend["type"] = "reply";
     messageToSend["time_coeff"] = TcpProtocol::madsTimeToNSecCoeff(acqisitionTime);
-    messageToSend.insert("date", acqDate.toString("yyyy.MM.dd"));
-    messageToSend.insert("start_time", acqTimeStart.toString("hh:mm:ss.zzz"));
-    messageToSend.insert("end_time", acqTimeEnd.toString("hh:mm:ss.zzz"));
+    messageToSend.insert("start_time", acqDateTimeStart.toString(Qt::ISODate));
+    messageToSend.insert("end_time", acqDateTimeEnd.toString(Qt::ISODate));
     messageToSend.insert("reply_type", "aquired_point");
     messageToSend.insert("status", "ok");
     messageToSend.insert("total_events", QString().number(events.size()));
@@ -293,9 +291,7 @@ void CommandHandler::processAcquirePoint(QVariantMap message)
                                                                        JSON_METATYPE, POINT_DIRECT_BINARY);
 
     //запись точки во временную папку
-    QFile pointFile(tr("%1/%2%3.point").arg(tempFolder)
-                      .arg(acqDate.toString("yyyyMMdd"))
-                      .arg(acqTimeStart.toString("hhmmsszzz")));
+    QFile pointFile(tr("%1/%2%3.point").arg(tempFolder).arg(acqDateTimeStart.toString("yyyyMMddhhmmsszzz")));
     pointFile.open(QIODevice::WriteOnly);
     pointFile.write(prepairedMessage);
     pointFile.close();

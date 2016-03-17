@@ -61,8 +61,11 @@ void PointFileDrawer::setMetaDataToTable()
     table->setColumnCount(2);
     setMetaTableText(0, 0, tr("тип файла"));
     setMetaTableText(1, 0, tr("точка"));
-    setMetaTableText(0, 1, tr("дата сбора"));
-    setMetaTableText(1, 1, meta["date"].toString());
+    if(meta.contains("date"))
+    {
+        setMetaTableText(0, 1, tr("дата сбора"));
+        setMetaTableText(1, 1, meta["date"].toString());
+    }
     setMetaTableText(0, 2, tr("время начала сбора"));
     setMetaTableText(1, 2, meta["start_time"].toString());
     setMetaTableText(0, 3, tr("время конца сбора"));
@@ -160,12 +163,25 @@ void PointFileDrawer::update()
         QVector<double> event_data(events.size());
 
         //получение абсолютного времени из метаданных
-        QDate date = QDate::fromString(meta["date"].toString(), "yyyy.MM.dd");
-        QTime start_time = QTime::fromString(meta["start_time"].toString(), "hh:mm:ss.zzz");
-        QTime end_time = QTime::fromString(meta["end_time"].toString(), "hh:mm:ss.zzz");
 
-        QDateTime start_datetime(date, start_time);
-        QDateTime end_datetime(date, end_time);
+        QDateTime start_datetime;
+        QDateTime end_datetime;
+
+        //обработка старого форамата (с отдельной датой)
+        if(meta.contains("date"))
+        {
+            QDate date = QDate::fromString(meta["date"].toString(), "yyyy.MM.dd");
+            QTime start_time = QTime::fromString(meta["start_time"].toString(), "hh:mm:ss.zzz");
+            QTime end_time = QTime::fromString(meta["end_time"].toString(), "hh:mm:ss.zzz");
+
+            start_datetime = QDateTime(date, start_time);
+            end_datetime = QDateTime(date, end_time);
+        }
+        else //новый формат хранения
+        {
+            start_datetime = QDateTime::fromString(meta["start_time"].toString(), Qt::ISODate);
+            end_datetime = QDateTime::fromString(meta["end_time"].toString(), Qt::ISODate);
+        }
 
         int acquisitionTime = 5;
         //попытка получить точное время из метаданных
