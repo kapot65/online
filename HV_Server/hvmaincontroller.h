@@ -10,6 +10,7 @@
  */
 class HvMainController : public HVControler, public CCPCCommands
 {
+    Q_OBJECT
 public:
     HvMainController(IniManager *manager, QString controllerName, double *voltage, bool *ok = 0,  QObject *parent = 0);
 
@@ -17,6 +18,21 @@ public:
 
 public slots:
     virtual void setVoltage(double voltage);
+
+protected slots:
+    /*!
+     * \brief Установка смещения через com port.
+     * \param voltage Напряжение в вольтах.
+     */
+    void setVoltageShift(double voltage);
+
+    /*!
+     * \brief Здесь происходит коррекция напряжения в цикле
+     */
+    void correctVoltage();
+
+signals:
+    void startCorrect();
 
 private:
     void setVoltage(double voltage, bool &ok);
@@ -46,6 +62,19 @@ private:
      * через ccpc.
      */
     double a1;
+
+    /// \brief Максимально возможная величина корректирующего смещения в вольтах.
+    double maxCorrection;
+
+    /// \brief Часть от общего напряжения, которая будет задаваться через com порт, а не через ЦАП.
+    /// Эта величина нужна для возможности проводить отрицательную коррекцию напряжения.
+    double initialShift;
+
+    /*!
+     * \brief Стоп-флаг для цикла коррекции напряжения
+     */
+    bool stopFlag;
+
 };
 
 #endif // HVMAINCONTROLLER_H

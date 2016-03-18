@@ -1,7 +1,7 @@
 #include "hvhandler.h"
 #include <QTimer>
 
-HVHandler::HVHandler(QString ip, int port, QObject *parent) : ServerHandler(ip, port, parent)
+HVHandler::HVHandler(IniManager *manager, QObject *parent) : ServerHandler(manager, parent)
 {
 }
 

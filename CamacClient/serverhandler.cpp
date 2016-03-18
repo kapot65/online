@@ -2,7 +2,7 @@
 #include <QEventLoop>
 #include <QTimer>
 
-ServerHandler::ServerHandler(QString ip, int port, QObject *parent) : TcpClient(ip, port, parent)
+ServerHandler::ServerHandler(IniManager *manager, QObject *parent) : TcpClient(manager, parent)
 {
     initFlag  = 0;
 

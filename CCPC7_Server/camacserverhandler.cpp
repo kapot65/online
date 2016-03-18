@@ -5,18 +5,19 @@
 CamacServerHandler::CamacServerHandler(TempFolder *tempFolder, QObject *parent) :
     QObject(parent)
 {
-    CamacServerSettings *settings = new CamacServerSettings(this);
+    QString settingsPath = tr("%1/%2Settings.ini").arg(qApp->applicationDirPath()).arg(BIN_NAME);
+    CamacServerSettings *settings = new CamacServerSettings(settingsPath, this);
     connect(settings, SIGNAL(error(QString)), this, SLOT(showMessage(QString)));
 
-    if(settings->loadSettings(qApp->applicationDirPath() + "/CamacServerSettings.ini"))
+    if(settings->loadSettings())
     {
         emit showMessage(QString("Start canceled. Please fix problems and restart server"));
         return;
     }
 
-    settings->setSettingaValue("tempFolder", "dirPath", tempFolder->getFolderPath());
+    settings->setSettingsValue("tempFolder", "dirPath", tempFolder->getFolderPath());
 
-    server = new CamacServer(settings->getSettingsValue("CamacServer","port").toInt(), settings);
+    server = new CamacServer(settings->getSettingsValue("CamacServer","port").toInt(), settings, this);
     connect(server, SIGNAL(serverReady(QString,int)), this, SLOT(onServerReady(QString,int)));
     connect(server, SIGNAL(newConnection(QString,int)), this, SLOT(showNewConnection(QString,int)));
 }

@@ -29,7 +29,7 @@ public:
      * \param port Порт, который будет слушать сервер.
      * \param settings Менеджер настроек CamacServer.
      */
-    CamacServer(int port, CamacServerSettings *settings);
+    CamacServer(int port, CamacServerSettings *settings, QObject *parent = 0);
     ~CamacServer();
 
 private slots:

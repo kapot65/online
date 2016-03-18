@@ -1,7 +1,7 @@
 #include "tcpserver.h"
 #include <easylogging++.h>
 
-TcpServer::TcpServer(int port, QObject *parent) : TcpBase(parent)
+TcpServer::TcpServer(int port, IniManager *manager, QObject *parent) : TcpBase(manager, parent)
 {
 //Подключение сервера к порту
     networkSession = NULL;
@@ -10,8 +10,8 @@ TcpServer::TcpServer(int port, QObject *parent) : TcpBase(parent)
 
     connect(this, SIGNAL(error(QVariantMap)), this, SLOT(on_error(QVariantMap)));
 
-    QNetworkConfigurationManager manager;
-    if (manager.capabilities() & QNetworkConfigurationManager::NetworkSessionRequired)
+    QNetworkConfigurationManager networkManager;
+    if (networkManager.capabilities() & QNetworkConfigurationManager::NetworkSessionRequired)
     {
         // Get saved network configuration
         QSettings settings(QSettings::UserScope, QLatin1String("Trolltech"));
@@ -20,11 +20,11 @@ TcpServer::TcpServer(int port, QObject *parent) : TcpBase(parent)
         settings.endGroup();
 
         // If the saved network configuration is not currently discovered use the system default
-        QNetworkConfiguration config = manager.configurationFromIdentifier(id);
+        QNetworkConfiguration config = networkManager.configurationFromIdentifier(id);
         if ((config.state() & QNetworkConfiguration::Discovered) !=
             QNetworkConfiguration::Discovered)
         {
-            config = manager.defaultConfiguration();
+            config = networkManager.defaultConfiguration();
         }
 
         networkSession = new QNetworkSession(config, this);

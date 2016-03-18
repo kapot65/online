@@ -24,7 +24,7 @@ public:
      * \param ip Адрес сервера HV.
      * \param port Порт сервера HV.
      */
-    explicit HVHandler(QString ip = QString(), int port = -1, QObject *parent = 0);
+    explicit HVHandler(IniManager *manager, QObject *parent = 0);
 
     /*!
      * \note После получения метаданных, поле lastVoltageAndCheckMeta очищается.

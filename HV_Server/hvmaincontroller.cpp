@@ -3,6 +3,8 @@
 HvMainController::HvMainController(IniManager *manager, QString controllerName, double *voltage, bool *ok, QObject *parent)
     : HVControler(manager, controllerName, voltage, ok, parent), CCPCCommands()
 {
+    stopFlag = false;
+
     bool coefOk = true;
 
     if(!manager->getSettingsValue(controllerName, "ControlerCCPCId").isValid())
@@ -22,6 +24,20 @@ HvMainController::HvMainController(IniManager *manager, QString controllerName, 
         processSettingError("a1", controllerName);
         coefOk = false;
     }
+
+    if(!manager->getSettingsValue(controllerName, "maxCorrection").isValid())
+    {
+        manager->setSettingsValue(controllerName, "maxCorrection", 40);
+    }
+
+    maxCorrection = manager->getSettingsValue(controllerName, "maxCorrection").toDouble();
+
+    if(!manager->getSettingsValue(controllerName, "initialShift").isValid())
+    {
+        manager->setSettingsValue(controllerName, "initialShift", 100);
+    }
+    initialShift = manager->getSettingsValue(controllerName, "initialShift").toDouble();
+
 
     if(!coefOk)
     {
@@ -50,10 +66,14 @@ HvMainController::HvMainController(IniManager *manager, QString controllerName, 
                 TcpProtocol::setOk(false, ok);
         }
     }
+
+    connect(this, SIGNAL(startCorrect()), this, SLOT(correctVoltage()), Qt::QueuedConnection);
+    emit startCorrect();
 }
 
 HvMainController::~HvMainController()
 {
+    stopFlag = true;
 #ifndef TEST_MODE
     delete camac;
 #endif
@@ -70,8 +90,9 @@ void HvMainController::setVoltage(double voltage)
 
     bool ok;
 #ifndef VIRTUAL_MODE
-    setVoltage(voltage, ok);
+    setVoltage(voltage, ok); 
 #endif
+    settedVoltage = voltage;
 
     emit setVoltageDone();
 
@@ -80,36 +101,49 @@ void HvMainController::setVoltage(double voltage)
 
 void HvMainController::setVoltage(double voltage, bool &ok)
 {
-    //Инициализация блока управления.
-    long data = 0x16;
-    ccpc::CamacOp op = NAF(controllerId, 1, 16, data);
-
-    if(!(op.q && op.x))
+    if(voltage < initialShift)
     {
-        ok = false;
+        setVoltageShift(voltage);
+        ok = true;
         return;
     }
-
-    data = 0x1E;
-    NAF(controllerId, 1, 16, data);
-
-
-    //Установка нулевого напряжения.
-    data = encodeVoltage(voltage);
-    NAF(controllerId, 0, 16, data);
-
-    long databuf;
-    //Проверка того, что напряжение установилось
-    NAF(controllerId, 0, 0, databuf);
-
-    if(data != databuf)
+    else
     {
-        ok = false;
+        setVoltageShift(initialShift); // установка части напряжения через com порт
+
+        //установка оставшейся части через ЦАП
+
+        //Инициализация блока управления.
+        long data = 0x16;
+        ccpc::CamacOp op = NAF(controllerId, 1, 16, data);
+
+        if(!(op.q && op.x))
+        {
+            ok = false;
+            return;
+        }
+
+        data = 0x1E;
+        NAF(controllerId, 1, 16, data);
+
+
+        //Установка нулевого напряжения.
+        data = encodeVoltage(voltage - initialShift);
+        NAF(controllerId, 0, 16, data);
+
+        long databuf;
+        //Проверка того, что напряжение установилось
+        NAF(controllerId, 0, 0, databuf);
+
+        if(data != databuf)
+        {
+            ok = false;
+            return;
+        }
+
+        ok = true;
         return;
     }
-
-    ok = true;
-    return;
 }
 
 long HvMainController::encodeVoltage(double voltage)
@@ -169,3 +203,48 @@ long HvMainController::encodeVoltage(double voltage)
     return out;
 }
 
+
+void HvMainController::setVoltageShift(double voltage)
+{
+    double settedVoltageBuf = settedVoltage;
+    HVControler::setVoltage(voltage);
+    settedVoltage = settedVoltageBuf;
+}
+
+void HvMainController::correctVoltage()
+{
+    QEventLoop el;
+    QTimer timer;
+    connect(&timer,SIGNAL(timeout()), &el, SLOT(quit()));
+
+    double lastVoltage = actualVoltage[0];
+
+    timer.start(1000);
+
+    while(!stopFlag)
+    {
+        el.exec();
+        if(settedVoltage != -1)
+        {
+            //если напряжение изменилось
+            if(lastVoltage != actualVoltage[0])
+            {
+                lastVoltage = actualVoltage[0];
+
+                //вычисление корректирующего напряжения
+
+                double delta = settedVoltage - actualVoltage[0];
+                if(qAbs(delta) < maxCorrection)
+                {
+                    qDebug() << tr("correctiong voltage by %1 v").arg(delta);
+                    setVoltageShift(initialShift + delta);
+                }
+                else
+                {
+                    LOG(WARNING) << tr("Volatage error (%1) < max correction (%2)").arg(delta).arg(maxCorrection).toStdString();
+                }
+            }
+        }
+
+    }
+}

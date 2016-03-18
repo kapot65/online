@@ -16,7 +16,7 @@ class ServerHandler : public TcpClient
 {
     Q_OBJECT
 public:
-    explicit ServerHandler(QString ip = QString(), int port = -1, QObject *parent = 0);
+    explicit ServerHandler(IniManager *manager, QObject *parent = 0);
     ~ServerHandler();
 
     /*!

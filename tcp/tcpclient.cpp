@@ -1,15 +1,9 @@
 #include "tcpclient.h"
 
-TcpClient::TcpClient(QString peerName, int peerPort, QObject *parent) : TcpBase(parent)
+TcpClient::TcpClient(IniManager* manager, QObject *parent) : TcpBase(manager, parent)
 {
     continue_message = 0;
     networkSession = NULL;
-
-    if(peerName != QString() && peerPort != -1)
-    {
-        setPeer(peerName, peerPort);
-        connectToServer();
-    }
 }
 
 TcpClient::~TcpClient()
@@ -32,8 +26,7 @@ void TcpClient::connectToServer()
     {
         delete networkSession;
         if(connection)
-            delete connection;
-    }
+            delete connection;    }
 
 
     connection = new QTcpSocket;

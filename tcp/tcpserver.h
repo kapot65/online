@@ -15,6 +15,7 @@
 #endif
 #include "tcpprotocol.h"
 #include "tcpbase.h"
+#include <inimanager.h>
 //#include <easylogging++.h>
 
 /*!
@@ -31,7 +32,7 @@ public:
     /*!
      * \param port Порт, который будет прослушивать сервер.
      */
-    explicit TcpServer(int port, QObject *parent = 0);
+    explicit TcpServer(int port, IniManager *manager, QObject *parent = 0);
     //void setPort(int port){this->port = port;}
 
     /*!

@@ -78,7 +78,7 @@ int TcpProtocol::correctMeasureTime(unsigned short measureTime)
     return it.key();
 }
 
-MachineHeader  TcpProtocol::readMachineHeader(QByteArray &message, bool *ok)
+MachineHeader TcpProtocol::readMachineHeader(QByteArray &message, bool *ok)
 {
     MachineHeader header;
     //проверка на соответсвие формату
@@ -112,15 +112,38 @@ MachineHeader  TcpProtocol::readMachineHeader(QByteArray &message, bool *ok)
 
 QByteArray TcpProtocol::createMessage(QVariantMap meta, QByteArray data, unsigned int metaType, unsigned int binaryType)
 {
-#ifdef USE_QTJSON
-    QJsonObject JsonObj = QJsonObject::fromVariantMap(meta);
-    QJsonDocument doc(JsonObj);
-    QByteArray serializedMeta = doc.toJson();
-#else
-    QJson::Serializer serializer;
-    //serializer.setIndentMode(QJson::IndentFull); // в настройки
-    QByteArray serializedMeta = serializer.serialize(meta);
-#endif
+    QByteArray serializedMeta;
+    //Парсинг сообщения в соотвествии с форматом
+    switch(metaType)
+    {
+        //мета в формате QJson
+        case JSON_METATYPE:
+        {
+            #ifdef USE_QTJSON
+                QJsonObject JsonObj = QJsonObject::fromVariantMap(meta);
+                QJsonDocument doc(JsonObj);
+                serializedMeta = doc.toJson();
+            #else
+                QJson::Serializer serializer;
+                //serializer.setIndentMode(QJson::IndentFull); // в настройки
+                serializedMeta = serializer.serialize(meta);
+            #endif
+            break;
+        }
+
+        case QDATASTREAM_METATYPE:
+        {
+            QDataStream out(&serializedMeta, QIODevice::WriteOnly);
+            out.setVersion(QDataStream::Qt_4_8);
+            out << meta;
+            break;
+        }
+
+        default:
+            break;
+    }
+
+
 
     //создание заголовка
     MachineHeader header;
@@ -167,6 +190,21 @@ bool TcpProtocol::parceMessage(QByteArray message, QVariantMap &meta, QByteArray
                 data = message.mid(header.metaLength, header.dataLenght);
             return 1;
         }
+
+        case QDATASTREAM_METATYPE:
+        {
+            QByteArray binaryMeta = message.mid(30, header.metaLength);
+            //обрезание окончания(если есть)
+            while(binaryMeta.endsWith("\r\n"))
+                binaryMeta.chop(2);
+
+            QDataStream in(&binaryMeta, QIODevice::ReadOnly);
+            in.setVersion(QDataStream::Qt_4_8);
+
+            in >> meta;
+            return 1;
+        }
+
         default:
             return 0;
     }

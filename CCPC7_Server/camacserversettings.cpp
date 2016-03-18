@@ -1,24 +1,18 @@
 #include "camacserversettings.h"
 
-CamacServerSettings::CamacServerSettings(QObject *parent) : QObject(parent)
+CamacServerSettings::CamacServerSettings(QString settingsFile, QObject *parent) : IniManager(settingsFile, parent)
 {
-    iniManager = NULL;
 }
 
 inline void CamacServerSettings::checkAndWriteErr(QString group, QString field, QString &err)
 {
-    if(!iniManager->getSettingsValue(group, field).isValid())
+    if(!getSettingsValue(group, field).isValid())
         err.push_back(QString("Setting error: [%1] %2 not set.\n").arg(group).arg(field));
 }
 
 //проверяет наличие необходимых настроек
-bool CamacServerSettings::loadSettings(QString fileName)
+bool CamacServerSettings::loadSettings()
 {
-    if(iniManager)
-        delete iniManager;
-
-    iniManager = new IniManager(fileName, this);
-
     //проверка необходимых полей
     QString err;
 
@@ -35,7 +29,7 @@ bool CamacServerSettings::loadSettings(QString fileName)
 
     if(!err.isEmpty())
     {
-        err.push_front(QString("Errors in settings file (%1):\n").arg(fileName));
+        err.push_front(QString("Errors in settings file (%1):\n").arg(settings->fileName()));
 
         emit error(err);
         return 1;
@@ -78,18 +72,7 @@ bool CamacServerSettings::loadSettings(QString fileName)
     }
 }
 
-QVariant CamacServerSettings::getSettingsValue(QString group, QString fieldName)
-{
-    return iniManager->getSettingsValue(group, fieldName);
-}
-
-void CamacServerSettings::setSettingaValue(QString group, QString fieldName, QVariant value)
-{
-    iniManager->setSettingsValue(group, fieldName, value);
-}
-
 CamacServerSettings::~CamacServerSettings()
 {
-    delete iniManager;
 }
 

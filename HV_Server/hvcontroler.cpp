@@ -48,6 +48,8 @@ HVControler::HVControler(IniManager *manager, QString controllerName, double *vo
 
     busyFlag = 0;
 
+    settedVoltage = -1;
+
 #ifdef TEST_MODE
     qDebug() << tr("%1 working in thread: ").arg(controllerName) << QThread::currentThreadId();
 #endif
@@ -109,6 +111,8 @@ void HVControler::setVoltage(double voltage)
 #endif
 
     busyFlag = 0;
+
+    settedVoltage = (voltage_normalised - c0)/c1;
 
 #ifdef TEST_MODE
     qDebug() << QThread::currentThreadId() << tr("%1: setting %2 volts on block done.")

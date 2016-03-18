@@ -115,6 +115,8 @@ protected:
      */
     double* actualVoltage;
 
+    /// \brief Установленное пользователем напряжение
+    double settedVoltage;
 
     /// \brief Название контролера.
     QString controllerName;

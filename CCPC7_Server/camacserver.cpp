@@ -3,7 +3,7 @@
     #include <QDebug>
 #endif
 
-CamacServer::CamacServer(int port, CamacServerSettings *settings): TcpServer(port)
+CamacServer::CamacServer(int port, CamacServerSettings *settings, QObject *parent) : TcpServer(port, settings, parent)
 {
     this->settings = settings;
 

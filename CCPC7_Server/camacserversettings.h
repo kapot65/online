@@ -10,11 +10,11 @@
  * Обеспечивает предварительный парсинг настроек из ini файла
  * и быстрый доступ к ним.
  */
-class CamacServerSettings : public QObject
+class CamacServerSettings : public IniManager
 {
     Q_OBJECT
 public:
-    explicit CamacServerSettings(QObject *parent = 0);
+    explicit CamacServerSettings(QString settingsFile, QObject *parent = 0);
     ~CamacServerSettings();
 
     //проверяет наличие необходимых настроек
@@ -22,20 +22,9 @@ public:
      * \brief Загружает настройки из ini файла и осуществляет предварительный парсинг.
      * Если каких-то настроек нету, то функция испустит сигнал CamacServerSettings::error c описанием
      * недостающих настроек.
-     * \param fileName
      * \return true - все настройки найдены,  0 - некоторых настроек не хватает.
      */
-    bool loadSettings(QString fileName);
-
-    /*!
-     * \brief Оберточная функция. Копирует IniManager::getSettingsValue
-     */
-    QVariant getSettingsValue(QString group, QString fieldName);
-
-    /*!
-     * \brief Оберточная функция. Копирует IniManager::setSettingsValue
-     */
-    void setSettingaValue(QString group, QString fieldName, QVariant value);
+    bool loadSettings();
 
     /*!
      * \brief Возвращает положение блока ADC_CRATE.
@@ -113,9 +102,6 @@ private:
      * \param [in, out] err Сообщение об ошибке.
      */
     void checkAndWriteErr(QString group, QString field, QString &err);
-
-    ///Указатеь на менеджер настроек
-    IniManager *iniManager;
 
     ///индекс ADC_CRATE
     int ADC_CRATE;

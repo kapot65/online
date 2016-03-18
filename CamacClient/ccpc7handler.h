@@ -24,7 +24,7 @@ public:
      * \param port
      * \param parent
      */
-    explicit CCPC7Handler(QString ip = QString(), int port = -1, QObject *parent = 0);
+    explicit CCPC7Handler(IniManager *manager, QObject *parent = 0);
     ~CCPC7Handler();
 
 signals:

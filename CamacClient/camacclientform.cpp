@@ -3,7 +3,7 @@
 
 void CamacClientForm::restoreSettings()
 {
-    manager = new IniManager("CamacClientSettings.ini", this);
+    manager = new IniManager(tr("%1Settings.ini").arg(BIN_NAME), this);
 
     if(!manager->settings->value("advanced_mode").isValid())
         manager->settings->setValue("advanced_mode", false);
@@ -17,7 +17,7 @@ void CamacClientForm::setGraphWidget()
 
 void CamacClientForm::setCCPC7Handler()
 {
-    ccpc7Handler = new CCPC7Handler(QString(), -1, this);
+    ccpc7Handler = new CCPC7Handler(manager, this);
     ccpc7Handler->start();
 
     connect(ccpc7Handler, SIGNAL(ready()), this, SLOT(camacMarkReady()));
@@ -37,7 +37,7 @@ void CamacClientForm::setCCPC7HandlerForm()
 
 void CamacClientForm::setHVHandler()
 {
-    hvHandler = new HVHandler(QString(), -1, this);
+    hvHandler = new HVHandler(manager, this);
     hvHandler->start();
 
     connect(hvHandler, SIGNAL(ready()), this, SLOT(HVMarkReady()), Qt::DirectConnection);

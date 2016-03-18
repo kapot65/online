@@ -16,7 +16,7 @@ DataVisualizerForm::DataVisualizerForm(bool interactive, QSettings *settings, QW
     //создание файла с настройками, если не указан главный файл настроек
     if(settings == 0)
     {
-        this->settings = new QSettings("DataVisualizerSettings.ini",
+        this->settings = new QSettings(tr("%1Settings.ini").arg(BIN_NAME),
                                        QSettings::IniFormat);
     }
     else

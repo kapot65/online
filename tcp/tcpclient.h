@@ -36,7 +36,7 @@ public:
      * \details При указании адресса и порта клиент автоматически подключается к серверу.
      * \param parent
      */
-    explicit TcpClient(QString peerName = QString(), int peerPort = -1, QObject *parent = 0);
+    explicit TcpClient(IniManager *manager, QObject *parent = 0);
     ~TcpClient();
 
     /*!

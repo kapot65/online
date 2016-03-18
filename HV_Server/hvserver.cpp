@@ -5,7 +5,7 @@
     #include <QDebug>
 #endif
 
-HVServer::HVServer(IniManager *manager, int port, QObject *parent): TcpServer(port, parent)
+HVServer::HVServer(IniManager *manager, int port, QObject *parent): TcpServer(port, manager, parent)
 {
     voltage1Block = -1;
     voltage2Block = -1;

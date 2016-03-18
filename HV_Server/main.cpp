@@ -15,11 +15,11 @@
 
 int main(int argc, char *argv[])
 {
+    QCoreApplication a(argc, argv);
+
     setCodecs();
     initLogging(argc, argv);
     logModes();
-
-    QCoreApplication a(argc, argv);
 
     HVServerHandler hv_server;
 

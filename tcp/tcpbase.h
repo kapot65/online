@@ -4,6 +4,7 @@
 #include <tcpprotocol.h>
 #include <QThread>
 #include <QTcpSocket>
+#include <inimanager.h>
 
 /*!
  * \brief В этом классе находятся реализации методов, общих для
@@ -13,7 +14,7 @@ class TcpBase : public QThread
 {
     Q_OBJECT
 public:
-    TcpBase(QObject *parent = 0);
+    TcpBase(IniManager *manager, QObject *parent = 0);
 
     /*!
      * \brief Ожидание готовности сообщения
@@ -71,6 +72,17 @@ protected:
      * \brief Машиночитаемый заголовок текущего сообщения.
      */
     MachineHeader header;
+
+    /*!
+     * \brief Указатель на менеджер настроек
+     */
+    IniManager* manager;
+
+private:
+    /*!
+     * \brief Тип сериализации метаданных. Берется из конфигурационного файла
+     */
+    METATYPE metaType;
 
 signals:
     /*!

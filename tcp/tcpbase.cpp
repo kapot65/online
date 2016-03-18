@@ -4,13 +4,25 @@
 #include <QTimer>
 #include <QDateTime>
 
-TcpBase::TcpBase(QObject *parent): QThread(parent)
+TcpBase::TcpBase(IniManager *manager, QObject *parent) : QThread(parent)
 {
 #ifdef TEST_MODE
     qDebug() << "TcpBase working in " << QThread::currentThreadId() <<" thread.";
 #endif
     continue_message = 0;
     connection = 0;
+
+    this->manager = manager;
+
+    //считывание полей из конфигурацтонного файла
+    if(!manager->getSettingsValue(metaObject()->className(), "binary_meta").isValid())
+        manager->setSettingsValue(metaObject()->className(), "binary_meta", false);
+
+    if(manager->getSettingsValue(metaObject()->className(), "binary_meta").toBool())
+        metaType = QDATASTREAM_METATYPE;
+    else
+        metaType = JSON_METATYPE;
+
 
     connect(this, SIGNAL(receiveMessage(MachineHeader,QVariantMap,QByteArray)),
             this, SLOT(saveLastMessage(MachineHeader,QVariantMap,QByteArray)),
@@ -114,7 +126,7 @@ void TcpBase::readMessage()
     {
         emit receiveMessage(header, meta, data);
 #ifdef TEST_MODE
-        emit testReseivedMessage(TcpProtocol::createMessage(meta));
+        emit testReseivedMessage(TcpProtocol::createMessage(meta, QByteArray(), metaType));
 #endif
     }
 
@@ -172,7 +184,7 @@ void TcpBase::saveLastMessage(MachineHeader machineHeader, QVariantMap metaData,
 
 void TcpBase::sendMessage(QVariantMap message, QByteArray binaryData,  bool *ok, QTcpSocket *socket)
 {
-    QByteArray prepairedMessage = TcpProtocol::createMessage(message, binaryData);
+    QByteArray prepairedMessage = TcpProtocol::createMessage(message, binaryData, metaType);
     sendRawMessage(prepairedMessage, ok, socket);
 }
 

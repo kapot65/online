@@ -44,7 +44,8 @@ enum ERROR_TYPE
 enum METATYPE
 {
     UNDEFINED_METATYPE = 0x00000000, ///< Неизвестный формат метаданных
-    JSON_METATYPE = 0x00010000 ///< Формат Json
+    JSON_METATYPE = 0x00010000, ///< Формат Json
+    QDATASTREAM_METATYPE = 0x00010007, ///< Формат QDataStream версии Qt 4.8.x
 };
 
 /*!

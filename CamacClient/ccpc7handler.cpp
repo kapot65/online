@@ -1,6 +1,6 @@
 #include "ccpc7handler.h"
 
-CCPC7Handler::CCPC7Handler(QString ip, int port, QObject *parent) : ServerHandler(ip, port, parent)
+CCPC7Handler::CCPC7Handler(IniManager *manager, QObject *parent) : ServerHandler(manager, parent)
 {
 
 }
