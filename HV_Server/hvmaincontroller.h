@@ -26,6 +26,8 @@ protected slots:
      */
     void setVoltageShift(double voltage);
 
+    void setVoltageBase(double voltage, bool &ok);
+
     /*!
      * \brief Здесь происходит коррекция напряжения в цикле
      */

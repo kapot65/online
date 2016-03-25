@@ -88,8 +88,8 @@ void HvMainController::setVoltage(double voltage)
     }
     busyFlag = 1;
 
-    bool ok;
 #ifndef VIRTUAL_MODE
+    bool ok;
     setVoltage(voltage, ok); 
 #endif
     settedVoltage = voltage;
@@ -104,7 +104,7 @@ void HvMainController::setVoltage(double voltage, bool &ok)
     if(voltage < initialShift)
     {
         setVoltageShift(voltage);
-        ok = true;
+        setVoltageBase(0, ok);
         return;
     }
     else
@@ -113,36 +113,9 @@ void HvMainController::setVoltage(double voltage, bool &ok)
 
         //установка оставшейся части через ЦАП
 
-        //Инициализация блока управления.
-        long data = 0x16;
-        ccpc::CamacOp op = NAF(controllerId, 1, 16, data);
+        double voltageBase = voltage - initialShift;
 
-        if(!(op.q && op.x))
-        {
-            ok = false;
-            return;
-        }
-
-        data = 0x1E;
-        NAF(controllerId, 1, 16, data);
-
-
-        //Установка нулевого напряжения.
-        data = encodeVoltage(voltage - initialShift);
-        NAF(controllerId, 0, 16, data);
-
-        long databuf;
-        //Проверка того, что напряжение установилось
-        NAF(controllerId, 0, 0, databuf);
-
-        if(data != databuf)
-        {
-            ok = false;
-            return;
-        }
-
-        ok = true;
-        return;
+        setVoltageBase(voltageBase, ok);
     }
 }
 
@@ -206,9 +179,47 @@ long HvMainController::encodeVoltage(double voltage)
 
 void HvMainController::setVoltageShift(double voltage)
 {
+#ifdef TEST_MODE
+    qDebug() << tr("setting shift: %1 v").arg(voltage);
+#endif
     double settedVoltageBuf = settedVoltage;
-    HVControler::setVoltage(voltage);
+    if(serialPort)
+        HVControler::setVoltage(voltage);
     settedVoltage = settedVoltageBuf;
+}
+
+void HvMainController::setVoltageBase(double voltage, bool &ok)
+{
+    //Инициализация блока управления.
+    long data = 0x16;
+    ccpc::CamacOp op = NAF(controllerId, 1, 16, data);
+
+    if(!(op.q && op.x))
+    {
+        ok = false;
+        return;
+    }
+
+    data = 0x1E;
+    NAF(controllerId, 1, 16, data);
+
+
+    //Установка нулевого напряжения.
+    data = encodeVoltage(voltage);
+    NAF(controllerId, 0, 16, data);
+
+    long databuf;
+    //Проверка того, что напряжение установилось
+    NAF(controllerId, 0, 0, databuf);
+
+    if(data != databuf)
+    {
+        ok = false;
+        return;
+    }
+
+    ok = true;
+    return;
 }
 
 void HvMainController::correctVoltage()
@@ -231,17 +242,25 @@ void HvMainController::correctVoltage()
             {
                 lastVoltage = actualVoltage[0];
 
-                //вычисление корректирующего напряжения
+                //корректирование производится только в случае,
+                //если напряжение выше начального смещения
+                if(actualVoltage[0] > initialShift)
+                {
+                    //вычисление корректирующего напряжения
 
-                double delta = settedVoltage - actualVoltage[0];
-                if(qAbs(delta) < maxCorrection)
-                {
-                    qDebug() << tr("correctiong voltage by %1 v").arg(delta);
-                    setVoltageShift(initialShift + delta);
-                }
-                else
-                {
-                    LOG(WARNING) << tr("Volatage error (%1) < max correction (%2)").arg(delta).arg(maxCorrection).toStdString();
+                    double delta = settedVoltage - actualVoltage[0];
+
+                    delta *= 0.5;
+
+                    if(qAbs(delta) < maxCorrection)
+                    {
+                        qDebug() << tr("correctiong voltage by %1 v").arg(delta);
+                        setVoltageShift(initialShift + delta);
+                    }
+                    else
+                    {
+                        LOG(WARNING) << tr("Volatage error (%1) < max correction (%2)").arg(delta).arg(maxCorrection).toStdString();
+                    }
                 }
             }
         }

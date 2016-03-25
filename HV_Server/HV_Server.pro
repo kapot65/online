@@ -34,10 +34,13 @@ include(../ccpc/ccpc.pri)
 
 INCLUDEPATH += $$PWD
 
+CONFIG(debug, debug|release){
+DEFINES += TEST_MODE
+}
 
 contains(QT_MAJOR_VERSION, 5){
 
-DEFINES += TEST_MODE \
+DEFINES += \
            VIRTUAL_MODE
 
 CONFIG += c++11
