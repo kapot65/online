@@ -40,6 +40,8 @@ signals:
      */
     void voltageSetAndCheckDone(QVariantMap status);
 
+    void startCorrect();
+
 public slots:
     /*!
      * \brief Устанавливает напряжение. Если напряжение выходит за границы
@@ -121,9 +123,29 @@ protected:
     /// \brief Название контролера.
     QString controllerName;
 
+    /// \brief Максимально возможная величина корректирующего смещения в вольтах.
+    double maxCorrection;
+
+    /*!
+     * \brief коэффициент затухания поправки при коррекции напряжения. Должен быть в пределах [0, 1]
+     */
+    double correctionCoefficient;
+
+    /*!
+     * \brief Стоп-флаг для цикла коррекции напряжения
+     */
+    bool stopFlag;
+
     // ComPort interface
 protected slots:
     void readMessage();
+
+    virtual void setVoltageShift(double voltage);
+
+    /*!
+     * \brief Коррекция напряжения
+     */
+    virtual void correctVoltage();
 };
 
 #endif // HVCONTROLER_H

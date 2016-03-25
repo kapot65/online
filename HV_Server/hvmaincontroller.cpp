@@ -25,13 +25,6 @@ HvMainController::HvMainController(IniManager *manager, QString controllerName, 
         coefOk = false;
     }
 
-    if(!manager->getSettingsValue(controllerName, "maxCorrection").isValid())
-    {
-        manager->setSettingsValue(controllerName, "maxCorrection", 40);
-    }
-
-    maxCorrection = manager->getSettingsValue(controllerName, "maxCorrection").toDouble();
-
     if(!manager->getSettingsValue(controllerName, "initialShift").isValid())
     {
         manager->setSettingsValue(controllerName, "initialShift", 100);
@@ -66,9 +59,6 @@ HvMainController::HvMainController(IniManager *manager, QString controllerName, 
                 TcpProtocol::setOk(false, ok);
         }
     }
-
-    connect(this, SIGNAL(startCorrect()), this, SLOT(correctVoltage()), Qt::QueuedConnection);
-    emit startCorrect();
 }
 
 HvMainController::~HvMainController()
@@ -249,8 +239,7 @@ void HvMainController::correctVoltage()
                     //вычисление корректирующего напряжения
 
                     double delta = settedVoltage - actualVoltage[0];
-
-                    delta *= 0.5;
+                    delta *= correctionCoefficient;
 
                     if(qAbs(delta) < maxCorrection)
                     {

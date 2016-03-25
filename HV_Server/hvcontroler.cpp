@@ -48,8 +48,6 @@ HVControler::HVControler(IniManager *manager, QString controllerName, double *vo
 
     busyFlag = 0;
 
-    settedVoltage = -1;
-
 #ifdef TEST_MODE
     qDebug() << tr("%1 working in thread: ").arg(controllerName) << QThread::currentThreadId();
 #endif
@@ -63,6 +61,20 @@ HVControler::HVControler(IniManager *manager, QString controllerName, double *vo
         TcpProtocol::setOk(false, ok);
         return;
     }
+
+    //старт коррекции напряжения
+    if(!manager->getSettingsValue(controllerName, "maxCorrection").isValid())
+        manager->setSettingsValue(controllerName, "maxCorrection", 40);
+    maxCorrection = manager->getSettingsValue(controllerName, "maxCorrection").toDouble();
+
+    if(!manager->getSettingsValue(controllerName, "correctionCoefficient").isValid())
+        manager->setSettingsValue(controllerName, "correctionCoefficient", 0.5);
+    correctionCoefficient = manager->getSettingsValue(controllerName, "correctionCoefficient").toDouble();
+
+    settedVoltage = -1;
+
+    connect(this, SIGNAL(startCorrect()), this, SLOT(correctVoltage()), Qt::QueuedConnection);
+    emit startCorrect();
 }
 
 void HVControler::setVoltage(double voltage)
@@ -234,6 +246,53 @@ void HVControler::readMessage()
             curr_data.chop(1);
             emit receiveFinished();
             break;
+        }
+    }
+}
+
+void HVControler::setVoltageShift(double voltage)
+{
+    double settedVoltageBuf = settedVoltage;
+
+    //установка смещения через основной блок
+    if(serialPort)
+        setVoltage(settedVoltage + voltage);
+
+    settedVoltage = settedVoltageBuf;
+}
+
+void HVControler::correctVoltage()
+{
+    QEventLoop el;
+    QTimer timer;
+    connect(&timer,SIGNAL(timeout()), &el, SLOT(quit()));
+
+    double lastVoltage = actualVoltage[0];
+
+    timer.start(1000);
+
+    while(!stopFlag)
+    {
+        el.exec();
+        if(settedVoltage != -1)
+        {
+            //если напряжение изменилось
+            if(lastVoltage != actualVoltage[0])
+            {
+                lastVoltage = actualVoltage[0];
+
+                //вычисление корректирующего напряжения
+                double delta = settedVoltage - actualVoltage[0];
+                delta *= correctionCoefficient;
+
+                if(qAbs(delta) < maxCorrection)
+                {
+                    qDebug() << tr("correctiong voltage by %1 v").arg(delta);
+                    setVoltageShift(delta);
+                }
+                else
+                    LOG(WARNING) << tr("Volatage error (%1) < max correction (%2)").arg(delta).arg(maxCorrection).toStdString();
+            }
         }
     }
 }

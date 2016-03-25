@@ -24,17 +24,14 @@ protected slots:
      * \brief Установка смещения через com port.
      * \param voltage Напряжение в вольтах.
      */
-    void setVoltageShift(double voltage);
+    virtual void setVoltageShift(double voltage);
 
     void setVoltageBase(double voltage, bool &ok);
 
     /*!
      * \brief Здесь происходит коррекция напряжения в цикле
      */
-    void correctVoltage();
-
-signals:
-    void startCorrect();
+    virtual void correctVoltage();
 
 private:
     void setVoltage(double voltage, bool &ok);
@@ -65,17 +62,9 @@ private:
      */
     double a1;
 
-    /// \brief Максимально возможная величина корректирующего смещения в вольтах.
-    double maxCorrection;
-
     /// \brief Часть от общего напряжения, которая будет задаваться через com порт, а не через ЦАП.
     /// Эта величина нужна для возможности проводить отрицательную коррекцию напряжения.
     double initialShift;
-
-    /*!
-     * \brief Стоп-флаг для цикла коррекции напряжения
-     */
-    bool stopFlag;
 
 };
 
