@@ -21,6 +21,12 @@ TempFolder::~TempFolder()
 
 }
 
+QString TempFolder::getFolderPath()
+{
+    QString folderPath = QDir::homePath() + "/" + folderName;
+    return folderPath;
+}
+
 quint64 TempFolder::dir_size(const QString & str)
 {
     quint64 sizex = 0;

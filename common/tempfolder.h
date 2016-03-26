@@ -18,7 +18,7 @@ public:
      * \brief Возвращает путь в временной папке.
      * \return Путь к временной папке.
      */
-    QString getFolderPath(){return QDir::homePath() + "/" + folderName;}
+    QString getFolderPath();
 
 signals:
 

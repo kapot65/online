@@ -7,7 +7,7 @@
 #include <common.h>
 
 // настройки логгера
-#if __cplusplus == 201103L
+#ifdef EL_CPP11
     INITIALIZE_EASYLOGGINGPP
 #else
     _INITIALIZE_EASYLOGGINGPP

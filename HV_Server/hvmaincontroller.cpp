@@ -3,8 +3,6 @@
 HvMainController::HvMainController(IniManager *manager, QString controllerName, double *voltage, bool *ok, QObject *parent)
     : HVControler(manager, controllerName, voltage, ok, parent), CCPCCommands()
 {
-    stopFlag = false;
-
     bool coefOk = true;
 
     if(!manager->getSettingsValue(controllerName, "ControlerCCPCId").isValid())
@@ -63,7 +61,6 @@ HvMainController::HvMainController(IniManager *manager, QString controllerName, 
 
 HvMainController::~HvMainController()
 {
-    stopFlag = true;
 #ifndef TEST_MODE
     delete camac;
 #endif

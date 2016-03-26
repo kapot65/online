@@ -4,47 +4,55 @@
 #include <easylogging++.h>
 #include <QSettings>
 #include <QDir>
+#include <QTimer>
+#include <tempfolder.h>
 
-void initLogging(int argc, char *argv[])
+/*!
+ * \brief Инициализация логгирования
+ * \param redirectLogs Перенаправление логов в созданную папку. Если для хранения логов будет
+ * использоваться tempFolder, то этому параметру нужно присвоить значение false.
+ */
+void initLogging(int argc, char *argv[], bool redirectLogs = true)
 {
-    // настройки логгера
-    QDateTime curr_datetime = QDateTime::currentDateTime();
-
-    QSettings settings(QObject::tr("%1Settings.ini").arg(BIN_NAME), QSettings::IniFormat);
-
-
-    if(!settings.contains("log_dir"))
+    if(redirectLogs)
     {
+        // настройки логгера
+        QDateTime curr_datetime = QDateTime::currentDateTime();
+        QSettings settings(QObject::tr("%1Settings.ini").arg(BIN_NAME), QSettings::IniFormat);
+
+        if(!settings.contains("log_dir"))
+        {
 #ifdef Q_OS_LINUX
-        settings.setValue("log_dir", QObject::tr("/home/Logs/%1").arg(BIN_NAME));
+            settings.setValue("log_dir", QObject::tr("/home/logs/%1").arg(BIN_NAME));
 #endif
 
 #ifdef Q_OS_WIN
-        settings.setValue("log_dir", QObject::tr("C:/Logs/%1").arg(BIN_NAME));
+            settings.setValue("log_dir", QObject::tr("%1/logs/%2").arg(QDir::homePath()).arg(BIN_NAME));
+#endif
+        }
+
+        QString logDir = settings.value("log_dir").toString();
+
+#ifdef Q_OS_LINUX
+        QDir().mkpath(logDir);
+#endif
+
+#ifdef Q_OS_WIN
+        QDir().mkpath(logDir);
+#endif
+
+#ifdef EL_CPP11
+        el::Loggers::reconfigureAllLoggers(el::ConfigurationType::Filename,
+                                             (logDir +
+                                              curr_datetime.toString("/log_yyyyMMdd-hhmmss.zzz")).toStdString());
+#else
+        easyloggingpp::Loggers::reconfigureAllLoggers(easyloggingpp::ConfigurationType::Filename,
+                                         (logDir +
+                                          curr_datetime.toString("/log_yyyyMMdd-hhmmss.zzz")).toStdString());
 #endif
     }
 
-    QString logDir = settings.value("log_dir").toString();
-
-#ifdef Q_OS_LINUX
-        QDir().mkpath(QDir::homePath() + logDir);
-#endif
-
-#ifdef Q_OS_WIN
-        QDir().mkpath(QDir::homePath() + logDir);
-#endif
-
-#if __cplusplus == 201103L
-    el::Loggers::reconfigureAllLoggers(el::ConfigurationType::Filename,
-                                         (logDir +
-                                          curr_datetime.toString("/log_yyyyMMdd-hhmmss.zzz")).toStdString());
-#else
-    easyloggingpp::Loggers::reconfigureAllLoggers(easyloggingpp::ConfigurationType::Filename,
-                                     (logDir +
-                                      curr_datetime.toString("/log_yyyyMMdd-hhmmss.zzz")).toStdString());
-#endif
-
-#if __cplusplus == 201103L
+#ifdef EL_CPP11
         START_EASYLOGGINGPP(argc, argv);
 #else
         _START_EASYLOGGINGPP(argc, argv);
@@ -81,6 +89,38 @@ void logModes()
     #ifdef VIRTUAL_MODE
         LOG(INFO) << "Programm run in virtual mode";
     #endif
+}
+
+/*!
+ * \brief инициализация директории с временными файлами.
+ * Создает Объект временной папки и перенаправляет логи туда.
+ * \param folderPath относительный путь к папке
+ * \param maxSizeMbytes максимальный размер папки
+ */
+TempFolder* initTempFolder(QString folderPath, int maxSizeMbytes = 200)
+{
+    TempFolder *tempFolder = new TempFolder(folderPath, maxSizeMbytes);
+    QDateTime curr_datetime = QDateTime::currentDateTime();
+
+    //начальная очистка папки
+    tempFolder->clear();
+
+    //обновление каждые 2 минуты
+    QTimer *timer = new QTimer(tempFolder);
+    QObject::connect(timer, SIGNAL(timeout()), tempFolder, SLOT(clear()));
+    timer->start(120000);
+
+    #ifdef EL_CPP11
+    el::Loggers::reconfigureAllLoggers(el::ConfigurationType::Filename,
+                                         (tempFolder->getFolderPath() +
+                                          curr_datetime.toString("/log_yyyyMMdd-hhmmss.zzz")).toStdString());
+    #else
+    easyloggingpp::Loggers::reconfigureAllLoggers(easyloggingpp::ConfigurationType::Filename,
+                                     (tempFolder->getFolderPath() +
+                                      curr_datetime.toString("/log_yyyyMMdd-hhmmss.zzz")).toStdString());
+    #endif
+
+    return tempFolder;
 }
 
 #endif // COMMON_H

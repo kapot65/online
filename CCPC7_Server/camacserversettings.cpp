@@ -47,7 +47,7 @@ bool CamacServerSettings::loadSettings()
         TERMINAL2 = getSettingsValue("CamacAlgoritm", "TERMINAL2").toInt();
 
         //считывание уровня логирования
-#if __cplusplus == 201103L
+#ifdef EL_CPP11
         logLevel = el::LevelHelper::convertFromString("warning");
 #else
         //logLevel = el::LevelHelper::convertFromString("warning");
@@ -57,7 +57,7 @@ bool CamacServerSettings::loadSettings()
         {
             QString logLevelStr = getSettingsValue("General", "LogLevel").toString();
 
-#if __cplusplus == 201103L
+#ifdef EL_CPP11
             if(el::LevelHelper::convertFromString(logLevelStr.toStdString().c_str()) != el::Level::Unknown)
                 logLevel = el::LevelHelper::convertFromString(logLevelStr.toStdString().c_str());
 #else

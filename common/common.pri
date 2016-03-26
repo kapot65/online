@@ -18,7 +18,11 @@ INCLUDEPATH *= $${PWD}
 DEFINES *= BIN_NAME=\\\"$$TARGET\\\"
 
 HEADERS *= \
-    $${PWD}/common.h
+    $${PWD}/common.h \
+    $${PWD}/tempfolder.h
+
+SOURCES *= \
+    $${PWD}/tempfolder.cpp
 
 RESOURCES += \
     $${PWD}/resources.qrc

@@ -80,7 +80,7 @@ public:
      */
     int getTERMINAL2(){ return TERMINAL2; }
 
-#if __cplusplus == 201103L
+#ifdef EL_CPP11
     el::Level getLogLevel(){return logLevel;}
 #else
     //easyloggingpp::Level getLogLevel(){return;}
@@ -130,7 +130,7 @@ private:
     ///индекс TERMINAL2
     int TERMINAL2;
 
-#if __cplusplus == 201103L
+#ifdef EL_CPP11
     el::Level logLevel;
 #else
     //easyloggingpp::Level logLevel;

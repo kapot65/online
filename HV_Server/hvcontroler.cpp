@@ -72,9 +72,15 @@ HVControler::HVControler(IniManager *manager, QString controllerName, double *vo
     correctionCoefficient = manager->getSettingsValue(controllerName, "correctionCoefficient").toDouble();
 
     settedVoltage = -1;
+    stopFlag = false;
 
     connect(this, SIGNAL(startCorrect()), this, SLOT(correctVoltage()), Qt::QueuedConnection);
     emit startCorrect();
+}
+
+HVControler::~HVControler()
+{
+    stopFlag = true;
 }
 
 void HVControler::setVoltage(double voltage)
@@ -282,7 +288,7 @@ void HVControler::correctVoltage()
                 lastVoltage = actualVoltage[0];
 
                 //вычисление корректирующего напряжения
-                double delta = settedVoltage - actualVoltage[0];
+                double delta = -(settedVoltage - actualVoltage[0]);
                 delta *= correctionCoefficient;
 
                 if(qAbs(delta) < maxCorrection)

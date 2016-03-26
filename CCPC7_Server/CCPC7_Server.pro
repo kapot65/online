@@ -37,7 +37,6 @@ SOURCES += main.cpp\
     commandhandler.cpp \
     camacserversettings.cpp \
     camacserverhandler.cpp \
-    tempfolder.cpp \
     camacalgoritm.cpp
 
 HEADERS  += \
@@ -45,5 +44,4 @@ HEADERS  += \
     commandhandler.h \
     camacserversettings.h \
     camacserverhandler.h \
-    tempfolder.h \
     camacalgoritm.h

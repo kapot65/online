@@ -74,7 +74,8 @@ double TcpProtocol::madsTimeToNSecCoeff(int measureTime)
 
 int TcpProtocol::correctMeasureTime(unsigned short measureTime)
 {
-    QMap<int, unsigned short>::iterator it = TcpProtocol::getAviableMeasuteTimes().lowerBound(measureTime);
+    QMap<int, unsigned short> aviableMeasuteTimes = TcpProtocol::getAviableMeasuteTimes();
+    QMap<int, unsigned short>::iterator it = aviableMeasuteTimes.lowerBound(measureTime);
     return it.key();
 }
 

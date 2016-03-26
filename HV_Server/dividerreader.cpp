@@ -2,6 +2,10 @@
 
 DividerReader::DividerReader(QString DividerName, IniManager *manager, QObject *parent) : ComPort(manager, parent)
 {
+#ifdef VIRTUAL_MODE
+    qsrand(QDateTime::currentMSecsSinceEpoch());
+#endif
+
     inited = 0;
     classInited = 0;
     stopFlag = 0;
@@ -125,9 +129,9 @@ void DividerReader::getVoltage()
 
 #else
     QEventLoop el;
-    QTimer::singleShot(2000, &el, SLOT(quit()));
+    QTimer::singleShot(4000, &el, SLOT(quit()));
     el.exec();
-    double raw_voltage = -0.05;
+    double raw_voltage = -0.05 + ((double)qrand()/(double)RAND_MAX - 0.5)*0.002;
 #endif
 
     LOG(INFO) << QString("%1 (%2 * %3)").arg(raw_voltage * dividerNormCoeff)

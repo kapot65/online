@@ -8,7 +8,7 @@ CamacServer::CamacServer(int port, CamacServerSettings *settings, QObject *paren
     this->settings = settings;
 
 //установка соответсвующего уровня логирования
-#if __cplusplus == 201103L
+#ifdef EL_CPP11
     el::Loggers::setLoggingLevel(settings->getLogLevel());
 #else
     //easyloggingpp::Loggers::setLoggingLevel(settings->getLogLevel());

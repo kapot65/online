@@ -260,7 +260,6 @@ void CommandHandler::processAcquirePoint(QVariantMap message)
     //корректирование длительности набора
     acqisitionTime = TcpProtocol::correctMeasureTime(acqisitionTime);
 
-
     bool manuallyBreak;
     QDateTime acqDateTimeStart = QDateTime::currentDateTime();
 
@@ -291,7 +290,7 @@ void CommandHandler::processAcquirePoint(QVariantMap message)
                                                                        JSON_METATYPE, POINT_DIRECT_BINARY);
 
     //запись точки во временную папку
-    QFile pointFile(tr("%1/%2%3.point").arg(tempFolder).arg(acqDateTimeStart.toString("yyyyMMddhhmmsszzz")));
+    QFile pointFile(tr("%1/%2.point").arg(tempFolder).arg(acqDateTimeStart.toString("yyyy_MM_dd_hh-mm-ss.zzz")));
     pointFile.open(QIODevice::WriteOnly);
     pointFile.write(prepairedMessage);
     pointFile.close();

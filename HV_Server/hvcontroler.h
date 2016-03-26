@@ -21,6 +21,7 @@ public:
      * \param ok Успешность создания класса. Если происходят ошибки при создании - они записываются в лог.
      */
     explicit HVControler(IniManager *manager, QString controllerName, double* voltage, bool *ok = 0,  QObject *parent = 0);
+    ~HVControler();
 
 signals:
     /*!

@@ -634,7 +634,7 @@
 #include <common.h>
 
 // настройки логгера
-#if __cplusplus == 201103L
+#ifdef EL_CPP11
     INITIALIZE_EASYLOGGINGPP
 #else
     _INITIALIZE_EASYLOGGINGPP
@@ -643,6 +643,7 @@
 int main(int argc, char *argv[])
 {
     setCodecs();
+    initLogging(argc, argv);
     logModes();
 
     LOG(INFO) << "Programm started";
@@ -654,6 +655,5 @@ int main(int argc, char *argv[])
     CamacClientForm cF;
     cF.showMaximized();
 
-    
     return a.exec();
 }
