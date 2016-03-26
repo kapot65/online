@@ -42,6 +42,19 @@ private:
      * Используются для пересчета времен.
      */
     static QMap<int, unsigned short> aviableMeasureTimes;
+
+    /*!
+     * \brief Вытаскивает события из данных в формате Point
+     */
+    void extractEventsFromPointData(QVector<double> &time_abs, QVector<double> &time,
+                                    QVector<double> &event_data, QVariantMap meta,
+                                    QVector<Event> events);
+    /*!
+     * \brief Вытаскивает события из данных в формате Miltipoint (точка, разделенная на блоки по 5с)
+     */
+    void extractEventsFromMultiPointData(QVector<double> &time_abs, QVector<double> &time,
+                                         QVector<double> &event_data, QVariantMap meta,
+                                         QVector<Event> events);
 };
 
 #endif // POINTFILEDRAWER_H

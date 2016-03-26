@@ -241,6 +241,13 @@ void OnlineForm::visualizeScenario(QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant
                                        .arg(scenario[i].second.toMap()["time"].toInt()));
                 break;
             }
+        case ACQUIRE_MULTIPOINT:
+            {
+                scenarioList.push_back(tr("Сбор точки с разделением %1 (%2s)")
+                                       .arg(scenario[i].second.toMap()["index"].toInt())
+                        .arg(scenario[i].second.toMap()["time"].toInt()));
+                break;
+            }
         case WAIT:
             {
                 scenarioList.push_back(tr("Ожидание %1s")

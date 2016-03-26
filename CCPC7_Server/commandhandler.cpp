@@ -257,24 +257,68 @@ void CommandHandler::processAcquirePoint(QVariantMap message)
     }
 
     int acqisitionTime = message.value("acquisition_time").toInt();
-    //корректирование длительности набора
-    acqisitionTime = TcpProtocol::correctMeasureTime(acqisitionTime);
+
+    QVector<Event> events;
+
+    //создание выходного сообщения
+    QVariantMap messageToSend;
 
     bool manuallyBreak;
-    QDateTime acqDateTimeStart = QDateTime::currentDateTime();
+    if(message.value("split", false).toBool())
+    {
+        QStringList datesTimesStart;
+        QStringList datesTimesEnd;
+        QVariantList eventsInBlock;
+        int realAcqisitionTime = 0;
 
-    //сбор точки
-    QVector<Event> events = acquirePoint(acqisitionTime, &manuallyBreak);
+        //разделение всего времени набора на пакеты по 5 секунд
+        for(int i = 0; i < acqisitionTime; i += 5)
+        {
+            QDateTime acqDateTimeStart = QDateTime::currentDateTime();
+            QVector<Event> curr_events = acquirePoint(5, &manuallyBreak);
+            QDateTime acqDateTimeEnd = QDateTime::currentDateTime();
 
-    QDateTime acqDateTimeEnd = QDateTime::currentDateTime();
+            realAcqisitionTime += 5;
 
-    //создание сообщения
-    QVariantMap messageToSend;
+            //заполнение полей для метаданных
+            datesTimesStart.push_back(acqDateTimeStart.toString(Qt::ISODate));
+            datesTimesEnd.push_back(acqDateTimeEnd.toString(Qt::ISODate));
+            eventsInBlock.push_back(curr_events.size());
+
+            events += curr_events;
+
+            if(manuallyBreak)
+                break;
+        }
+
+        //сбор пакета
+        messageToSend["time_coeff"] = TcpProtocol::madsTimeToNSecCoeff(5);
+        messageToSend["start_time"] = datesTimesStart;
+        messageToSend["end_time"] = datesTimesEnd;
+        messageToSend["events"] = eventsInBlock;
+        messageToSend["split"] = true;
+        acqisitionTime = realAcqisitionTime;
+    }
+    else
+    {
+        //корректирование длительности набора
+        acqisitionTime = TcpProtocol::correctMeasureTime(acqisitionTime);
+
+        QDateTime acqDateTimeStart = QDateTime::currentDateTime();
+
+        //сбор точки
+        events = acquirePoint(acqisitionTime, &manuallyBreak);
+
+        QDateTime acqDateTimeEnd = QDateTime::currentDateTime();
+
+        messageToSend.insert("start_time", acqDateTimeStart.toString(Qt::ISODate));
+        messageToSend.insert("end_time", acqDateTimeEnd.toString(Qt::ISODate));
+        messageToSend["time_coeff"] = TcpProtocol::madsTimeToNSecCoeff(acqisitionTime);
+    }
+
+    //запись в сообщение общих параметров
     messageToSend["programm_revision"] = APP_REVISION;
     messageToSend["type"] = "reply";
-    messageToSend["time_coeff"] = TcpProtocol::madsTimeToNSecCoeff(acqisitionTime);
-    messageToSend.insert("start_time", acqDateTimeStart.toString(Qt::ISODate));
-    messageToSend.insert("end_time", acqDateTimeEnd.toString(Qt::ISODate));
     messageToSend.insert("reply_type", "aquired_point");
     messageToSend.insert("status", "ok");
     messageToSend.insert("total_events", QString().number(events.size()));
@@ -290,7 +334,8 @@ void CommandHandler::processAcquirePoint(QVariantMap message)
                                                                        JSON_METATYPE, POINT_DIRECT_BINARY);
 
     //запись точки во временную папку
-    QFile pointFile(tr("%1/%2.point").arg(tempFolder).arg(acqDateTimeStart.toString("yyyy_MM_dd_hh-mm-ss.zzz")));
+    QFile pointFile(tr("%1/%2.point").arg(tempFolder).arg(QDateTime::currentDateTime()
+                                                          .toString("yyyy_MM_dd_hh-mm-ss.zzz")));
     pointFile.open(QIODevice::WriteOnly);
     pointFile.write(prepairedMessage);
     pointFile.close();

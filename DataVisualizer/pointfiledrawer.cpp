@@ -66,10 +66,21 @@ void PointFileDrawer::setMetaDataToTable()
         setMetaTableText(0, 1, tr("дата сбора"));
         setMetaTableText(1, 1, meta["date"].toString());
     }
+
     setMetaTableText(0, 2, tr("время начала сбора"));
-    setMetaTableText(1, 2, meta["start_time"].toString());
     setMetaTableText(0, 3, tr("время конца сбора"));
-    setMetaTableText(1, 3, meta["end_time"].toString());
+
+    if(meta.value("split", false).toBool())
+    {
+        setMetaTableText(1, 2, meta["start_time"].toStringList().first());
+        setMetaTableText(1, 3, meta["end_time"].toStringList().last());
+    }
+    else
+    {
+        setMetaTableText(1, 2, meta["start_time"].toString());
+        setMetaTableText(1, 3, meta["end_time"].toString());
+    }
+
     setMetaTableText(0, 4, tr("количество событий"));
     setMetaTableText(1, 4, meta["total_events"].toString());
     setMetaTableText(0, 5, tr("время сбора"));
@@ -138,6 +149,90 @@ void PointFileDrawer::setColor(QColor color)
 
 QMap<int, unsigned short> PointFileDrawer::aviableMeasureTimes = TcpProtocol::getAviableMeasuteTimes();
 
+void PointFileDrawer::extractEventsFromPointData(QVector<double> &time_abs, QVector<double> &time, QVector<double> &event_data,
+                                                 QVariantMap meta, QVector<Event> events)
+{
+    QDateTime start_datetime;
+    QDateTime end_datetime;
+
+    //обработка старого форамата (с отдельной датой)
+    if(meta.contains("date"))
+    {
+        QDate date = QDate::fromString(meta["date"].toString(), "yyyy.MM.dd");
+        QTime start_time = QTime::fromString(meta["start_time"].toString(), "hh:mm:ss.zzz");
+        QTime end_time = QTime::fromString(meta["end_time"].toString(), "hh:mm:ss.zzz");
+
+        start_datetime = QDateTime(date, start_time);
+        end_datetime = QDateTime(date, end_time);
+    }
+    else //новый формат хранения
+    {
+        start_datetime = QDateTime::fromString(meta["start_time"].toString(), Qt::ISODate);
+        end_datetime = QDateTime::fromString(meta["end_time"].toString(), Qt::ISODate);
+    }
+
+    int acquisitionTime = 5;
+    //попытка получить точное время из метаданных
+    if(meta.contains("acquisition_time"))
+    {
+        acquisitionTime = meta["acquisition_time"].toInt();
+        acquisitionTime = aviableMeasureTimes.lowerBound(acquisitionTime).key();
+    }
+    else
+    {
+        double raw_time = (double)(end_datetime.toMSecsSinceEpoch()
+                                   - start_datetime.toMSecsSinceEpoch())/1000.;
+        acquisitionTime = aviableMeasureTimes.lowerBound(raw_time + 1).key();
+    }
+
+    //коэффициент нормирования относительного времени
+    double coeff = TcpProtocol::madsTimeToNSecCoeff(acquisitionTime);
+    //коэффициент перевода относительного времени в миллисекунды
+    double coeff_abs = coeff/qPow(10,6);
+
+    //создание графиков с абсолютным и относительным временем
+    for(int i =0; i< events.size(); i++)
+    {
+        time[i] = coeff*events[i].time;
+        //вычисление абсолютного времени
+        time_abs[i] = (double)start_datetime.toMSecsSinceEpoch()
+                                     + coeff_abs*events[i].time;
+        event_data[i] = events[i].data;
+    }
+}
+
+void PointFileDrawer::extractEventsFromMultiPointData(QVector<double> &time_abs, QVector<double> &time, QVector<double> &event_data,
+                                                      QVariantMap meta, QVector<Event> events)
+{
+    QStringList start_times = meta["start_time"].toStringList();
+    QVariantList eventsInBlock = meta["events"].toList();
+    int acquisitionTime = 5;
+
+    //коэффициент нормирования относительного времени
+    double coeff = TcpProtocol::madsTimeToNSecCoeff(acquisitionTime);
+    //коэффициент перевода относительного времени в миллисекунды
+    double coeff_abs = coeff/qPow(10,6);
+
+//    end_datetime = QDateTime::fromString(meta["end_time"].toString(), Qt::ISODate);
+
+    int i = 0;
+    QDateTime startTime = QDateTime::fromString(start_times.first(), Qt::ISODate);
+    for(int j = 0; j < start_times.size(); j++)
+    {
+        int currBlockSize = eventsInBlock[j].toInt();
+        QDateTime currBlockStartTime = QDateTime::fromString(start_times[j], Qt::ISODate);
+        int currBlockMSecOffset = currBlockStartTime.toMSecsSinceEpoch() - startTime.toMSecsSinceEpoch();
+        for(int k = 0; k < currBlockSize; k++, i++)
+        {
+            time[i] = currBlockMSecOffset*qPow(10,6) + coeff*events[i].time;
+            //вычисление абсолютного времени
+            time_abs[i] = (double)currBlockStartTime.toMSecsSinceEpoch()
+                          + coeff_abs*events[i].time;
+            event_data[i] = events[i].data;
+        }
+    }
+}
+
 void PointFileDrawer::update()
 {
     //файл рисуется только один раз, т.к. он не обновляется
@@ -162,55 +257,10 @@ void PointFileDrawer::update()
         QVector<double> time_abs(events.size());
         QVector<double> event_data(events.size());
 
-        //получение абсолютного времени из метаданных
-
-        QDateTime start_datetime;
-        QDateTime end_datetime;
-
-        //обработка старого форамата (с отдельной датой)
-        if(meta.contains("date"))
-        {
-            QDate date = QDate::fromString(meta["date"].toString(), "yyyy.MM.dd");
-            QTime start_time = QTime::fromString(meta["start_time"].toString(), "hh:mm:ss.zzz");
-            QTime end_time = QTime::fromString(meta["end_time"].toString(), "hh:mm:ss.zzz");
-
-            start_datetime = QDateTime(date, start_time);
-            end_datetime = QDateTime(date, end_time);
-        }
-        else //новый формат хранения
-        {
-            start_datetime = QDateTime::fromString(meta["start_time"].toString(), Qt::ISODate);
-            end_datetime = QDateTime::fromString(meta["end_time"].toString(), Qt::ISODate);
-        }
-
-        int acquisitionTime = 5;
-        //попытка получить точное время из метаданных
-        if(meta.contains("acquisition_time"))
-        {
-            acquisitionTime = meta["acquisition_time"].toInt();
-            acquisitionTime = aviableMeasureTimes.lowerBound(acquisitionTime).key();
-        }
+        if(meta.value("split", false).toBool())
+            extractEventsFromMultiPointData(time_abs, time, event_data, meta, events);
         else
-        {
-            double raw_time = (double)(end_datetime.toMSecsSinceEpoch()
-                                       - start_datetime.toMSecsSinceEpoch())/1000.;
-            acquisitionTime = aviableMeasureTimes.lowerBound(raw_time + 1).key();
-        }
-
-        //коэффициент нормирования относительного времени
-        double coeff = TcpProtocol::madsTimeToNSecCoeff(acquisitionTime);
-        //коэффициент перевода относительного времени в миллисекунды
-        double coeff_abs = coeff/qPow(10,6);
-
-        //создание графиков с абсолютным и относительным временем
-        for(int i =0; i< events.size(); i++)
-        {
-            time[i] = coeff*events[i].time;
-            time_abs[i] = (double)start_datetime.toMSecsSinceEpoch()
-                                         + coeff_abs*events[i].time;
-            event_data[i] = events[i].data;
-            //вычисление абсолютного времени
-        }
+            extractEventsFromPointData(time_abs, time, event_data, meta, events);
 
         graph_absolute.push_back(plot->addGraph());
         graph_absolute.last()->addData(time_abs, event_data);

@@ -74,8 +74,11 @@ public slots:
      * \details Создает Json сообщение и посылает его на сервер.
      * В случае успешного инициализирования присылает сигнал CCPC7Handler::pointAcquired
      * Сигнал приходит не сразу, а с задержкой, близкой к времени сбора
+     * \param time Время набора точки в секундах
+     * \param external_meta сторонние метаданные (вернутся в метаданных точки в полу "external_meta")
+     * \param splitPoint Флаг разделения точки на куски по 5 секунд
      */
-    void acquirePoint(int time, QVariant external_meta = 0);
+    void acquirePoint(int time, QVariant external_meta = 0, bool splitPoint = false);
 
     /*!
      * \brief Метод для ручного прерывания сбора.

@@ -261,6 +261,16 @@
         </widget>
        </item>
        <item>
+        <widget class="QCheckBox" name="splitPointBox">
+         <property name="text">
+          <string>блоками по 5с</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QLabel" name="label">
          <property name="text">
           <string>время сбора:</string>

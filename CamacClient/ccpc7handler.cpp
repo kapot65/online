@@ -69,7 +69,7 @@ void CCPC7Handler::initServer(bool *ok)
     TcpProtocol::setOk(true, ok);
 }
 
-void CCPC7Handler::acquirePoint(int time, QVariant external_meta)
+void CCPC7Handler::acquirePoint(int time, QVariant external_meta, bool splitPoint)
 {
     if(hasError())
         return;
@@ -86,6 +86,9 @@ void CCPC7Handler::acquirePoint(int time, QVariant external_meta)
     message.insert("type", "command");
     message.insert("command_type", "acquire_point");
     message.insert("acquisition_time", QString().number(time));
+
+    if(splitPoint)
+        message["split"] = true;
 
     if(external_meta != 0)
         message["external_meta"] = external_meta;

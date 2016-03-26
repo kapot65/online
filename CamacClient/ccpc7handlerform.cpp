@@ -85,10 +85,14 @@ void CCPC7HandlerForm::on_acquirePointButton_clicked()
 {
     dataVisualizerForm->openDir("temp");
 
+    bool splitPoint = ui->splitPointBox->isChecked();
+
 #if QT_VERSION >= 0x050300
-    ccpc7Handler->acquirePoint(ui->acquisitionTimeBox->currentData().toInt());
+    ccpc7Handler->acquirePoint(ui->acquisitionTimeBox->currentData().toInt(),
+                               0, splitPoint);
 #else
-    ccpc7Handler->acquirePoint(ui->acquisitionTimeBox->currentText().toInt());
+    ccpc7Handler->acquirePoint(ui->acquisitionTimeBox->currentText().toInt(),
+                               0, splitPoint);
 #endif
 }
 

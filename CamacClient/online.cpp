@@ -356,6 +356,7 @@ bool Online::processScenarioImpl(QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> 
             }
 
         case ACQUIRE_POINT:
+        case ACQUIRE_MULTIPOINT:
             {
                 QVariantMap meta = command.second.toMap();
                 if(!meta.contains("time"))
@@ -386,7 +387,11 @@ bool Online::processScenarioImpl(QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> 
                 connect(ccpcHandler, SIGNAL(unhandledError(QVariantMap)), &el, SLOT(quit()));
 
 
-                ccpcHandler->acquirePoint(time, ext_metadata);
+                if(command.first == ACQUIRE_MULTIPOINT)
+                    ccpcHandler->acquirePoint(time, ext_metadata, true);
+                else
+                    ccpcHandler->acquirePoint(time, ext_metadata, false);
+
                 el.exec();
 
                 //если выход прошел по стопу - остановка сбора точки
@@ -456,6 +461,7 @@ int Online::approximateScenarioTime(QVector<QPair<SCENARIO_COMMAND_TYPE, QVarian
         switch (scenario[i].first)
         {
             case ACQUIRE_POINT:
+            case ACQUIRE_MULTIPOINT:
             {
                 //время на передачу данных
                 timeMSec += 500;
@@ -493,7 +499,10 @@ QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> > Online::constructReverseScenari
 
    for(int i = scenario.size() - 1; i >= 2; i -= 3)
    {
-       if(scenario[i].first == ACQUIRE_POINT &&
+       bool firstCondition = (scenario[i].first == ACQUIRE_POINT) ||
+                             (scenario[i].first == ACQUIRE_MULTIPOINT);
+
+       if(firstCondition &&
           scenario[i - 1].first == SET_VOLTAGE_AND_CHECK &&
           scenario[i - 2].first == SET_VOLTAGE_AND_CHECK)
        {
@@ -503,7 +512,7 @@ QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> > Online::constructReverseScenari
        }
        else
            if(i >= 3 &&
-              scenario[i].first == ACQUIRE_POINT &&
+              firstCondition &&
               scenario[i - 1].first == WAIT &&
               scenario[i - 2].first == SET_VOLTAGE &&
               scenario[i - 3].first == SET_VOLTAGE)
@@ -515,7 +524,7 @@ QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> > Online::constructReverseScenari
                i--;
            }
            else
-               if(scenario[i].first == ACQUIRE_POINT &&
+               if(firstCondition &&
                   scenario[i - 1].first == WAIT &&
                   scenario[i - 2].first == SET_VOLTAGE)
                {
@@ -610,7 +619,7 @@ QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> > Online::parseScenario(QString s
             args["time"] = tr("%1").arg(time);
             args["index"] = tr("%1").arg(point_index++);
 
-            scenario.push_back(qMakePair(ACQUIRE_POINT, QVariant(args)));
+            scenario.push_back(qMakePair(ACQUIRE_MULTIPOINT, QVariant(args)));
 
             i += 3;
             continue;
@@ -725,8 +734,11 @@ QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> > Online::parseScenario(QString s
             continue;
         }
 
-        if(!elements[i].compare("ACQUIRE_POINT", Qt::CaseInsensitive))
+        if((!elements[i].compare("ACQUIRE_POINT", Qt::CaseInsensitive)) ||
+           (!elements[i].compare("ACQUIRE_MULTIPOINT", Qt::CaseInsensitive)))
+
         {
+            bool multipoint = !elements[i].compare("ACQUIRE_MULTIPOINT", Qt::CaseInsensitive);
             //проверка граничности
             if( elements.size() < i + 1 )
             {
@@ -740,7 +752,11 @@ QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> > Online::parseScenario(QString s
             //block
             bool parseOk;
             QVariantMap meta;
-            meta["time"] = tr("%1").arg(TcpProtocol::correctMeasureTime(elements[i+1].toInt(&parseOk)));
+            if(!multipoint)
+                meta["time"] = TcpProtocol::correctMeasureTime(elements[i+1].toInt(&parseOk));
+            else
+                meta["time"] = elements[i+1].toInt(&parseOk);
+
             meta["index"] = tr("%1").arg(point_index++);
             if(!parseOk)
             {
@@ -751,8 +767,12 @@ QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> > Online::parseScenario(QString s
                 return QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> >();
             }
 
+            SCENARIO_COMMAND_TYPE command = ACQUIRE_POINT;
+            if(multipoint)
+                command = ACQUIRE_MULTIPOINT;
+
             scenario.push_back(QPair<SCENARIO_COMMAND_TYPE, QVariant>
-                               (ACQUIRE_POINT, meta));
+                               (command, meta));
             i += 1;
             continue;
         }
