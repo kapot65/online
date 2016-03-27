@@ -110,11 +110,18 @@ public:
     bool processScenarioImpl(QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> > scenario);
 
     /*!
-     * \brief Метод вычисляет примерное время обработки сигнала.
+     * \brief Метод вычисляет примерное время обработки сценария.
      * \param scenario Сценарий.
      * \return Время выполнения сценария в секундах.
      */
     static int approximateScenarioTime(QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> > scenario);
+
+    /*!
+     * \brief Метод вычисляет примерное время обработки операции сценария.
+     * \param step операция сценария
+     * \return Примерное время выполнения в секундах
+     */
+    static double approximateOperationTime(QPair<SCENARIO_COMMAND_TYPE, QVariant> step);
 
     /*!
      * \brief Метод конструирует сценарий обратной сборки.
@@ -153,10 +160,15 @@ signals:
     void scenario_done();
 
     /*!
+     * \brief Сценарий начал исполняться. Испускается методом Online::processScenario.
+     */
+    void scenario_start();
+
+    /*!
      * \brief Сценарий находится на шаге step. Испускается методом Online::processScenario.
      * \param step текущий шаг.
      */
-    void at_step(int step);
+    void at_step(int step, int step_time = 0);
 
     /*!
      * \brief Испускается при запросе на остановку сценария через Online::stop.
@@ -187,11 +199,6 @@ signals:
      * \param msec Время ожидания в милисееундах.
      */
     void waiting(int msec);
-
-    /*!
-     * \brief Остановка по сценарию. Испускается методом Online::processScenario.
-     */
-    void breaking();
 
     /*!
      * \brief Остановка паузы. Испускается слотом Online::resume.
@@ -340,7 +347,7 @@ private:
     /*!
      * \brief Таймаут проверки напряжения в секундах для HVHandler::setVoltageAndCheck. Задается в конфигурационном файле.
      */
-    int checkVoltageTimeout;
+    static int checkVoltageTimeout;
 
     /*!
      * \brief Максимальное допустимое отклонение напряжения от заданного для функции HVHandler::setVoltageAndCheck. Задается в конфигурационном файле.

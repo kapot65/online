@@ -708,6 +708,7 @@ void Ruler::onTextDestroyed()
 
 QVariant QFileSystemModelCustom::data(const QModelIndex &index, int role) const
 {
+
     if(role == Qt::ToolTipRole)
     {
         if(QFile::exists(filePath(index) + QDir::separator() + "meta") )
@@ -727,7 +728,8 @@ QVariant QFileSystemModelCustom::data(const QModelIndex &index, int role) const
 
             return description;
         }
-
+        else
+            return QFileSystemModel::data(index, role);
     }
     else
         return QFileSystemModel::data(index, role);

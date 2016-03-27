@@ -218,6 +218,8 @@ bool Online::processScenarioImpl(QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> 
     need_pause = 0;
     stop_flag = 0;
 
+    emit scenario_start();
+
     for(int i = 0; i < scenario.size(); i++)
     {
         if(catchUnhandlerErrorFlag)
@@ -227,7 +229,9 @@ bool Online::processScenarioImpl(QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> 
             i = qMax(0, i--);
         }
 
-        emit at_step(i);
+        //получение примерного времени выполнения шага
+        QPair<SCENARIO_COMMAND_TYPE, QVariant> command = scenario[i];
+        emit at_step(i, approximateOperationTime(command));
 
         if(need_pause)
         {
@@ -241,11 +245,11 @@ bool Online::processScenarioImpl(QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> 
         {
             emit sendInfoMessage("Stop acquisition by user request.\n");
             stopHvMonitor(hvMonitor);
+            emit scenario_done();
             folderOk = 0;
             return true;
         }
 
-        QPair<SCENARIO_COMMAND_TYPE, QVariant> command = scenario[i];
         switch (command.first)
         {
         case SET_VOLTAGE:
@@ -437,8 +441,8 @@ bool Online::processScenarioImpl(QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> 
             }
 
         case BREAK:
-            emit breaking();
             stopHvMonitor(hvMonitor);
+            emit scenario_done();
             folderOk = 0;
             return true;
         }
@@ -452,41 +456,64 @@ bool Online::processScenarioImpl(QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> 
     return true;
 }
 
+int Online::checkVoltageTimeout = 0;
+
 int Online::approximateScenarioTime(QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> > scenario)
 {
-    int timeMSec = 0;
+    double timeSec = 0;
 
     for(int i = 0; i < scenario.size(); i++)
     {
-        switch (scenario[i].first)
+        if(scenario[i].first == BREAK)
+            break;
+
+        timeSec += approximateOperationTime(scenario[i]);
+    }
+
+    return timeSec;
+}
+
+double Online::approximateOperationTime(QPair<SCENARIO_COMMAND_TYPE, QVariant> step)
+{
+    double timeMSec = 0;
+    switch (step.first)
+    {
+        case ACQUIRE_POINT:
+        case ACQUIRE_MULTIPOINT:
         {
-            case ACQUIRE_POINT:
-            case ACQUIRE_MULTIPOINT:
-            {
-                //время на передачу данных
-                timeMSec += 500;
-                timeMSec += scenario[i].second.toMap()["time"].toInt() * 1000;
-                break;
-            }
-            case WAIT:
-            {
-                timeMSec += scenario[i].second.toInt();
-                break;
-            }
-            case SET_VOLTAGE:
-            {
-                timeMSec += 200;
-                break;
-            }
-            case SET_VOLTAGE_AND_CHECK:
-            {
-                timeMSec += 12000;
-                break;
-            }
-            case BREAK:
-            {
-                return timeMSec / 1000;
-            }
+            int acqTimeSec = step.second.toMap()["time"].toInt();
+
+            //поправка времени для делимости на блоки по 5с
+            if(step.first == ACQUIRE_MULTIPOINT)
+                if(acqTimeSec%5)
+                    acqTimeSec += 5 - acqTimeSec%5;
+
+            timeMSec += acqTimeSec * 1000;
+
+            //время на передачу данных
+            timeMSec += 500;
+
+
+            break;
+        }
+        case WAIT:
+        {
+            timeMSec += step.second.toInt();
+            break;
+        }
+        case SET_VOLTAGE:
+        {
+            timeMSec += 200;
+            break;
+        }
+        case SET_VOLTAGE_AND_CHECK:
+        {
+            timeMSec += checkVoltageTimeout * 1000;
+            break;
+        }
+        case BREAK:
+        {
+            return 0;
         }
     }
 

@@ -257,10 +257,12 @@ void PointFileDrawer::update()
         QVector<double> time_abs(events.size());
         QVector<double> event_data(events.size());
 
+
         if(meta.value("split", false).toBool())
             extractEventsFromMultiPointData(time_abs, time, event_data, meta, events);
         else
             extractEventsFromPointData(time_abs, time, event_data, meta, events);
+
 
         graph_absolute.push_back(plot->addGraph());
         graph_absolute.last()->addData(time_abs, event_data);

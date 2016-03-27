@@ -228,6 +228,13 @@
       </layout>
      </item>
      <item>
+      <widget class="QProgressBar" name="stepProgressBar">
+       <property name="value">
+        <number>24</number>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QLabel" name="scenario_time_label">
        <property name="text">
         <string/>
@@ -235,10 +242,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QLabel" name="waitSpinnerLabel">
-       <property name="enabled">
-        <bool>true</bool>
-       </property>
+      <widget class="QLabel" name="iterationTimeElapsedLabel">
        <property name="text">
         <string/>
        </property>

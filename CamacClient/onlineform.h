@@ -24,6 +24,30 @@ class OnlineForm;
 }
 
 /*!
+ * \brief Класс для вывода времени, прошедшего с начала итерации на форму OnlineForm.
+ * Работает в отдельном потоке. Стартуется через QThread::start. Отсчет завершается с помощью
+ * метода OnlineFormTimeWatcher::stopTimer.
+ */
+class OnlineFormTimeWatcher : public QThread
+{
+    Q_OBJECT
+public:
+    /*!
+     * \param timeLabel QLabel, куда будет выводится отсчет
+     */
+    OnlineFormTimeWatcher(QLabel *timeLabel,
+                          QObject *parent = NULL);
+    void stopTimer(){scenarioRunning = false;}
+
+private:
+    QLabel *timeLabel;
+    bool scenarioRunning;
+    // QThread interface
+protected:
+    virtual void run();
+};
+
+/*!
  * \brief Окно для проведения набора в режиме Онлайн.
  * \todo Сделать уведомление об инициализации вольтметров.
  * \todo Центрировать текущий шаг в таблице.
@@ -53,7 +77,7 @@ private slots:
 
     void on_stopButton_clicked();
 
-    void setScenarioStage(int stage);
+    void setScenarioStage(int stage, int stage_time);
 
     void on_iterationsBox_valueChanged(int arg1);
 
@@ -68,6 +92,21 @@ private slots:
     void processWorkStatus(bool working);
 
     void processInfoMessage(QString message);
+
+    /*!
+     * \brief Обработка начала выполнения итерации сценария. Соединен с
+     * сигналом Online::scenario_start.
+     * \details Начинает отсчет времени с начала итерации сценария
+     */
+    void processScenarioStart();
+
+    /*!
+     * \brief Обработка завершения выполнения итерации сценария. Соединен с
+     * сигналом Online::scenario_done.
+     * \details Заканчивает отсчет времени с начала итерации сценария
+     */
+    void processScenarioDone();
+
 
 private:
     /*!
@@ -133,6 +172,8 @@ private:
      * \brief Таймер очистки информационного лейбла.
      */
     QTimer infoMessageWipeTimer;
+
+    OnlineFormTimeWatcher *timeWatcher;
 
     QStringListModel *model;
     void visualizeScenario(QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> > scenario);

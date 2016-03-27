@@ -36,9 +36,13 @@ void OnlineForm::refreshGroupCompleter()
 void OnlineForm::processWorkStatus(bool working)
 {
     if(working)
-        ui->waitSpinnerLabel->show();
+    {
+        ui->stepProgressBar->show();
+    }
     else
-        ui->waitSpinnerLabel->hide();
+    {
+        ui->stepProgressBar->hide();
+    }
 }
 
 void OnlineForm::processInfoMessage(QString message)
@@ -49,6 +53,8 @@ void OnlineForm::processInfoMessage(QString message)
 
     infoMessageWipeTimer.start(10000);
 }
+
+
 
 OnlineForm::OnlineForm(CCPC7Handler *ccpc7Handler, HVHandler *hvHandler,
                        DataVisualizerForm *dataVisualizerForm, Online *online,
@@ -68,11 +74,6 @@ OnlineForm::OnlineForm(CCPC7Handler *ccpc7Handler, HVHandler *hvHandler,
     groupCompleter = NULL;
 
     ui->setupUi(this);
-
-    QMovie *waitSpinnerMovie = new QMovie(":/gif/resources/ajax-loader.gif", QByteArray(), this);
-    ui->waitSpinnerLabel->setMovie(waitSpinnerMovie);
-    ui->waitSpinnerLabel->hide();
-    waitSpinnerMovie->start();
 
     ui->operatorSurnameLabel->setToolTip(tr("Обязательный параметр."));
     ui->sessionLabel->setToolTip(tr("Обязательный параметр."));
@@ -119,10 +120,11 @@ OnlineForm::OnlineForm(CCPC7Handler *ccpc7Handler, HVHandler *hvHandler,
 
     connect(online, SIGNAL(foldersPrepaired(QString)),
             dataVisualizerForm, SLOT(openDir(QString)), Qt::QueuedConnection);
+
     connect(online, SIGNAL(scenario_done()),
             dataVisualizerForm, SLOT(clear()), Qt::QueuedConnection);
 
-    connect(online, SIGNAL(at_step(int)), this, SLOT(setScenarioStage(int)), Qt::QueuedConnection);
+    connect(online, SIGNAL(at_step(int,int)), this, SLOT(setScenarioStage(int,int)), Qt::QueuedConnection);
 
     connect(online, SIGNAL(workStatusChanged(bool)), this, SLOT(processWorkStatus(bool)), Qt::QueuedConnection);
 
@@ -132,6 +134,18 @@ OnlineForm::OnlineForm(CCPC7Handler *ccpc7Handler, HVHandler *hvHandler,
     refreshGroupCompleter();
 
     connect(ui->sessionEdit, SIGNAL(editingFinished()), this, SLOT(refreshGroupCompleter()));
+
+    //настройка вывода прогресса
+    ui->stepProgressBar->setValue(0);
+    ui->stepProgressBar->hide();
+
+    timeWatcher = new OnlineFormTimeWatcher(ui->iterationTimeElapsedLabel, this);
+
+    connect(online, SIGNAL(scenario_done()),
+            this, SLOT(processScenarioDone()), Qt::DirectConnection);
+
+    connect(online, SIGNAL(scenario_start()),
+            this, SLOT(processScenarioStart()), Qt::DirectConnection);
 }
 
 OnlineForm::~OnlineForm()
@@ -572,7 +586,7 @@ void OnlineForm::on_stopButton_clicked()
     }
 }
 
-void OnlineForm::setScenarioStage(int stage)
+void OnlineForm::setScenarioStage(int stage, int stage_time)
 {
 #ifdef TEST_MODE
     qDebug()<<"setting stage:" << stage;
@@ -589,6 +603,26 @@ void OnlineForm::setScenarioStage(int stage)
     }
 
     ui->scenarioView->scrollToItem(ui->scenarioView->item(stage));
+
+    ui->stepProgressBar->setValue(0);
+
+    QTimer timerStep;
+    QTimer timerSecond;
+    QEventLoop el;
+
+    connect(&timerStep, SIGNAL(timeout()), &timerStep, SLOT(stop()));
+    connect(&timerSecond, SIGNAL(timeout()), &el, SLOT(quit()));
+
+    timerStep.start(stage_time * 1000);
+    timerSecond.start(1000);
+    int seconds = 0;
+
+    while(timerStep.isActive())
+    {
+        el.exec();
+        seconds++;
+        ui->stepProgressBar->setValue(((double)seconds/(double)stage_time)*100);
+    }
 }
 
 void OnlineForm::on_iterationsBox_valueChanged(int arg1)
@@ -602,10 +636,20 @@ void OnlineForm::on_iterationsBox_valueChanged(int arg1)
 
     int sec = curr_scenario_process_time * iterations;
 
-    ui->scenario_time_label->setText(tr("Примерное время выполнения: %1ч %2мин %3с")
-                                     .arg(sec / (60*60))
-                                     .arg(sec / 60)
-                                     .arg(sec % 60));
+    QString iterTime = tr("время на одну итерацию: %1ч %2мин %3с")
+                          .arg(curr_scenario_process_time / (60*60))
+                          .arg(curr_scenario_process_time / 60)
+                          .arg(curr_scenario_process_time % 60);
+
+    if(sec)
+        ui->scenario_time_label->setText(tr("Примерное время выполнения: "
+                                            "%1ч %2мин %3с (%4)")
+                                         .arg(sec / (60*60))
+                                         .arg(sec / 60)
+                                         .arg(sec % 60)
+                                         .arg(iterTime));
+    else
+        ui->scenario_time_label->setText(iterTime);
 }
 
 void OnlineForm::on_sessionEdit_editingFinished()
@@ -632,11 +676,57 @@ void OnlineForm::on_checkUserForNextStep_stateChanged(int arg1)
 {
     switch (arg1) {
     case Qt::Unchecked:
-        disconnect(online, SIGNAL(at_step(int)), online, SLOT(pause()));
+        disconnect(online, SIGNAL(at_step(int,int)), online, SLOT(pause()));
         break;
     case Qt::Checked:
-        connect(online, SIGNAL(at_step(int)), online, SLOT(pause()));
+        connect(online, SIGNAL(at_step(int,int)), online, SLOT(pause()));
     default:
         break;
+    }
+}
+
+OnlineFormTimeWatcher::OnlineFormTimeWatcher(QLabel *timeLabel, QObject *parent) : QThread(parent)
+{
+    this->timeLabel = timeLabel;
+    scenarioRunning = false;
+}
+
+void OnlineForm::processScenarioStart()
+{
+    QEventLoop el;
+    connect(timeWatcher, SIGNAL(finished()), &el, SLOT(quit()));
+
+    if(timeWatcher->isRunning())
+        el.exec();
+
+    timeWatcher->start();
+}
+
+void OnlineForm::processScenarioDone()
+{
+    timeWatcher->stopTimer();
+}
+
+void OnlineFormTimeWatcher::run()
+{
+    timeLabel->clear();
+
+    QTime time;
+
+    time.start();
+
+    QTimer timerSecond;
+    QEventLoop el;
+
+    connect(&timerSecond, SIGNAL(timeout()), &el, SLOT(quit()));
+
+    scenarioRunning = true;
+    timerSecond.start(1000);
+    while(scenarioRunning)
+    {
+        el.exec();
+        timeLabel->setText(tr("Время с начала итерации: %1")
+                           .arg(QTime::fromMSecsSinceStartOfDay(time.elapsed())
+                                .toString(Qt::ISODate)));
     }
 }
