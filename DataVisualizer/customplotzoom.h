@@ -19,7 +19,10 @@ class CustomPlotZoom : public QCustomPlot
     Q_OBJECT
 
 public:
-    CustomPlotZoom(QWidget * parent = 0);
+    /*!
+     * \param posLabel Указатель на лейбл, куда будут записываться текущее положение курсора
+     */
+    CustomPlotZoom(QLabel *posLabel = 0, QWidget * parent = 0);
     virtual ~CustomPlotZoom();
 
     /*!
@@ -37,6 +40,8 @@ private:
     bool mZoomMode;
     QRubberBand * mRubberBand;
     QPoint mOrigin;
+
+    QLabel *posLabel;
 };
 
 #endif // CUSTOMPLOTZOOM_H

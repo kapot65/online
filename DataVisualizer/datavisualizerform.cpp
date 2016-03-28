@@ -37,7 +37,7 @@ DataVisualizerForm::DataVisualizerForm(bool interactive, QSettings *settings, QW
     ui->saveGraphs->setVisible(false);
 #endif
 
-    CustomPlotZoom *zPlot = new CustomPlotZoom(this);
+    CustomPlotZoom *zPlot = new CustomPlotZoom(ui->mousePosLabel, this);
     zPlot->setZoomMode(true);
     plot = zPlot;
     ui->plotFrame->layout()->addWidget(plot);

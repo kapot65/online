@@ -1,11 +1,13 @@
 #include <QRubberBand>
 #include <customplotzoom.h>
 
-CustomPlotZoom::CustomPlotZoom(QWidget * parent)
+CustomPlotZoom::CustomPlotZoom(QLabel* posLabel, QWidget * parent)
     : QCustomPlot(parent)
     , mZoomMode(false)
     , mRubberBand(new QRubberBand(QRubberBand::Rectangle, this))
-{}
+{
+    this->posLabel = posLabel;
+}
 
 CustomPlotZoom::~CustomPlotZoom()
 {
@@ -37,6 +39,16 @@ void CustomPlotZoom::mouseMoveEvent(QMouseEvent * event)
     {
         mRubberBand->setGeometry(QRect(mOrigin, event->pos()).normalized());
     }
+
+    //запись текущих координат
+    if(posLabel)
+    {
+        double x = xAxis->pixelToCoord(event->pos().x());
+        double y = yAxis->pixelToCoord(event->pos().y());
+
+        posLabel->setText(tr("Положение курсора: ( %1,\t%2 )").arg(x).arg(y));
+    }
+
     QCustomPlot::mouseMoveEvent(event);
 }
 
