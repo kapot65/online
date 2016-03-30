@@ -445,7 +445,7 @@ void CamacAlgoritm::readMADCData(unsigned short &data, long &time, bool &valid)
     data = data & 0x0FFF;
 }
 
-void CamacAlgoritm::setMADCAddr(long &addr, unsigned short &measureTime)
+void CamacAlgoritm::setMADCAddr(long &addr, int measureTime)
 {
     QMap<int, unsigned short>::iterator it = aviableMeasureTimes.lowerBound(measureTime);
 

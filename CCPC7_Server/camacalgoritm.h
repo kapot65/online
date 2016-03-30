@@ -137,7 +137,7 @@ private:
      * \param [in] addr Адрес.
      * \param [in] measureTime Код времени измерений. Берется из TcpProtocol::getAviableMeasuteTimes.
      */
-    void setMADCAddr(long &addr, unsigned short &measureTime);
+    void setMADCAddr(long &addr, int measureTime);
 
     /*!
      * \brief Считывает текущий адрес, флаг переполнения и флаг окончания измерений с MADC.
