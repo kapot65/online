@@ -15,12 +15,13 @@ CONFIG   -= app_bundle
 TARGET = CCPC7_Server
 TEMPLATE = app
 
-DEFINES += \
-    VIRTUAL_MODE\
-    TEST_MODE
+CONFIG(debug, debug|release){
+    DEFINES += TEST_MODE
+}
 
 greaterThan(QT_MAJOR_VERSION, 4){
     CONFIG += c++11
+    DEFINES += VIRTUAL_MODE
 } else {
     #QMAKE_CXXFLAGS += -std=c++11
 }

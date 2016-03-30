@@ -6,6 +6,7 @@
 #include <QRubberBand>
 #include <qcustomplot.h>
 #include <QWidget>
+#include <QLabel>
 
 /*!
  * \brief Виджет QCustomPlot с поддержкой увеличения по окну.

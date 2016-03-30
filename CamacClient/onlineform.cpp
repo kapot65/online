@@ -725,8 +725,13 @@ void OnlineFormTimeWatcher::run()
     while(scenarioRunning)
     {
         el.exec();
+#if QT_VERSION >= 0x050000
         timeLabel->setText(tr("Время с начала итерации: %1")
                            .arg(QTime::fromMSecsSinceStartOfDay(time.elapsed())
                                 .toString(Qt::ISODate)));
+#else
+        timeLabel->setText(tr("Время с начала итерации: %1")
+                           .arg(QTime(0,0).addMSecs(time.elapsed()).toString(Qt::ISODate)));
+#endif
     }
 }

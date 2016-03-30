@@ -14,8 +14,13 @@ greaterThan(QT_MAJOR_VERSION, 4){
     CONFIG += serialport
 }
 
+CONFIG(debug, debug|release){
+    DEFINES += TEST_MODE
+}
+
 greaterThan(QT_MAJOR_VERSION, 4){
     CONFIG += c++11
+    DEFINES += VIRTUAL_MODE
 } else {
     #QMAKE_CXXFLAGS += -std=c++11
 }
@@ -33,18 +38,6 @@ include(../easylogging.pri)
 include(../ccpc/ccpc.pri)
 
 INCLUDEPATH += $$PWD
-
-CONFIG(debug, debug|release){
-DEFINES += TEST_MODE
-}
-
-contains(QT_MAJOR_VERSION, 5){
-
-DEFINES += \
-           VIRTUAL_MODE
-
-CONFIG += c++11
-}
 
 SOURCES += main.cpp\
     hvserver.cpp \

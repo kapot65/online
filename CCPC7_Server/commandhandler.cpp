@@ -1,4 +1,5 @@
 #include "commandhandler.h"
+#include <QStringList>
 
 bool CommandHandler::checkInit()
 {
