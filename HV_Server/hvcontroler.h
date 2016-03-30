@@ -137,6 +137,9 @@ protected:
      */
     bool stopFlag;
 
+protected:
+    double lastCorrectionVoltage;
+
     // ComPort interface
 protected slots:
     void readMessage();
