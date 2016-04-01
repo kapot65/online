@@ -92,8 +92,12 @@ void HvMainController::setVoltage(double voltage, bool &ok)
     {
         //обнуление напряжения на блоке смещения
         lastCorrectionVoltage = 0;
+
         //установка напряжения
         setVoltageShift(voltage - initialShift);
+
+        lastCorrectionVoltage = 0;
+
         setVoltageBase(0, ok);
         return;
     }
