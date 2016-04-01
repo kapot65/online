@@ -332,7 +332,7 @@ void CommandHandler::processAcquirePoint(QVariantMap message)
         messageToSend.insert("breaked", "true");
 
     QByteArray prepairedMessage = TcpProtocol::createMessageWithPoints(messageToSend, events,
-                                                                       JSON_METATYPE, POINT_DIRECT_BINARY);
+                                                                       metatype, POINT_DIRECT_BINARY);
 
     //запись точки во временную папку
     QFile pointFile(tr("%1/%2.point").arg(tempFolder).arg(QDateTime::currentDateTime()
@@ -365,10 +365,12 @@ void CommandHandler::processBreakAcquisition(QVariantMap message)
     busyFlag = 0;
 }
 
-CommandHandler::CommandHandler(CamacServerSettings *settings, QObject *parent): CamacAlgoritm(parent)
+CommandHandler::CommandHandler(CamacServerSettings *settings, METATYPE metatype, QObject *parent): CamacAlgoritm(parent)
 {
     camac = 0;
     busyFlag = 0;
+
+    this->metatype = metatype;
 
 #ifdef VIRTUAL_MODE
     bool initFlag = 0;

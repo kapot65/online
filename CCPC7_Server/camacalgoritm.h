@@ -8,9 +8,6 @@
 #include <QFile>
 #include <QTime>
 #include <qmath.h>
-#ifdef TEST_MODE
-    #include <QDebug>
-#endif
 
 #include <QTimer>
 #include <QEventLoop>

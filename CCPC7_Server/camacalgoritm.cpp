@@ -1,5 +1,9 @@
 #include "camacalgoritm.h"
 
+#if defined(TEST_MODE) || defined(VIRTUAL_MODE)
+    #include <QDebug>
+#endif
+
 CamacAlgoritm::CamacAlgoritm(QObject *parent) : CCPCCommands(), QObject(parent)
 {
     breakFlag = 0;

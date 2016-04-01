@@ -25,7 +25,7 @@ class CommandHandler : public CamacAlgoritm
 {
     Q_OBJECT
 public:
-    CommandHandler(CamacServerSettings *settings, QObject *parent = 0);
+    CommandHandler(CamacServerSettings *settings, METATYPE metatype, QObject *parent = 0);
 
     /*!
      * \brief Ручная проверка занятости устройства.
@@ -104,6 +104,11 @@ private:
 
     ///Флаг занятости устройства.
     bool busyFlag;
+
+    /*!
+     * \brief Формат метаданных, передаваемый сервером
+     */
+    METATYPE metatype;
 
 #ifdef VIRTUAL_MODE
     ///
