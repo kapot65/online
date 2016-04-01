@@ -267,8 +267,8 @@ void CommandHandler::processAcquirePoint(QVariantMap message)
     bool manuallyBreak;
     if(message.value("split", false).toBool())
     {
-        QStringList datesTimesStart;
-        QStringList datesTimesEnd;
+        QVariantList datesTimesStart;
+        QVariantList datesTimesEnd;
         QVariantList eventsInBlock;
         int realAcqisitionTime = 0;
 
