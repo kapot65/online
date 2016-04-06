@@ -84,6 +84,12 @@ HVControler::~HVControler()
 
 void HVControler::setVoltage(double voltage)
 {
+    if(voltage == settedVoltage)
+    {
+        emit setVoltageDone();
+        return;
+    }
+
 #ifdef TEST_MODE
     qDebug() << QThread::currentThreadId() << tr("%1: setting %2 volts on block.")
                                                 .arg(controllerName).arg(voltage);
