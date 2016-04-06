@@ -308,8 +308,17 @@ bool Online::processScenarioImpl(QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> 
                 connect(this, SIGNAL(stop_scenario()), &el, SLOT(quit()));
 
 
-                hvHandler->setVoltageAndCheck(args["block"].toInt(),
-                                              args["voltage"].toDouble(), checkVoltageError, checkVoltageTimeout);
+                int block = args["block"].toInt();
+
+                double voltage = args["voltage"].toDouble();
+                double voltageError = checkVoltageError;
+
+                //Если заданное на основном блоке напряжение равно нулю, то берется грубая ошибка,
+                //т.к. вблизи нуля коррекция напряжения не производится
+                if((block == 1) && (voltage == 0))
+                    voltageError = 10;
+
+                hvHandler->setVoltageAndCheck(block, voltage, voltageError, checkVoltageTimeout);
                 el.exec();
 
                 QVariantMap answerMeta = hvHandler->getLastVoltageAndCheckMeta();
@@ -596,8 +605,7 @@ QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> > Online::parseScenario(QString s
             //сборка аргументов
             bool parseOk;
             int time = elements[i+1].toInt(&parseOk);
-            //корректировка времени
-            time = TcpProtocol::correctMeasureTime(time);
+
             //проверка правильности парсинга
             if(!parseOk)
             {
@@ -631,13 +639,14 @@ QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> > Online::parseScenario(QString s
             }
 
             QVariantMap args;
-            args["block"] = "2";
-            args["voltage"] = voltageShift;
-
-            scenario.push_back(qMakePair(SET_VOLTAGE_AND_CHECK, QVariant(args)));
 
             args["block"] = "1";
             args["voltage"] = voltageMain;
+
+            scenario.push_back(qMakePair(SET_VOLTAGE_AND_CHECK, QVariant(args)));
+
+            args["block"] = "2";
+            args["voltage"] = voltageShift;
 
             scenario.push_back(qMakePair(SET_VOLTAGE_AND_CHECK, QVariant(args)));
 

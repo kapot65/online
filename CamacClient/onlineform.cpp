@@ -146,6 +146,8 @@ OnlineForm::OnlineForm(CCPC7Handler *ccpc7Handler, HVHandler *hvHandler,
 
     connect(online, SIGNAL(scenario_start()),
             this, SLOT(processScenarioStart()), Qt::DirectConnection);
+
+    ticker = NULL;
 }
 
 OnlineForm::~OnlineForm()
@@ -604,25 +606,17 @@ void OnlineForm::setScenarioStage(int stage, int stage_time)
 
     ui->scenarioView->scrollToItem(ui->scenarioView->item(stage));
 
-    ui->stepProgressBar->setValue(0);
 
-    QTimer timerStep;
-    QTimer timerSecond;
-    QEventLoop el;
-
-    connect(&timerStep, SIGNAL(timeout()), &timerStep, SLOT(stop()));
-    connect(&timerSecond, SIGNAL(timeout()), &el, SLOT(quit()));
-
-    timerStep.start(stage_time * 1000);
-    timerSecond.start(1000);
-    int seconds = 0;
-
-    while(timerStep.isActive())
+    if(ticker)
     {
-        el.exec();
-        seconds++;
-        ui->stepProgressBar->setValue(((double)seconds/(double)stage_time)*100);
+        if(ticker->isRunning())
+            ticker->stopTimer();
+
+        ticker->deleteLater();
     }
+
+    ticker = new ScenarioStepTicker(stage_time, ui->stepProgressBar, this);
+    ticker->start();
 }
 
 void OnlineForm::on_iterationsBox_valueChanged(int arg1)
@@ -733,5 +727,38 @@ void OnlineFormTimeWatcher::run()
         timeLabel->setText(tr("Время с начала итерации: %1")
                            .arg(QTime(0,0).addMSecs(time.elapsed()).toString(Qt::ISODate)));
 #endif
+    }
+}
+
+
+ScenarioStepTicker::ScenarioStepTicker(int stage_time, QProgressBar *bar, QObject *parent) : QThread(parent)
+{
+    this->bar = bar;
+    this->stage_time = stage_time;
+    connect(this, SIGNAL(setBarValue(int)), bar, SLOT(setValue(int)), Qt::QueuedConnection);
+}
+
+void ScenarioStepTicker::stopTimer()
+{
+    stopFlag = true;
+    emit stop();
+}
+
+void ScenarioStepTicker::run()
+{
+    stopFlag == false;
+
+    emit setBarValue(0);
+
+    QEventLoop el;
+    QTimer timer;
+    connect(&timer, SIGNAL(timeout()), &el, SLOT(quit()));
+    connect(this, SIGNAL(stop()), &el, SLOT(quit()));
+    timer.start(1000);
+
+    for(int i = 0; (i < stage_time)&&(!stopFlag); i++)
+    {
+        el.exec();
+        emit setBarValue(((double)(i + 1)/(double)stage_time)*100);
     }
 }
