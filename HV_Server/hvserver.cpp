@@ -109,7 +109,7 @@ void HVServer::dividerSetVoltageDone(QString dividerName)
 
 void HVServer::onDivider2GetVoltageDone(double voltage)
 {
-    voltage2Block = voltage - voltage1Block;
+    voltage2Block = voltage1Block - voltage;
 
 #ifdef TEST_MODE
     LOG(INFO) << "Voltage 2 block:" << voltage2Block;

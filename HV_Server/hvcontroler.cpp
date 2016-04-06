@@ -139,6 +139,8 @@ void HVControler::setVoltage(double voltage)
 
 void HVControler::setVoltageAndCheck(QVariantMap params)
 {
+    qDebug() << QThread::currentThreadId();
+
     QVariantMap answer;
 
     //Проверка корректности входных параметров
@@ -299,7 +301,7 @@ void HVControler::correctVoltage()
                 if(qAbs(lastVoltage[0] - lastVoltage[1]) < (maxCorrection / 20.))
                 {
                     //вычисление корректирующего напряжения
-                    double delta = settedVoltage + actualVoltage[0];
+                    double delta = settedVoltage - actualVoltage[0];
                     delta *= correctionCoefficient;
 
                     if(qAbs(delta) < maxCorrection)
