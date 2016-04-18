@@ -18,6 +18,7 @@ TcpBase::TcpBase(IniManager *manager, QObject *parent) : QThread(parent)
     if(!manager->getSettingsValue(metaObject()->className(), "binary_meta").isValid())
         manager->setSettingsValue(metaObject()->className(), "binary_meta", false);
 
+
     if(manager->getSettingsValue(metaObject()->className(), "binary_meta").toBool())
         metaType = QDATASTREAM_METATYPE;
     else

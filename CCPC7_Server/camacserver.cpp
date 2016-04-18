@@ -14,7 +14,7 @@ CamacServer::CamacServer(int port, CamacServerSettings *settings, QObject *paren
     //easyloggingpp::Loggers::setLoggingLevel(settings->getLogLevel());
 #endif
 
-    cmdHandler = new CommandHandler(settings, this);
+    cmdHandler = new CommandHandler(settings, metaType, this);
 
     //соединение внутренних сигналов со слотами
     connect(this, SIGNAL(receiveMessage(MachineHeader,QVariantMap,QByteArray)),

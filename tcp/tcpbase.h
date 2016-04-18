@@ -78,7 +78,7 @@ protected:
      */
     IniManager* manager;
 
-private:
+protected:
     /*!
      * \brief Тип сериализации метаданных. Берется из конфигурационного файла
      */

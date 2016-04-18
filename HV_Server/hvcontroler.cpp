@@ -74,8 +74,7 @@ HVControler::HVControler(IniManager *manager, QString controllerName, double *vo
     settedVoltage = -1;
     stopFlag = false;
 
-    connect(this, SIGNAL(startCorrect()), this, SLOT(correctVoltage()), Qt::QueuedConnection);
-    emit startCorrect();
+    lastCorrectionVoltage = 0;
 }
 
 HVControler::~HVControler()
@@ -85,6 +84,12 @@ HVControler::~HVControler()
 
 void HVControler::setVoltage(double voltage)
 {
+    if(voltage == settedVoltage)
+    {
+        emit setVoltageDone();
+        return;
+    }
+
 #ifdef TEST_MODE
     qDebug() << QThread::currentThreadId() << tr("%1: setting %2 volts on block.")
                                                 .arg(controllerName).arg(voltage);
@@ -140,6 +145,8 @@ void HVControler::setVoltage(double voltage)
 
 void HVControler::setVoltageAndCheck(QVariantMap params)
 {
+    qDebug() << QThread::currentThreadId();
+
     QVariantMap answer;
 
     //Проверка корректности входных параметров
@@ -239,6 +246,9 @@ void HVControler::run()
     LOG(INFO) << tr("%1 Controller working in virtual mode").arg(controllerName).toStdString();
 #endif
 
+    connect(this, SIGNAL(startCorrect()), this, SLOT(correctVoltage()), Qt::DirectConnection);
+    emit startCorrect();
+
     exec();
 }
 
@@ -262,18 +272,23 @@ void HVControler::setVoltageShift(double voltage)
 
     //установка смещения через основной блок
     if(serialPort)
-        setVoltage(settedVoltage + voltage);
+        setVoltage(settedVoltage + lastCorrectionVoltage +voltage);
+
+    lastCorrectionVoltage += voltage;
 
     settedVoltage = settedVoltageBuf;
 }
 
 void HVControler::correctVoltage()
 {
+    qDebug() << controllerName << " correctVoltage works in " << QThread::currentThread() << " thread";
+
     QEventLoop el;
     QTimer timer;
     connect(&timer,SIGNAL(timeout()), &el, SLOT(quit()));
 
-    double lastVoltage = actualVoltage[0];
+    QList<double> lastVoltage;
+    lastVoltage.push_front(actualVoltage[0]);
 
     timer.start(1000);
 
@@ -283,21 +298,29 @@ void HVControler::correctVoltage()
         if(settedVoltage != -1)
         {
             //если напряжение изменилось
-            if(lastVoltage != actualVoltage[0])
+            if(lastVoltage.first()!= actualVoltage[0])
             {
-                lastVoltage = actualVoltage[0];
+                lastVoltage.push_front(actualVoltage[0]);
+                while(lastVoltage.size() > 3)
+                    lastVoltage.pop_back();
 
-                //вычисление корректирующего напряжения
-                double delta = -(settedVoltage - actualVoltage[0]);
-                delta *= correctionCoefficient;
-
-                if(qAbs(delta) < maxCorrection)
+                if(qAbs(lastVoltage[0] - lastVoltage[1]) < (maxCorrection / 20.))
                 {
-                    qDebug() << tr("correctiong voltage by %1 v").arg(delta);
-                    setVoltageShift(delta);
+                    //вычисление корректирующего напряжения
+                    double delta = settedVoltage - actualVoltage[0];
+                    delta *= correctionCoefficient;
+
+                    if(qAbs(delta) < maxCorrection)
+                    {
+                        LOG(INFO) << tr("correcting %1 voltage by %2 v").arg(controllerName)
+                                       .arg(delta).toStdString();
+
+                        setVoltageShift(delta);
+                    }
+                    else
+                        LOG(WARNING) << tr("Volatage error (%1) < max correction (%2)").arg(delta).arg(maxCorrection).toStdString();
+
                 }
-                else
-                    LOG(WARNING) << tr("Volatage error (%1) < max correction (%2)").arg(delta).arg(maxCorrection).toStdString();
             }
         }
     }

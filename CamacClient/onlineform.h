@@ -47,6 +47,29 @@ protected:
     virtual void run();
 };
 
+class ScenarioStepTicker : public QThread
+{
+    Q_OBJECT
+public:
+    ScenarioStepTicker(int stage_time, QProgressBar *bar, QObject *parent = 0);
+
+public slots:
+    void stopTimer();
+
+signals:
+    void stop();
+    void setBarValue(int val);
+
+private:
+    QProgressBar *bar;
+    bool stopFlag;
+    int stage_time;
+
+    // QThread interface
+protected:
+    void run();
+};
+
 /*!
  * \brief Окно для проведения набора в режиме Онлайн.
  * \todo Сделать уведомление об инициализации вольтметров.
@@ -174,6 +197,7 @@ private:
     QTimer infoMessageWipeTimer;
 
     OnlineFormTimeWatcher *timeWatcher;
+    ScenarioStepTicker *ticker;
 
     QStringListModel *model;
     void visualizeScenario(QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> > scenario);

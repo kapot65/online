@@ -1,5 +1,9 @@
 #include "camacalgoritm.h"
 
+#if defined(TEST_MODE) || defined(VIRTUAL_MODE)
+    #include <QDebug>
+#endif
+
 CamacAlgoritm::CamacAlgoritm(QObject *parent) : CCPCCommands(), QObject(parent)
 {
     breakFlag = 0;
@@ -171,9 +175,10 @@ QVector<Event> CamacAlgoritm::acquirePoint(int measureTime, bool *manuallyBreak)
         getMADCAddr(addr, addrOverflow, endOfMeasurement);
         //количество зафиксированных частиц на текущий момент
         total_events = addr;
-        #ifdef TEST_MODE
-            qDebug() << tr("Total events = %1, aovfl = %2, EoM = %3").arg(total_events).arg(addrOverflow).arg(endOfMeasurement);
-        #endif
+        LOG(INFO) << tr("Total events = %1, aovfl = %2, EoM = %3")
+                     .arg(total_events).arg(addrOverflow)
+                     .arg(endOfMeasurement).toStdString();
+
         emit currentEventCount(total_events);
     }
     while(!addrOverflow && !endOfMeasurement && !breakFlag);
@@ -445,7 +450,7 @@ void CamacAlgoritm::readMADCData(unsigned short &data, long &time, bool &valid)
     data = data & 0x0FFF;
 }
 
-void CamacAlgoritm::setMADCAddr(long &addr, unsigned short &measureTime)
+void CamacAlgoritm::setMADCAddr(long &addr, int measureTime)
 {
     QMap<int, unsigned short>::iterator it = aviableMeasureTimes.lowerBound(measureTime);
 
