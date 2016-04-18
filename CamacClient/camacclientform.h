@@ -166,6 +166,8 @@ private:
     Online *online;
     OnlineForm *onlineForm;
 
+    int logOutputMaxSize;
+
     Ui::CamacClientForm *ui;
 };
 

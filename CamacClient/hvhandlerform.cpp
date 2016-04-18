@@ -22,6 +22,8 @@ HVHandlerForm::HVHandlerForm(HVHandler *hvHandler, IniManager *settingsManager,
     ui->voltageBox->setValue(settingsManager->getSettingsValue("HV_handler", "last_voltage").toDouble());
 
     connect(this, SIGNAL(serverSettingsChanged()), this, SLOT(on_serverSettingsChanged()));
+    connect(hvHandler, SIGNAL(getVoltageDone(QVariantMap)),
+            this, SLOT(displayVoltage(QVariantMap)), Qt::QueuedConnection);
 }
 
 HVHandlerForm::~HVHandlerForm()
@@ -99,4 +101,21 @@ void HVHandlerForm::on_setHVAndCheckButton_clicked()
         block = 2;
 
     hvHandler->setVoltageAndCheck(block, ui->voltageBox->value());
+}
+
+void HVHandlerForm::displayVoltage(QVariantMap meta)
+{
+    int block = meta["block"].toInt();
+    double voltage = meta["voltage"].toDouble();
+
+    switch (block) {
+    case 1:
+        ui->divider1VolatgeDisplay->display(voltage);
+        break;
+    case 2:
+        ui->divider2VolatgeDisplay->display(voltage);
+        break;
+    default:
+        break;
+    }
 }

@@ -66,6 +66,8 @@ private slots:
 
     void on_setHVAndCheckButton_clicked();
 
+    void displayVoltage(QVariantMap meta);
+
 private:
     ///\brief Менеджер настроек.
     IniManager *settingsManager;

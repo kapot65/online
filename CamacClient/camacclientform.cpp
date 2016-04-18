@@ -94,6 +94,11 @@ CamacClientForm::CamacClientForm(QWidget *parent) :
         hvHandlerForm->setEnabled(false);
     }
 
+    if(!manager->settings->value("log_size").isValid())
+        manager->settings->setValue("log_size", 10000);
+
+    logOutputMaxSize = manager->settings->value("log_size").toInt();
+
     //настройка окна онлайн
     online = new Online(manager, ccpc7Handler, hvHandler, this);
     onlineForm = new OnlineForm(ccpc7Handler, hvHandler, dataVisualizerForm, online, manager, this);
@@ -129,6 +134,10 @@ void CamacClientForm::closeEvent(QCloseEvent *e)
 #ifdef TEST_MODE
 void CamacClientForm::showTextOutput(QByteArray output)
 {
+
+    if(ui->output->toPlainText().size() >= logOutputMaxSize)
+        ui->output->clear();
+
     ui->output->insertPlainText(QString("%1\n%2\n")
                                 .arg(QTime::currentTime().toString())
                                 .arg(TcpProtocol::toDebug(output)));
