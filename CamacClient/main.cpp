@@ -652,7 +652,7 @@ int main(int argc, char *argv[])
     qApp->setStyleSheet(getStyleSheet());
 
     CamacClientForm cF;
-    cF.showMaximized();
+    cF.show();
 
     return a.exec();
 }

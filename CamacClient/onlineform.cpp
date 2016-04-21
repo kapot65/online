@@ -597,7 +597,7 @@ void OnlineForm::setScenarioStage(int stage, int stage_time)
 
     ui->scenarioView->scrollToItem(ui->scenarioView->item(stage));
 
-
+    /*
     if(ticker)
     {
         if(ticker->isRunning())
@@ -608,6 +608,7 @@ void OnlineForm::setScenarioStage(int stage, int stage_time)
 
     ticker = new ScenarioStepTicker(stage_time, ui->stepProgressBar, this);
     ticker->start();
+    */
 }
 
 void OnlineForm::on_iterationsBox_valueChanged(int arg1)
