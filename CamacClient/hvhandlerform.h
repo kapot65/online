@@ -3,7 +3,6 @@
 
 #include <QWidget>
 #include <hvhandler.h>
-#include <datavisualizerform.h>
 #ifdef TEST_MODE
 #include <QDebug>
 #endif
@@ -30,7 +29,7 @@ public:
      * \param Указатель на визуализатор
      */
     explicit HVHandlerForm(HVHandler *hvHandler, IniManager *settingsManager,
-                           DataVisualizerForm *dataVisualizerForm, QWidget *parent = 0);
+                           QWidget *parent = 0);
     ~HVHandlerForm();
 
     //bool haveError(){return haveError;}
@@ -71,9 +70,6 @@ private slots:
 private:
     ///\brief Менеджер настроек.
     IniManager *settingsManager;
-
-    ///\brief Указатель на класс для визуализации данных.
-    DataVisualizerForm *dataVisualizerForm;
 
     ///\brief Флаг предупреждения.
     bool haveWarning;

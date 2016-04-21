@@ -1,5 +1,8 @@
 #include "camacclientform.h"
 #include "ui_camacclientform.h"
+#include <QProcess>
+#include <QFileDialog>
+#include <QCloseEvent>
 
 void CamacClientForm::restoreSettings()
 {
@@ -7,12 +10,6 @@ void CamacClientForm::restoreSettings()
 
     if(!manager->settings->value("advanced_mode").isValid())
         manager->settings->setValue("advanced_mode", false);
-}
-
-void CamacClientForm::setGraphWidget()
-{
-    dataVisualizerForm = new DataVisualizerForm(1, manager->settings, this);
-    ui->graphFrame->layout()->addWidget(dataVisualizerForm);
 }
 
 void CamacClientForm::setCCPC7Handler()
@@ -29,7 +26,7 @@ void CamacClientForm::setCCPC7Handler()
 
 void CamacClientForm::setCCPC7HandlerForm()
 {
-    ccpc7HandlerForm =  new CCPC7HandlerForm(ccpc7Handler, dataVisualizerForm, manager, this);
+    ccpc7HandlerForm =  new CCPC7HandlerForm(ccpc7Handler, manager, this);
     ui->tabWidget->widget(1)->layout()->addWidget(ccpc7HandlerForm);
 
     connect(ccpc7HandlerForm, SIGNAL(sendWarning(QString)), this, SLOT(camacMarkWarning()));
@@ -49,7 +46,7 @@ void CamacClientForm::setHVHandler()
 
 void CamacClientForm::setHVHandlerForm()
 {
-    hvHandlerForm = new HVHandlerForm(hvHandler, manager, dataVisualizerForm, this);
+    hvHandlerForm = new HVHandlerForm(hvHandler, manager, this);
 
     ui->tabWidget->widget(2)->layout()->addWidget(hvHandlerForm);
     //ui->tabWidget->tabBar()->setTabTextColor(2,Qt::red);
@@ -66,19 +63,12 @@ CamacClientForm::CamacClientForm(QWidget *parent) :
     //настройка размеров виджета
     QSize size = this->size();
     QList<int> sizes;
-    sizes.push_back(size.width() * 0.15);
-    sizes.push_back(size.width() * 0.85);
-    ui->splitter_2->setSizes(sizes);
-
-    sizes.clear();
     sizes.push_back(size.height());
     sizes.push_back(0);
     ui->splitter->setSizes(sizes);
 
     //считывание настроек из ini файла
     restoreSettings();
-
-    setGraphWidget();
 
     //настройка обработчика Камак
     setCCPC7Handler();
@@ -101,7 +91,7 @@ CamacClientForm::CamacClientForm(QWidget *parent) :
 
     //настройка окна онлайн
     online = new Online(manager, ccpc7Handler, hvHandler, this);
-    onlineForm = new OnlineForm(ccpc7Handler, hvHandler, dataVisualizerForm, online, manager, this);
+    onlineForm = new OnlineForm(ccpc7Handler, hvHandler, online, manager, this);
     ui->tabWidget->widget(0)->layout()->addWidget(onlineForm);
 
     //настройка главного окошка
@@ -189,4 +179,22 @@ void CamacClientForm::HVMarkReady()
 void CamacClientForm::on_clearLogButton_clicked()
 {
     ui->output->clear();
+}
+
+void CamacClientForm::on_openViewerButton_clicked()
+{
+    if(!manager->getSettingsValue(metaObject()->className(), "dataViewerPath").isValid())
+    {
+        QString dataViewerPath = QFileDialog::getOpenFileName(this,
+                                                              tr("Укажите путь до DataViewer"));
+
+        manager->setSettingsValue(metaObject()->className(),
+                                  "dataViewerPath", dataViewerPath);
+    }
+
+    QString path = manager->getSettingsValue(metaObject()->className(),
+                                             "dataViewerPath").toString();
+
+    QProcess::startDetached(tr("%1 --directory=temp/%2").arg(path)
+                            .arg(online->getCurrSubFolder()));
 }

@@ -626,7 +626,6 @@
 #include <QApplication>
 #include <QDir>
 #include <QDateTime>
-#include <datavisualizerform.h>
 #include "camacclientform.h"
 #include <QTextCodec>
 #include <easylogging++.h>

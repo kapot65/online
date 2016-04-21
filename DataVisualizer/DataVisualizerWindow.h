@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QSettings>
 #include <datavisualizerform.h>
 
 namespace Ui {
@@ -17,7 +18,7 @@ class DataVisualizerWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit DataVisualizerWindow(QWidget *parent = 0);
+    explicit DataVisualizerWindow(QString openDirectory = QString(), QWidget *parent = 0);
     ~DataVisualizerWindow();
 
 private slots:

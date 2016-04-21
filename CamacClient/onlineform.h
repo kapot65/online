@@ -5,10 +5,9 @@
 #include <QFileDialog>
 #include <QMessageBox>
 #include <online.h>
+#include <QProgressBar>
 
 #include <QStringListModel>
-
-#include <datavisualizerform.h>
 
 #include "ccpc7handlerform.h"
 #include "hvhandlerform.h"
@@ -81,7 +80,7 @@ class OnlineForm : public QWidget
 
 public:
     explicit OnlineForm(CCPC7Handler *ccpc7Handler, HVHandler *hvHandler,
-                        DataVisualizerForm *dataVisualizerForm, Online *online,
+                        Online *online,
                         IniManager *settingsManager, QWidget *parent = 0);
     ~OnlineForm();
 
@@ -166,8 +165,6 @@ private:
      * в метаинформацию сбора
      */
     QString curr_scenario_raw;
-
-    DataVisualizerForm *dataVisualizerForm;
 
     int curr_scenario_process_time;
     QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> > curr_scenario;

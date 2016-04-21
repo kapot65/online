@@ -4,7 +4,7 @@
 #include <QFileDialog>
 
 
-DataVisualizerWindow::DataVisualizerWindow(QWidget *parent) :
+DataVisualizerWindow::DataVisualizerWindow(QString openDirectory, QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::DataVisualizerWindow)
 {
@@ -19,6 +19,9 @@ DataVisualizerWindow::DataVisualizerWindow(QWidget *parent) :
     ui->setupUi(this);
     form = new DataVisualizerForm(1, settings, this);
     ui->dataVisualizerFrame->layout()->addWidget(form);
+
+    if(!openDirectory.isEmpty())
+        form->openDir(openDirectory);
 
     connect(ui->clearButton, SIGNAL(clicked()), form, SLOT(clear()));
 }

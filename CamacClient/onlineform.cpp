@@ -2,6 +2,7 @@
 #include "ui_onlineform.h"
 #include <QTime>
 #include <QMovie>
+#include <QDirIterator>
 
 void OnlineForm::refreshGroupCompleter()
 {
@@ -57,7 +58,7 @@ void OnlineForm::processInfoMessage(QString message)
 
 
 OnlineForm::OnlineForm(CCPC7Handler *ccpc7Handler, HVHandler *hvHandler,
-                       DataVisualizerForm *dataVisualizerForm, Online *online,
+                       Online *online,
                        IniManager *settingsManager, QWidget *parent) :
     QWidget(parent),
     ui(new Ui::OnlineForm)
@@ -92,7 +93,6 @@ OnlineForm::OnlineForm(CCPC7Handler *ccpc7Handler, HVHandler *hvHandler,
 
     this->ccpc7Handler = ccpc7Handler;
     this->hvHandler = hvHandler;
-    this->dataVisualizerForm = dataVisualizerForm;
     this->online = online;
     this->settingsManager = settingsManager;
 
@@ -117,12 +117,6 @@ OnlineForm::OnlineForm(CCPC7Handler *ccpc7Handler, HVHandler *hvHandler,
     connect(online, SIGNAL(paused()), this, SLOT(onPauseApplied()), Qt::QueuedConnection);
     connect(ui->resumeButton, SIGNAL(clicked()), online, SLOT(resume()));
     connect(online, SIGNAL(stop_pauseLoop()), this, SLOT(onResumeApplied()), Qt::QueuedConnection);
-
-    connect(online, SIGNAL(foldersPrepaired(QString)),
-            dataVisualizerForm, SLOT(openDir(QString)), Qt::QueuedConnection);
-
-    connect(online, SIGNAL(scenario_done()),
-            dataVisualizerForm, SLOT(clear()), Qt::QueuedConnection);
 
     connect(online, SIGNAL(at_step(int,int)), this, SLOT(setScenarioStage(int,int)), Qt::QueuedConnection);
 
@@ -400,7 +394,6 @@ void OnlineForm::on_startButton_clicked()
     ui->outputPathLabel->clear();
     ui->infoLabel->clear();
 
-    dataVisualizerForm->clear();
     QString curr_session = ui->sessionEdit->text();
     QString curr_group = ui->groupEdit->text();
 
@@ -489,8 +482,6 @@ void OnlineForm::on_startButton_clicked()
 
     for(int i = 0 ; ((!iterations) || (i < iterations)) && !stopFlag; i++)
     {
-        //dataVisualizerForm->clear();
-
         if(!online->prepareFolder(curr_session, curr_group, i))
         {
             QMessageBox::critical(this, tr("Ошибка"), tr("Не удалось создать папку во временной директории."

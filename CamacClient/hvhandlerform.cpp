@@ -2,14 +2,13 @@
 #include "ui_hvhandlerform.h"
 
 HVHandlerForm::HVHandlerForm(HVHandler *hvHandler, IniManager *settingsManager,
-                             DataVisualizerForm *dataVisualizerForm, QWidget *parent) :
+                             QWidget *parent) :
     QWidget(parent),
     ui(new Ui::HVHandlerForm)
 {
     ui->setupUi(this);
 
     this->hvHandler = hvHandler;
-    this->dataVisualizerForm = dataVisualizerForm;
 
     haveWarning = 0;
 

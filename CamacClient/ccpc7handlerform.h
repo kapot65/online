@@ -18,7 +18,6 @@
 #include <tcpclient.h>
 #include <QTimer>
 #include "ccpc7handler.h"
-#include <datavisualizerform.h>
 #ifdef TEST_MODE
 #include <QDebug>
 #endif
@@ -42,7 +41,7 @@ public:
      * \param graphViewer Указатель на визуализатор данных
      * \param parent
      */
-    explicit CCPC7HandlerForm(CCPC7Handler *ccpc7Handler, DataVisualizerForm *dataVisualizerForm,
+    explicit CCPC7HandlerForm(CCPC7Handler *ccpc7Handler,
                               IniManager *settingsManager, QWidget *parent = 0);
     ~CCPC7HandlerForm();
     /*!
@@ -121,13 +120,6 @@ private:
     /*!
      * \brief Указатель на визуализатор данных
      */
-    DataVisualizerForm *dataVisualizerForm;
-
-//    /*!
-//     * \brief указатели на текущие графики каунтеров
-//     * \details пока не используются (возможно и не будут)
-//     */
-//    GraphUnit *currCountersGraphs[8];
 
     Ui::CCPC7HandlerForm *ui;
 };

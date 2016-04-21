@@ -6,7 +6,6 @@
 
 #include <easylogging++.h>
 #include "tcpclient.h"
-#include "datavisualizerform.h"
 #include <event.h>
 #include <inimanager.h>
 #include "ccpc7handler.h"
@@ -93,16 +92,14 @@ private slots:
 
     void on_clearLogButton_clicked();
 
+    void on_openViewerButton_clicked();
+
 private:
     /*!
      * \brief Восстанавливает настройки из ini файла
      */
     void restoreSettings();
 
-    /*!
-     * \brief Создает и натсраивает виджет с графиками
-    */
-    void setGraphWidget();
     /*!
      * \brief Устанавливает обработчик сервера СCPC7
      * \details Создает обработчика и устанавливает связи с главным окошком, а именно
@@ -155,13 +152,6 @@ private:
      * \brief виджет для обработчика сервера HV
     */
     HVHandlerForm *hvHandlerForm;
-
-//    /*!
-//     * \brief виджет для графики
-//    */
-//    GraphViewer *graphViewer;
-
-    DataVisualizerForm *dataVisualizerForm;
 
     Online *online;
     OnlineForm *onlineForm;

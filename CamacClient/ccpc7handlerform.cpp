@@ -2,7 +2,7 @@
 #include "ui_ccpc7handlerform.h"
 #include <QComboBox>
 
-CCPC7HandlerForm::CCPC7HandlerForm(CCPC7Handler *ccpc7Handler, DataVisualizerForm *dataVisualizerForm, IniManager *settingsManager, QWidget *parent) :
+CCPC7HandlerForm::CCPC7HandlerForm(CCPC7Handler *ccpc7Handler, IniManager *settingsManager, QWidget *parent) :
     QWidget(parent),
     ui(new Ui::CCPC7HandlerForm)
 {
@@ -18,7 +18,6 @@ CCPC7HandlerForm::CCPC7HandlerForm(CCPC7Handler *ccpc7Handler, DataVisualizerFor
 
     this->settingsManager = settingsManager;
     this->ccpc7Handler = ccpc7Handler;
-    this->dataVisualizerForm = dataVisualizerForm;
 
     haveWarning = 0;
 
@@ -83,8 +82,6 @@ void CCPC7HandlerForm::on_countersFileSelect_clicked()
 
 void CCPC7HandlerForm::on_acquirePointButton_clicked()
 {
-    dataVisualizerForm->openDir("temp");
-
     bool splitPoint = ui->splitPointBox->isChecked();
 
 #if QT_VERSION >= 0x050300
