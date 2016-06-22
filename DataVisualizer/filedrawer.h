@@ -225,8 +225,7 @@ protected:
      * \param maxVal Максимальное значение данных.
      * \return Указатель на график гистограммы.
      */
-    QCPGraph* createGraphHistFromData(QCustomPlot *plot, QVector<double> &binVal, QVector<double> &binCoord,
-                                      double minVal, double maxVal);
+    QCPGraph* createGraphHistFromData(QCustomPlot *plot, QVector<double> &binVal, QVector<double> &binCoord);
 
 
     /*!

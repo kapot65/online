@@ -369,9 +369,9 @@ void DataVisualizerForm::on_fileBrowser_clicked(const QModelIndex &index)
             APDFileDrawer *apdfd = new APDFileDrawer(ui->metaTable, plot, filepath, this);
             opened_files[filepath] = apdfd;
         }
-        else if(filepath.endsWith(".dat"))
+        else if(filepath.endsWith(".dat") && !filepath.contains("_summary"))
         {
-            DatFileDrawer *datfd = new DatFileDrawer(ui->metaTable, plot, filepath, this);
+            DatFileDrawer *datfd = new DatFileDrawer(ui->metaTable, plot, filepath, settings, this);
             opened_files[filepath] = datfd;
         }
         else

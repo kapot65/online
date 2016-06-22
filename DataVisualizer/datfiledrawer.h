@@ -4,11 +4,6 @@
 #include <QObject>
 #include <filedrawer.h>
 
-#define FREQ_SAMP 5.12
-#define FREQ_CAL  0.100   // GHz
-#define N_CHN 1 // number of saved channels
-#define BATCH 100
-
 typedef struct {
    char time_header[4];
    char bn[2];
@@ -46,18 +41,21 @@ class DatFileDrawer : public FileDrawer
 {
     Q_OBJECT
 public:
-    DatFileDrawer(QTableWidget *table, QCustomPlot *plot, QString filename, QObject *parent = 0);
-
+    DatFileDrawer(QTableWidget *table, QCustomPlot *plot, QString filename, QSettings *settings,
+                  QObject *parent = 0);
+    ~DatFileDrawer(){delete[] tch;}
     // FileDrawer interface
 public slots:
     void setMetaDataToTable(){}
     void setVisible(bool visible, GraphMode graphMode);
-    void setColor(QColor color){}
+    void setColor(QColor color);
     void update();
 
     void initFile();
 
 private slots:
+    ///
+    /// \todo Добавить вывод количества событий
     void drawPart(QCPRange range);
 
 private:
@@ -70,17 +68,38 @@ private:
     QDateTime lastEventTimeStamp;
 
     THEADER th;
-    TCHEADER tch[N_CHN];
+    TCHEADER *tch;
 
     /// \brief Вспомогательный график для APDFileDrawer::graph.
     /// Содержит границы данных и имеет прозрачный цвет. Используется для
     /// автомасштабирования.
     QCPGraph *graphBorder;
-
     /// \brief Указатель на график.
     QCPGraph *graph;
+
+    QCPGraph *barGraph;
+
     QDateTime getEventTimeStamp(int i);
     quint64 getEventSize();
+    double getEventAmplitude(int i, quint64 &time);
+
+    quint64 eventSize;
+    QDateTime getEventTimeFromHeader(EHEADER eh);
+
+    quint64 redrawLastTime;
+
+    QSettings *settings;
+    double FREQ_SAMP;
+    double FREQ_CAL;
+    int N_CHN;
+    int PROCESS_CHANNEL;
+    int BATCH;
+    int BASELINE_SIZE;
+    bool INVERSED;
+    int MAX_EVENTS;
+    int HIST_FLUSH_STEP;
+    double HIST_MIN_VAL;
+    double HIST_MAX_VAL;
 };
 
 #endif // DATFILEDRAWER_H

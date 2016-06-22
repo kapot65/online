@@ -286,15 +286,14 @@ void APDFileDrawer::update()
         generateHistFromData(val, amplHist.histValues.first, amplHist.histValues.second,
                              minAmpl, maxAmpl,  qAbs(maxAmpl - minAmpl));
 
-        amplHist.hist = createGraphHistFromData(plot, amplHist.histValues.first, amplHist.histValues.second, minAmpl, maxAmpl);
+        amplHist.hist = createGraphHistFromData(plot, amplHist.histValues.first, amplHist.histValues.second);
         amplHist.hist->setVisible(false);
         plot->addPlottable(amplHist.hist);
 
 
         generateHistFromData<int>(interval, intervalHist.histValues.first, intervalHist.histValues.second,
                                   minInterval, maxInterval, qMin(qMax(128, qAbs((int)maxInterval - (int)minInterval) / 4096), 8192));
-        intervalHist.hist = createGraphHistFromData(plot, intervalHist.histValues.first, intervalHist.histValues.second,
-                                          minInterval, maxInterval);
+        intervalHist.hist = createGraphHistFromData(plot, intervalHist.histValues.first, intervalHist.histValues.second);
         intervalHist.hist->setVisible(false);
         plot->addPlottable(intervalHist.hist);
 
