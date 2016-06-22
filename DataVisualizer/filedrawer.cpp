@@ -14,7 +14,7 @@ QCPBars *FileDrawer::createHistFromData(QCustomPlot *plot, QVector<double> &binV
     return bars;
 }
 
-QCPGraph *FileDrawer::createGraphHistFromData(QCustomPlot *plot, QVector<double> &binVal, QVector<double> &binCoord, double minVal, double maxVal)
+QCPGraph *FileDrawer::createGraphHistFromData(QCustomPlot *plot, QVector<double> &binVal, QVector<double> &binCoord)
 {
     QCPGraph *graph = new QCPGraph(plot->xAxis, plot->yAxis);
     graph->setPen(QPen(color));

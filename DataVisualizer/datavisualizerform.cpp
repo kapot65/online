@@ -371,7 +371,7 @@ void DataVisualizerForm::on_fileBrowser_clicked(const QModelIndex &index)
         }
         else if(filepath.endsWith(".dat"))
         {
-            DatFileDrawer *datfd = new DatFileDrawer(ui->metaTable, plot, filepath, this);
+            DatFileDrawer *datfd = new DatFileDrawer(ui->metaTable, plot, filepath, settings, this);
             opened_files[filepath] = datfd;
         }
         else

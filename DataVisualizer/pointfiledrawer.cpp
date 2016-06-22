@@ -297,7 +297,7 @@ void PointFileDrawer::update()
 
         generateHistFromData<unsigned short>(data, binVal, binCoord, minVal, maxVal, 205);
 
-        QCPGraph *barGraph = createGraphHistFromData(plot, binVal, binCoord, minVal, maxVal);
+        QCPGraph *barGraph = createGraphHistFromData(plot, binVal, binCoord);
         bars.push_back(barGraph);
 
         bars.last()->setVisible(false);

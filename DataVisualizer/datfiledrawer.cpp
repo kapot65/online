@@ -9,111 +9,52 @@
 #include <QDate>
 #include <QTime>
 
-int main_(int argc, const char * argv[])
-{
-   int ch, i, j, n, ndt;
-   double t1, t2, dt, sumdt, sumdt2;
-   THEADER th;
-   TCHEADER tch[N_CHN];
-   EHEADER eh;
-   CHANNEL channel[N_CHN];
-   double waveform[N_CHN][1024], time[N_CHN][1024];
+#include <easylogging++.h>
 
-   if(argc != 3)
-    return -1;
-
-   // open file
-   std::ifstream fh;
-   fh.open(argv[1], std::ios::in | std::ios::binary);
-
-   if(!fh.is_open())
-   {
-       std::cout << "can't open binary file " << argv[1] << "\n";
-       return -1;
-   }
-
-   std::ofstream of;
-   of.open(argv[2], std::ios::out);
-   if(!of.is_open())
-   {
-       std::cout << "can't open out file " << argv[2] << "\n";
-       return -1;
-   }
-
-   of << "# peaks, generated from " << argv[1] << "\n";
-   of << "# name: out\n";
-   of << "# type: matrix\n";
-   of << "# rows: 1\n";
-   of << "# columns: ";
-
-   auto sizeInsertPosition = of.tellp();
-
-   of << "                \n";
-
-   // read time bin widths
-
-   fh.read((char*)(&th), sizeof(th));
-   for (ch=0 ; ch<N_CHN ; ch++)
-       fh.read((char*)(&tch[ch]), sizeof(TCHEADER));
-
-   // initialize statistics
-   ndt = 0;
-   sumdt = sumdt2 = 0;
-
-   for (n= 0 ; ; n++) {
-      // read event header
-      fh.read((char*)(&eh), sizeof(eh));
-
-      // check for valid event header
-      if (memcmp(eh.event_header, "EHDR", 4) != 0) {
-         printf("Invalid event header (probably number of saved channels not equal %d)\n", N_CHN);
-         return 0;
-      }
-
-      // print notification every 100 events
-      if (n % 500 == 0 || fh.eof())
-         printf("Analyzing event #%d\n", n);
-
-      // stop if end-of-file
-      if (fh.eof())
-         break;
-
-      // read channel data
-      for (ch=0 ; ch<N_CHN ; ch++) {
-         fh.read((char*)(&channel[ch]), sizeof(CHANNEL));
-
-         double max = -10.;
-
-         for (i=0 ; i<1024 ; i++) {
-            // convert to volts
-            waveform[ch][i] = channel[ch].data[i]/65536.0-0.5;
-
-            if(max < std::fabs(waveform[ch][i]))
-                max = std::fabs(waveform[ch][i]);
-
-            // calculate time for this cell
-            for (j=0,time[ch][i]=0 ; j<i ; j++)
-               time[ch][i] += tch[ch].tcal[(j+eh.trigger_cell) % 1024];
-         }
-
-         of << max << " ";
-      }
-   }
-
-   of.seekp(sizeInsertPosition);
-   of << n;
-
-   of.close();
-   fh.close();
-
-   return 1;
-}
-
-DatFileDrawer::DatFileDrawer(QTableWidget *table, QCustomPlot *plot, QString filename, QObject *parent)
+DatFileDrawer::DatFileDrawer(QTableWidget *table, QCustomPlot *plot, QString filename, QSettings *settings, QObject *parent)
     : FileDrawer(table, plot, filename, parent, false)
 {
-    loaded = 0;
+    this->settings = settings;
+    settings->beginGroup(metaObject()->className());
+    if(!settings->contains("FREQ_SAMP"))
+        settings->setValue("FREQ_SAMP", 5.12);
+    FREQ_SAMP = settings->value("FREQ_SAMP").toDouble();
+    if(!settings->contains("FREQ_CAL"))
+        settings->setValue("FREQ_CAL", 0.100);
+    FREQ_CAL = settings->value("FREQ_CAL").toDouble();
+    if(!settings->contains("N_CHN"))
+        settings->setValue("N_CHN", 1);
+    N_CHN = settings->value("N_CHN").toInt();
+    if(!settings->contains("PROCESS_CHANNEL"))
+        settings->setValue("PROCESS_CHANNEL", 0);
+    PROCESS_CHANNEL = settings->value("PROCESS_CHANNEL").toInt();
+    if(!settings->contains("BASELINE_SIZE"))
+        settings->setValue("BASELINE_SIZE", 48);
+    BASELINE_SIZE = settings->value("BASELINE_SIZE").toInt();
+    if(!settings->contains("BATCH"))
+        settings->setValue("BATCH", 500);
+    BATCH = settings->value("BATCH").toInt();
+    if(!settings->contains("INVERSED"))
+        settings->setValue("INVERSED", true);
+    INVERSED = settings->value("INVERSED").toBool();
+    if(!settings->contains("MAX_EVENTS"))
+        settings->setValue("MAX_EVENTS", 2000);
+    MAX_EVENTS = settings->value("MAX_EVENTS").toInt();
+    if(!settings->contains("HIST_FLUSH_STEP"))
+        settings->setValue("HIST_FLUSH_STEP", 10000);
+    HIST_FLUSH_STEP = settings->value("HIST_FLUSH_STEP").toInt();
+    if(!settings->contains("HIST_MIN_VAL"))
+        settings->setValue("HIST_MIN_VAL", 0.0);
+    HIST_MIN_VAL = settings->value("HIST_MIN_VAL").toDouble();
+    if(!settings->contains("HIST_MAX_VAL"))
+        settings->setValue("HIST_MAX_VAL", 0.5);
+    HIST_MAX_VAL = settings->value("HIST_MAX_VAL").toDouble();
+    settings->endGroup();
 
+    tch = new TCHEADER[N_CHN];
+
+    loaded = 0;
+    redrawLastTime = 0;
     graphBorder = 0;
     graph = 0;
 
@@ -123,8 +64,29 @@ DatFileDrawer::DatFileDrawer(QTableWidget *table, QCustomPlot *plot, QString fil
 
 void DatFileDrawer::setVisible(bool visible, GraphMode graphMode)
 {
-    if(graphMode == RELATIVE_TIME)
-        graphBorder->setVisible(visible);
+    graphBorder->setVisible(false);
+    graph->setVisible(false);
+    barGraph->setVisible(false);
+
+    this->isVisible = visible;
+    switch(graphMode)
+    {
+        case RELATIVE_TIME:
+            graphBorder->setVisible(visible);
+            graph->setVisible(visible);
+            break;
+        case HISTOGRAMM:
+            barGraph->setVisible(visible);
+            break;
+    }
+}
+
+void DatFileDrawer::setColor(QColor color)
+{
+
+    this->color = color;
+    graph->setPen(color);
+    barGraph->setPen(color);
 }
 
 void DatFileDrawer::update()
@@ -139,21 +101,67 @@ void DatFileDrawer::update()
     emit updated();
 }
 
+QDateTime DatFileDrawer::getEventTimeFromHeader(EHEADER eh)
+{
+    QDateTime timeStamp;
+
+    QDate eventDate(eh.year, eh.month, eh.day);
+    QTime eventTime(eh.hour, eh.minute, eh.second, eh.millisec);
+
+    timeStamp = QDateTime(eventDate, eventTime);
+    return timeStamp;
+}
+
 QDateTime DatFileDrawer::getEventTimeStamp(int i)
 {
-    static quint64 eventSize = getEventSize();
     QDateTime timeStamp;
 
     file->seek(binary_starts + i*eventSize);
     EHEADER eh;
     file->read((char*)(&eh), sizeof(eh));
 
-    QDate eventDate(eh.year, eh.month, eh.day);
-    QTime eventTime(eh.hour, eh.minute, eh.second, eh.millisec);
+    return getEventTimeFromHeader(eh);
+}
 
-    timeStamp = QDateTime(eventDate, eventTime);
+double DatFileDrawer::getEventAmplitude(int i, quint64 &time)
+{
+    file->seek(binary_starts + i*eventSize);
 
-    return timeStamp;
+    EHEADER eh;
+    file->read((char*)(&eh), sizeof(eh));
+
+    CHANNEL *channel = new CHANNEL[N_CHN];
+    double *waveform = new double[N_CHN*1024];
+
+    // read channel data
+    for (int ch=0 ; ch<N_CHN ; ch++) {
+       file->read((char*)(&channel[ch]), sizeof(CHANNEL));
+
+       // convert to volts
+       for (int i=0 ; i<1024 ; i++) {
+          waveform[ch*1024 + i] = channel[ch].data[i]/65536.0-0.5;
+       }
+    }
+
+   //поиск амплитуды
+   double baseLine = 0;
+   for(int i=0; i < BASELINE_SIZE; i++)
+       baseLine += waveform[PROCESS_CHANNEL*1024 + i];
+   baseLine /= BASELINE_SIZE;
+
+   double inv = qPow(-1, (double)((bool)INVERSED));
+   double extremum = -10.;
+   for (i=0 ; i<1024 ; i++)
+       if(waveform[PROCESS_CHANNEL*1024 + i]*inv > extremum)
+           extremum = waveform[PROCESS_CHANNEL*1024 + i]*inv;
+   //extremum *= inv;
+   extremum += baseLine;
+
+   time = getEventTimeFromHeader(eh).toMSecsSinceEpoch();
+
+   delete[] waveform;
+   delete[] channel;
+   return extremum;
 }
 
 inline quint64 DatFileDrawer::getEventSize(){
@@ -170,7 +178,7 @@ void DatFileDrawer::initFile()
     binary_starts = file->pos();
     file->size();
 
-    quint64 eventSize = getEventSize();
+    eventSize = getEventSize();
     total_events = (file->size() - binary_starts)/eventSize;
 
     timeMap.clear();
@@ -179,6 +187,44 @@ void DatFileDrawer::initFile()
     for(int i = 0; i < total_events; i += BATCH)
         timeMap.push_back(getEventTimeStamp(i));
     lastEventTimeStamp = getEventTimeStamp(total_events - 1);
+
+    //создание гистограммы
+    QVector<double> data;
+    QVector<double> binVal;
+    QVector<double> bin;
+
+    for(int i = 0; i < total_events; i += 1)
+    {
+        quint64 time_buf;
+        data.push_back(getEventAmplitude(i, time_buf));
+        if(!(i%HIST_FLUSH_STEP) || i == total_events - 1)
+        {
+            QVector<double> binStep;
+            double minVal = HIST_MIN_VAL;
+            double maxVal = HIST_MAX_VAL;
+            generateHistFromData<double>(data, binStep, bin, minVal, maxVal);
+            if(binVal.isEmpty())
+                binVal = binStep;
+            else
+                for(int i = 0; i < binVal.size(); i++)
+                    binVal[i] += binStep[i];
+
+            binStep.clear();
+        }
+    }
+
+    barGraph = createGraphHistFromData(plot, binVal, bin);
+    barGraph->setVisible(false);
+    barGraph->setPen(QPen(color));
+    barGraph->setLineStyle(QCPGraph::lsStepCenter);
+    barGraph->setParent(this);
+    plot->addPlottable(barGraph);
+
+    //создание двуплотного графика
+    graph = plot->addGraph();
+    graph->setPen(QPen(color));
+    graph->setLineStyle(QCPGraph::lsNone);
+    graph->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle));
 
     //создание ограничивающего прямоугольника
     graphBorder = plot->addGraph();
@@ -191,86 +237,44 @@ void DatFileDrawer::initFile()
 
 void DatFileDrawer::drawPart(QCPRange range)
 {
-//    if(!time.size())
-//        return;
+    if(!visible())
+        return;
+    if((QDateTime::currentMSecsSinceEpoch() - redrawLastTime) < 2000)
+        return;
+    redrawLastTime = QDateTime::currentMSecsSinceEpoch();
 
-//    sendHistEventsInWindow(range, amplHist);
+    double timeStart = timeMap.first().toMSecsSinceEpoch();
+    QDateTime timeLower = QDateTime::fromMSecsSinceEpoch(quint64(range.lower*qPow(10,-6)) +
+                                                         timeMap.first().toMSecsSinceEpoch());
+    QDateTime timeUpper = QDateTime::fromMSecsSinceEpoch(quint64(range.upper*qPow(10,-6)) +
+                                                         timeMap.first().toMSecsSinceEpoch());
 
-//    sendHistEventsInWindow(range, intervalHist);
+    int minBatchInd = 0;
+    for(;(minBatchInd < timeMap.size()) &&
+         (timeMap[minBatchInd] <= timeLower);
+        minBatchInd++);
 
-//    if(graph->visible() || graph2->visible())
-//    {
-//        //определение максимального количества точек, которые могут быть отображены на экране
-//        int maxPoints = plot->width();
+    int maxBatchInd = timeMap.size() - 1;
+    for(;(maxBatchInd >= 0) &&
+         (timeMap[maxBatchInd] >= timeUpper);
+        maxBatchInd--);
 
-//        //получение индекса точек, попадающих в границу
-//        /*
-//        std::vector<int>::iterator itMin = std::lower_bound(time.begin(), time.end(), min);
-//        std::vector<int>::iterator itMax = std::upper_bound(time.begin(), time.end(), max);
+    minBatchInd = qMax(0, minBatchInd - 1);
+    maxBatchInd = qMin(timeMap.size()-1, maxBatchInd + 1);
 
-//        int minInd = itMin - time.begin();
-//        int maxInd = itMax - time.begin();
-//        */
-//        quint64 minInd;
-//        quint64 maxInd;
+    int step = qMax(1, (maxBatchInd - minBatchInd)*BATCH/MAX_EVENTS);
 
+    QVector<double> times;
+    QVector<double> amps;
+    for(int i = minBatchInd*BATCH; i < maxBatchInd*BATCH; i += step)
+    {
+        quint64 timeMsec;
+        double amp = getEventAmplitude(i, timeMsec);
 
-//        getMinMaxInd<std::vector<quint64> >(time, range.lower, range.upper, minInd, maxInd);
+        times.push_back((timeMsec - timeStart)*qPow(10., 6.));
+        amps.push_back(amp);
+    }
 
-//        int step = qMax((quint64)1, (maxInd - minInd)/maxPoints);
-
-//        QVector<double> x, y;
-
-//        //закрашивание собвтий, если их мало
-//        if(graph->visible())
-//        {
-//            ///\todo добавить порог по событиям в настройки
-//            if(maxInd - minInd < 100)
-//                graph->setBrush(QBrush(color, Qt::DiagCrossPattern));
-//            else
-//                graph->setBrush(QBrush());
-
-//            for(quint64 i = minInd; i < maxInd; i+= step)
-//            {
-//                x.push_back(time[i]);
-//                y.push_back(val[i]);
-
-//                x.push_back(time[i] + width[i]);
-//                y.push_back(0);
-//            }
-
-//            if(time.size() != 0)
-//            {
-//                x.push_front(0);
-//                y.push_front(0);
-
-//                x.push_back(time[time.size() - 1]);
-//                y.push_back(val[time.size() - 1]);
-//                x.push_back(time[time.size() - 1] + width[time.size() - 1]);
-//                y.push_back(0);
-//            }
-
-//            graph->setData(x, y);
-//            plot->replot();
-//        }
-
-//        if(graph2->visible())
-//        {
-//            for(quint64 i = minInd; i < maxInd; i+= step)
-//            {
-//                x.push_back(time[i]);
-//                y.push_back(qAbs(val[i]));
-//            }
-
-//            graph2->setData(x, y);
-//            plot->replot();
-//        }
-
-//        int eventsInWindow = (maxInd - minInd)/2;
-//        emit sendTextInfo(QFileInfo(*file).filePath(),
-//                          tr("Событий в окне: %1 (%2 показано, %3 скрыто)")
-//                          .arg(eventsInWindow)
-//                          .arg(eventsInWindow/step)
-//                          .arg((int)(((double)eventsInWindow)*(1. - 1./(double)step))));
-//    }
+    graph->setData(times, amps);
+    plot->replot();
 }
