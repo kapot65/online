@@ -1,7 +1,7 @@
 #include "apdfiledrawer.h"
 
 APDFileDrawer::APDFileDrawer(QTableWidget *table, QCustomPlot *plot, QString filename, QObject *parent)
-: FileDrawer(table, plot, filename, parent)
+: FileDrawer(table, plot, filename, parent, false)
 {
     loaded = 0;
 

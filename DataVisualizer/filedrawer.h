@@ -32,7 +32,7 @@ public:
      * \param plot Указатель к виджету графика.
      * \param filename Путь к файлу.
      */
-    FileDrawer(QTableWidget *table, QCustomPlot *plot, QString filename, QObject *parent = 0);
+    FileDrawer(QTableWidget *table, QCustomPlot *plot, QString filename, QObject *parent = 0, bool readMeta = true);
     ~FileDrawer();
 
     /*!

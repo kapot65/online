@@ -21,10 +21,6 @@
 #include <vector>
 
 #include <filedrawer.h>
-#include <apdfiledrawer.h>
-#include <infofiledrawer.h>
-#include <pointfiledrawer.h>
-#include <voltagefiledrawer.h>
 
 #include <qcustomplot.h>
 

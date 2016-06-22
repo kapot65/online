@@ -24,7 +24,7 @@ QCPGraph *FileDrawer::createGraphHistFromData(QCustomPlot *plot, QVector<double>
     return graph;
 }
 
-FileDrawer::FileDrawer(QTableWidget *table, QCustomPlot *plot, QString filename, QObject *parent) : QObject(parent)
+FileDrawer::FileDrawer(QTableWidget *table, QCustomPlot *plot, QString filename, QObject *parent, bool readMeta) : QObject(parent)
 {
     this->table = table;
     this->plot = plot;
@@ -33,11 +33,14 @@ FileDrawer::FileDrawer(QTableWidget *table, QCustomPlot *plot, QString filename,
     color = getRandomColor();
 
     file = new QFile(filename, this);
-    file->open(QIODevice::ReadOnly);
-    TcpProtocol::parceMessage(file->readAll(), meta, data, 1);
-    file->close();
-    file->open(QIODevice::ReadOnly);
+    if(readMeta)
+    {
+        file->open(QIODevice::ReadOnly);
+        TcpProtocol::parceMessage(file->readAll(), meta, data, 1);
+        file->close();
+    }
 
+    file->open(QIODevice::ReadOnly);
     connect(this, SIGNAL(updated()), plot, SLOT(replot()));
 }
 

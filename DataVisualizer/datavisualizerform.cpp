@@ -2,6 +2,12 @@
 #include <ui_DataVisualizerForm.h>
 #include <QFileDialog>
 
+#include <apdfiledrawer.h>
+#include <infofiledrawer.h>
+#include <pointfiledrawer.h>
+#include <voltagefiledrawer.h>
+#include <datfiledrawer.h>
+
 #include <QTimer>
 
 #include <QDataStream>
@@ -362,6 +368,11 @@ void DataVisualizerForm::on_fileBrowser_clicked(const QModelIndex &index)
         {
             APDFileDrawer *apdfd = new APDFileDrawer(ui->metaTable, plot, filepath, this);
             opened_files[filepath] = apdfd;
+        }
+        else if(filepath.endsWith(".dat"))
+        {
+            DatFileDrawer *datfd = new DatFileDrawer(ui->metaTable, plot, filepath, this);
+            opened_files[filepath] = datfd;
         }
         else
         {
