@@ -24,22 +24,6 @@ enum APD_GRAPH_TYPE
     PLOT = 1
 };
 
-/*!
- * \brief Структура для хранения гистограмм APDFileDrawer
- */
-struct APDHist
-{
-    APDHist():hist(0){}
-
-    /// \brief Указатель на гистограмму.
-    QCPAbstractPlottable *hist;
-
-    /// \brief Данные гистограммы APDHist::hist
-    /// Первый член - количество событий в бине,
-    /// второй - координата середины бина.
-    QPair<QVector<double>, QVector<double> > histValues;
-};
-
 /// \brief Класс для визуализации APD файлов.
 /// \details Оптимизирован под вывод больших данных.
 /// \todo Добавить описание.
@@ -50,14 +34,9 @@ class APDFileDrawer : public FileDrawer
 {
     Q_OBJECT
 public:
-    APDFileDrawer(QTableWidget *table, QCustomPlot *plot, QString filename, QObject *parent = 0);
+    APDFileDrawer(QTableWidget *table, QCustomPlot *plot, QString filename, QSettings *settings, QObject *parent = 0);
     ~APDFileDrawer();
-
-    std::vector<quint64> getTime() const;
-
-    QVector<int> getVal() const;
-
-    QPair<QVector<double>, QVector<double> > getAmplHistValues() const;
+    QVector<quint64> getTime() const;
 
 public slots:
     virtual void setMetaDataToTable();
@@ -67,13 +46,7 @@ public slots:
     virtual void update();
 
 protected:
-    /*!
-     * \brief Вычисляет количество событий в окне гистограммы и посылает сообщение
-     * о них.
-     * \param range Интервал окна.
-     * \param apdHist Гистограмма.ы
-     */
-    void sendHistEventsInWindow(QCPRange range, APDHist &apdHist);
+
 
 private slots:
     /*!
@@ -120,6 +93,10 @@ private slots:
     void setGraphVisible(bool visible);
 
 private:
+    bool getEventData(quint64 number, quint64 &time, short &ampl, uint &inter, short &w);
+
+    QSettings *settings;
+
     /// \brief Флаг загрузки файла.
     bool loaded;
 
@@ -135,19 +112,13 @@ private:
     QCPGraph *graphBorder;
 
     /// \brief Гистограмма по амплитуде.
-    APDHist amplHist;
+    QCPGraph *amplHist;
 
     /// \brief Гистограмма по интервалу
-    APDHist intervalHist;
+    QCPGraph *intervalHist;
 
-    ///\brief Вектор времени
-    std::vector<quint64> time;
-    ///\brief Вектор амплитуды
-    QVector<int> val;
-    ///\brief Вектор интервалов между событиями
-    QVector<int> interval;
-    ///\brief Вектор ширины
-    QVector<quint64> width;
+    ///\brief Вектор времени начала пачек
+    QVector<quint64> timeMap;
 
     static APD_HIST_TYPE histType;
     static APD_GRAPH_TYPE graphType;
@@ -158,8 +129,20 @@ private:
     QWidget *graphSetWidget;
     QRadioButton *graphSetButtons[2];
 
+    QFile *binFile;
+
+    uint BATCH;
+    uint MAX_EVENTS;
+    uint HIST_FLUSH_STEP;
+    uint HIST_MIN_VAL;
+    uint HIST_MAX_VAL;
+    uint HIST_MIN_INTER_VAL;
+    uint HIST_MAX_INTER_VAL;
+
+    quint64 redrawLastTime;
+
     // FileDrawer interface
 public slots:
-    void sendHistEventsInWindow(QCPRange range);
+    void sendHistEventsInWindow(QCPRange range){}
 };
 #endif //APDFILEDRAWER_H

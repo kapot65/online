@@ -1,9 +1,36 @@
 #include "apdfiledrawer.h"
 
-APDFileDrawer::APDFileDrawer(QTableWidget *table, QCustomPlot *plot, QString filename, QObject *parent)
+APDFileDrawer::APDFileDrawer(QTableWidget *table, QCustomPlot *plot, QString filename, QSettings *settings, QObject *parent)
 : FileDrawer(table, plot, filename, parent, false)
 {
+    this->settings = settings;
+
+    settings->beginGroup(metaObject()->className());
+    if(!settings->contains("BATCH"))
+        settings->setValue("BATCH", 1000);
+    BATCH = settings->value("BATCH").toInt();
+    if(!settings->contains("MAX_EVENTS"))
+        settings->setValue("MAX_EVENTS", 2000);
+    MAX_EVENTS = settings->value("MAX_EVENTS").toInt();
+    if(!settings->contains("HIST_FLUSH_STEP"))
+        settings->setValue("HIST_FLUSH_STEP", 10000);
+    HIST_FLUSH_STEP = settings->value("HIST_FLUSH_STEP").toInt();
+    if(!settings->contains("HIST_MIN_VAL"))
+        settings->setValue("HIST_MIN_VAL", 0);
+    HIST_MIN_VAL = settings->value("HIST_MIN_VAL").toDouble();
+    if(!settings->contains("HIST_MAX_VAL"))
+        settings->setValue("HIST_MAX_VAL", 50);
+    HIST_MAX_VAL = settings->value("HIST_MAX_VAL").toDouble();
+    if(!settings->contains("HIST_MIN_INTER_VAL"))
+        settings->setValue("HIST_MIN_INTER_VAL", 0);
+    HIST_MIN_INTER_VAL = settings->value("HIST_MIN_INTER_VAL").toDouble();
+    if(!settings->contains("HIST_MAX_INTER_VAL"))
+        settings->setValue("HIST_MAX_INTER_VAL", 1000000);
+    HIST_MAX_INTER_VAL = settings->value("HIST_MAX_INTER_VAL").toDouble();
+    settings->endGroup();
+
     loaded = 0;
+    binFile = NULL;
 
     //загрузка метаданных файла
     loadMetaData();
@@ -32,7 +59,7 @@ void APDFileDrawer::createHistModeChangeButtons(int col, int row)
     }
 
 
-    histSetWidget = new QWidget();
+    histSetWidget = new QWidget(table);
     QHBoxLayout *layout = new QHBoxLayout(histSetWidget);
     histSetWidget->setLayout(layout);
     histSetButtons[0] = new QRadioButton("амплитуде", histSetWidget);
@@ -68,7 +95,7 @@ void APDFileDrawer::createGraphModeChangeButtons(int col, int row)
         graphSetWidget = 0;
     }
 
-    graphSetWidget = new QWidget();
+    graphSetWidget = new QWidget(table);
     QHBoxLayout *layout = new QHBoxLayout(graphSetWidget);
     graphSetWidget->setLayout(layout);
     graphSetButtons[0] = new QRadioButton("график счета", graphSetWidget);
@@ -140,12 +167,13 @@ void APDFileDrawer::setHistVisible(bool visible)
     switch (APDFileDrawer::histType)
     {
         case AMPLITUDE:
-            amplHist.hist->setVisible(visible);
+            amplHist->setVisible(visible);
             break;
         case INTERVAL:
-            intervalHist.hist->setVisible(visible);
+            intervalHist->setVisible(visible);
             break;
     }
+    plot->rescaleAxes();
 }
 
 void APDFileDrawer::setGraphVisible(bool visible)
@@ -163,25 +191,27 @@ void APDFileDrawer::setGraphVisible(bool visible)
 
 }
 
-void APDFileDrawer::sendHistEventsInWindow(QCPRange range)
+bool APDFileDrawer::getEventData(quint64 number, quint64 &time, short &ampl, uint &inter, short &w)
 {
-    sendHistEventsInWindow(range, amplHist);
-    sendHistEventsInWindow(range, intervalHist);
+    static int stepSize = sizeof(quint64) + sizeof(inter) + 2*sizeof(short);
+
+    if(binFile->size() < stepSize*(number + 1))
+        return false;
+
+    binFile->seek(stepSize*number);
+    binFile->read((char*)(&time), sizeof(time));
+    binFile->read((char*)(&ampl), sizeof(ampl));
+    binFile->read((char*)(&inter), sizeof(inter));
+    binFile->read((char*)(&w), sizeof(w));
+
+    return true;
 }
 
-QPair<QVector<double>, QVector<double> > APDFileDrawer::getAmplHistValues() const
-{
-    return amplHist.histValues;
-}
 
-QVector<int> APDFileDrawer::getVal() const
-{
-    return val;
-}
 
-std::vector<quint64> APDFileDrawer::getTime() const
+QVector<quint64> APDFileDrawer::getTime() const
 {
-    return time;
+    return timeMap;
 }
 
 
@@ -190,21 +220,21 @@ void APDFileDrawer::setVisible(bool visible, GraphMode graphMode)
     isVisible = visible;
 
     graphBorder->setVisible(false);
-    intervalHist.hist->setVisible(false);
-    amplHist.hist->setVisible(false);
+    intervalHist->setVisible(false);
+    amplHist->setVisible(false);
     graph->setVisible(false);
     graph2->setVisible(false);
 
     switch(graphMode)
     {
-        case HISTOGRAMM:
+    case HISTOGRAMM:
 
-            setHistVisible(visible);
-            break;
+        setHistVisible(visible);
+        break;
 
-        case RELATIVE_TIME:
-            setGraphVisible(visible);
-            break;
+    case RELATIVE_TIME:
+        setGraphVisible(visible);
+        break;
 
         default:
             break;
@@ -217,8 +247,8 @@ void APDFileDrawer::setColor(QColor color)
     graph->setPen(QPen(color));
     graph2->setPen(QPen(color));
 
-    amplHist.hist->setPen(QPen(color));
-    intervalHist.hist->setPen(QPen(color));
+    amplHist->setPen(QPen(color));
+    intervalHist->setPen(QPen(color));
 }
 
 void APDFileDrawer::update()
@@ -239,15 +269,61 @@ void APDFileDrawer::update()
         if(meta.contains("mainStep"))
             timeCoef = meta["mainStep"].toDouble() / 10.;
 
+        binFile = new QFile((QFileInfo(*file).absoluteFilePath() + ".tmp"), this);
+        binFile->open(QIODevice::WriteOnly);
+
+        //данные для гистограммы
+        QVector<short> data;
+        QVector<double> binVal;
+        QVector<double> bin;
+        QVector<uint> dataInter;
+        QVector<double> interBinVal;
+        QVector<double> interBin;
+
+        quint64 step = 0;
         while(!ts.atEnd())
         {
             //получение значений из файла
             quint64 timeVal;
-            int inter, ampl, w;
+            uint inter;
+            short ampl, w;
             ts >> timeVal >> ampl >> inter >> w;
+            ampl = qAbs(ampl);
 
-            if(!timeVal && time.size())
-                break;
+            bool end = false;
+            if(!timeVal && timeMap.size())
+                end = true;
+
+            //запись данных в гистограмму
+            //гистограмма амплитуд
+            if(!(step%HIST_FLUSH_STEP) || end)
+            {
+                QVector<double> binStep;
+                double minVal = HIST_MIN_VAL;
+                double maxVal = HIST_MAX_VAL;
+                generateHistFromData<short>(data, binStep, bin, minVal, maxVal);
+                if(binVal.isEmpty())
+                    binVal = binStep;
+                else
+                    for(int i = 0; i < binVal.size(); i++)
+                        binVal[i] += binStep[i];
+                data.clear();
+            }
+            //гистограмма интервалов
+            if(!(step%HIST_FLUSH_STEP) || end)
+            {
+                QVector<double> binStep;
+                double minVal = HIST_MIN_INTER_VAL;
+                double maxVal = HIST_MAX_INTER_VAL;
+                generateHistFromData<uint>(dataInter, binStep, interBin, minVal, maxVal);
+                if(interBinVal.isEmpty())
+                    interBinVal = binStep;
+                else
+                    for(int i = 0; i < binVal.size(); i++)
+                        interBinVal[i] += binStep[i];
+                dataInter.clear();
+            }
+            if(end) break;
 
             if(ampl < minAmpl)
                 minAmpl = ampl;
@@ -259,158 +335,193 @@ void APDFileDrawer::update()
             if(inter > maxInterval)
                 maxInterval = inter;
 
-            //запись значений в вектора
-            time.push_back(timeVal * timeCoef);
-            val.push_back(ampl);
-            interval.push_back(inter);
-            width.push_back(w * timeCoef);
+            quint64 time_normalized = timeVal * timeCoef;
+            if(!(step % BATCH))
+                timeMap.push_back(time_normalized);
+            step++;
+
+            data.push_back(ampl);
+            dataInter.push_back(inter);
+
+
+            //запись значений бинарный файл
+            short w_normalized = w * timeCoef;
+            binFile->write((char*)(&time_normalized), sizeof(time_normalized));
+            binFile->write((char*)(&ampl), sizeof(ampl));
+            binFile->write((char*)(&inter), sizeof(inter));
+            binFile->write((char*)(&w_normalized), sizeof(w_normalized));
         }
 
+        binFile->close();
+        binFile->open(QIODevice::ReadOnly);
+
+        //создание графиков гистограмм
+        amplHist = createGraphHistFromData(plot, binVal, bin);
+        amplHist->setVisible(false);
+        amplHist->setPen(QPen(color));
+        amplHist->setLineStyle(QCPGraph::lsStepCenter);
+        amplHist->setParent(this);
+        plot->addPlottable(amplHist);
+
+        intervalHist = createGraphHistFromData(plot, interBinVal, interBin);
+        intervalHist->setVisible(false);
+        intervalHist->setPen(QPen(color));
+        intervalHist->setLineStyle(QCPGraph::lsStepCenter);
+        intervalHist->setParent(this);
+        plot->addPlottable(intervalHist);
+
+        //создание двуплотных графиков
         graph = plot->addGraph();
+        graph->setVisible(false);
         graph->setPen(QPen(color));
         graph->setLineStyle(QCPGraph::lsStepLeft);
         graph->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssNone));
 
         graph2 = plot->addGraph();
+        graph2->setVisible(false);
         graph2->setPen(QPen(color));
         graph2->setLineStyle(QCPGraph::lsNone);
         graph2->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle));
 
         graphBorder = plot->addGraph();
+        graphBorder->setVisible(false);
         graphBorder->addData(0, minAmpl);
-        graphBorder->addData(time[time.size() - 1], qMax((int)qAbs(minAmpl), (int)maxAmpl));
+        graphBorder->addData(timeMap[timeMap.size() - 1], qMax((int)qAbs(minAmpl), (int)maxAmpl));
         graphBorder->setPen(QPen(QColor(0,0,0,0)));
 
-        minAmpl = -512;
-        maxAmpl = 0;
-        generateHistFromData(val, amplHist.histValues.first, amplHist.histValues.second,
-                             minAmpl, maxAmpl,  qAbs(maxAmpl - minAmpl));
-
-        amplHist.hist = createGraphHistFromData(plot, amplHist.histValues.first, amplHist.histValues.second);
-        amplHist.hist->setVisible(false);
-        plot->addPlottable(amplHist.hist);
-
-
-        generateHistFromData<int>(interval, intervalHist.histValues.first, intervalHist.histValues.second,
-                                  minInterval, maxInterval, qMin(qMax(128, qAbs((int)maxInterval - (int)minInterval) / 4096), 8192));
-        intervalHist.hist = createGraphHistFromData(plot, intervalHist.histValues.first, intervalHist.histValues.second);
-        intervalHist.hist->setVisible(false);
-        plot->addPlottable(intervalHist.hist);
-
         //установка родителей графикам
+        graphBorder->setParent(this);
         graph->setParent(this);
         graphBorder->setParent(this);
-        amplHist.hist->setParent(this);
-        intervalHist.hist->setParent(this);
+
+        loaded = true;
     }
     emit updated();
 }
 
-void APDFileDrawer::sendHistEventsInWindow(QCPRange range, APDHist &apdHist)
-{
-    if(apdHist.hist->visible())
-    {
-        //подсчет количества событий в окне
-        quint64 minInd;
-        quint64 maxInd;
-
-        getMinMaxInd<QVector<double> >(apdHist.histValues.second, range.lower, range.upper,
-                                      minInd, maxInd);
-
-        quint64 sum = 0;
-        for(quint64 i = minInd; i < maxInd; i++)
-            sum += apdHist.histValues.first[i];
-
-        emit sendTextInfo(QFileInfo(*file).filePath(),
-                          tr("Событий в окне: %1 ")
-                          .arg(sum));
-    }
-}
-
 void APDFileDrawer::drawPart(QCPRange range)
 {
-    if(!time.size())
+    if(!visible())
         return;
 
-    sendHistEventsInWindow(range, amplHist);
+    if((QDateTime::currentMSecsSinceEpoch() - redrawLastTime) < 2000)
+        return;
+    redrawLastTime = QDateTime::currentMSecsSinceEpoch();
 
-    sendHistEventsInWindow(range, intervalHist);
+    double lower = range.lower;
+    double upper = range.upper;
 
-    if(graph->visible() || graph2->visible())
+    int minBatchInd = 0;
+    for(;(minBatchInd < timeMap.size()) &&
+         (timeMap[minBatchInd] <= lower);
+        minBatchInd++);
+
+    int maxBatchInd = timeMap.size() - 1;
+    for(;(maxBatchInd >= 0) &&
+         (timeMap[maxBatchInd] >= upper);
+        maxBatchInd--);
+
+    minBatchInd = qMax(0, minBatchInd - 1);
+    maxBatchInd = qMin(timeMap.size()-1, maxBatchInd + 1);
+
+    int step = qMax(1, (int)((maxBatchInd - minBatchInd)*BATCH/MAX_EVENTS));
+
+    QVector<double> times;
+    QVector<double> amps;
+    for(int i = minBatchInd*BATCH; i < maxBatchInd*BATCH; i += step)
     {
-        //определение максимального количества точек, которые могут быть отображены на экране
-        int maxPoints = plot->width();
+        quint64 time;
+        uint inter;
+        short ampl, w;
 
-        //получение индекса точек, попадающих в границу
-        /*
-        std::vector<int>::iterator itMin = std::lower_bound(time.begin(), time.end(), min);
-        std::vector<int>::iterator itMax = std::upper_bound(time.begin(), time.end(), max);
-
-        int minInd = itMin - time.begin();
-        int maxInd = itMax - time.begin();
-        */
-        quint64 minInd;
-        quint64 maxInd;
-
-
-        getMinMaxInd<std::vector<quint64> >(time, range.lower, range.upper, minInd, maxInd);
-
-        int step = qMax((quint64)1, (maxInd - minInd)/maxPoints);
-
-        QVector<double> x, y;
-
-        //закрашивание собвтий, если их мало
-        if(graph->visible())
+        if(getEventData(i, time, ampl, inter, w))
         {
-            ///\todo добавить порог по событиям в настройки
-            if(maxInd - minInd < 100)
-                graph->setBrush(QBrush(color, Qt::DiagCrossPattern));
-            else
-                graph->setBrush(QBrush());
-
-            for(quint64 i = minInd; i < maxInd; i+= step)
-            {
-                x.push_back(time[i]);
-                y.push_back(val[i]);
-
-                x.push_back(time[i] + width[i]);
-                y.push_back(0);
-            }
-
-            if(time.size() != 0)
-            {
-                x.push_front(0);
-                y.push_front(0);
-
-                x.push_back(time[time.size() - 1]);
-                y.push_back(val[time.size() - 1]);
-                x.push_back(time[time.size() - 1] + width[time.size() - 1]);
-                y.push_back(0);
-            }
-
-            graph->setData(x, y);
-            plot->replot();
+            times.push_back(time);
+            amps.push_back(ampl);
         }
-
-        if(graph2->visible())
-        {
-            for(quint64 i = minInd; i < maxInd; i+= step)
-            {
-                x.push_back(time[i]);
-                y.push_back(qAbs(val[i]));
-            }
-
-            graph2->setData(x, y);
-            plot->replot();
-        }
-
-        int eventsInWindow = (maxInd - minInd)/2;
-        emit sendTextInfo(QFileInfo(*file).filePath(),
-                          tr("Событий в окне: %1 (%2 показано, %3 скрыто)")
-                          .arg(eventsInWindow)
-                          .arg(eventsInWindow/step)
-                          .arg((int)(((double)eventsInWindow)*(1. - 1./(double)step))));
+        else
+            break;
     }
+
+    graph->setData(times, amps);
+    graph2->setData(times, amps);
+    plot->replot();
+
+//    if(!time.size())
+//        return;
+
+//    sendHistEventsInWindow(range, amplHist);
+
+//    sendHistEventsInWindow(range, intervalHist);
+
+//    if(graph->visible() || graph2->visible())
+//    {
+//        //определение максимального количества точек, которые могут быть отображены на экране
+//        int maxPoints = plot->width();
+
+//        //получение индекса точек, попадающих в границу
+//        quint64 minInd;
+//        quint64 maxInd;
+
+
+//        getMinMaxInd<std::vector<quint64> >(time, range.lower, range.upper, minInd, maxInd);
+
+//        int step = qMax((quint64)1, (maxInd - minInd)/maxPoints);
+
+//        QVector<double> x, y;
+
+//        //закрашивание собвтий, если их мало
+//        if(graph->visible())
+//        {
+//            ///\todo добавить порог по событиям в настройки
+//            if(maxInd - minInd < 100)
+//                graph->setBrush(QBrush(color, Qt::DiagCrossPattern));
+//            else
+//                graph->setBrush(QBrush());
+
+//            for(quint64 i = minInd; i < maxInd; i+= step)
+//            {
+//                x.push_back(time[i]);
+//                y.push_back(val[i]);
+
+//                x.push_back(time[i] + width[i]);
+//                y.push_back(0);
+//            }
+
+//            if(time.size() != 0)
+//            {
+//                x.push_front(0);
+//                y.push_front(0);
+
+//                x.push_back(time[time.size() - 1]);
+//                y.push_back(val[time.size() - 1]);
+//                x.push_back(time[time.size() - 1] + width[time.size() - 1]);
+//                y.push_back(0);
+//            }
+
+//            graph->setData(x, y);
+//            plot->replot();
+//        }
+
+//        if(graph2->visible())
+//        {
+//            for(quint64 i = minInd; i < maxInd; i+= step)
+//            {
+//                x.push_back(time[i]);
+//                y.push_back(qAbs(val[i]));
+//            }
+
+//            graph2->setData(x, y);
+//            plot->replot();
+//        }
+
+//        int eventsInWindow = (maxInd - minInd)/2;
+//        emit sendTextInfo(QFileInfo(*file).filePath(),
+//                          tr("Событий в окне: %1 (%2 показано, %3 скрыто)")
+//                          .arg(eventsInWindow)
+//                          .arg(eventsInWindow/step)
+//                          .arg((int)(((double)eventsInWindow)*(1. - 1./(double)step))));
+//    }
 }
 
 void APDFileDrawer::loadMetaData()

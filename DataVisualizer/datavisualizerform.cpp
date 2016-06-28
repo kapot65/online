@@ -363,10 +363,11 @@ void DataVisualizerForm::on_fileBrowser_clicked(const QModelIndex &index)
            (fileInfo.baseName() != "setup_raw") &&
            (fileInfo.baseName() != "setup") &&
            (fileInfo.baseName() != "block_stat") &&
+           (!filepath.endsWith(".tmp")) &&
             fileInfo.suffix().isEmpty() && //Проверка расширения файла
             !fileInfo.fileName().contains("amplHist")) //Файл не сгененрирован автоматически.
         {
-            APDFileDrawer *apdfd = new APDFileDrawer(ui->metaTable, plot, filepath, this);
+            APDFileDrawer *apdfd = new APDFileDrawer(ui->metaTable, plot, filepath, settings, this);
             opened_files[filepath] = apdfd;
         }
         else if(filepath.endsWith(".dat") && !filepath.contains("_summary"))
@@ -744,4 +745,18 @@ QVariant QFileSystemModelCustom::data(const QModelIndex &index, int role) const
     }
     else
         return QFileSystemModel::data(index, role);
+}
+
+void DataVisualizerForm::on_saveButton_clicked()
+{
+    settings->beginGroup(metaObject()->className());
+    QString lastSavePngFilepath = settings->value("lastSavePngFilepath").toString();
+
+    QString pngPath = QFileDialog::getSaveFileName(this, tr("Укажите путь к файлу"), lastSavePngFilepath, tr("Images (*.png)"));
+
+    if(!pngPath.isEmpty())
+        settings->setValue("lastSavePngFilepath", pngPath);
+    settings->endGroup();
+
+    plot->savePng(pngPath);
 }

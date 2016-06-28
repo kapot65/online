@@ -146,6 +146,8 @@ private slots:
      */
     void updateText(QString sender, QString info);
 
+    void on_saveButton_clicked();
+
 public slots:
     void openDir(QString dir);
 
