@@ -182,11 +182,8 @@ void Online::stopHvMonitor(HVMonitor *hvMonitor)
 bool Online::processScenario(QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> > scenario)
 {
     emit workStatusChanged(true);
-
     bool ok = processScenarioImpl(scenario);
-
     emit workStatusChanged(false);
-
     return ok;
 }
 
@@ -886,6 +883,14 @@ void Online::processUnhandledError(QVariantMap info)
     pause();
 }
 
+void Online::flushInfoFile()
+{
+    QFile infoFile("temp/" + currSubFolder + "/meta");
+    infoFile.open(QIODevice::WriteOnly);
+    infoFile.write(TcpProtocol::createMessage(info));
+    infoFile.close();
+}
+
 void Online::updateInfo(QVariant infoBlock, bool addAsComment)
 {
     //создание структуры файла с комментариями
@@ -893,7 +898,9 @@ void Online::updateInfo(QVariant infoBlock, bool addAsComment)
     {
         info["type"] = "info_file";
         info["comments"] = QVariantList();
-        info["date"] = QDate::currentDate().toString(Qt::ISODate);
+        info["start_time"] = QDateTime::currentDateTime().toString(Qt::ISODate);
+        info["format_description"] = "https://docs.google.com/document/d/12qmnZRO55y6zr08Wf-BQYAmklqgf5y3j_gD_VkNscXc/edit?usp=sharing";
+        info["programm_revision"] = APP_REVISION;
     }
 
     if(infoBlock.isValid())
@@ -929,25 +936,14 @@ void Online::updateInfo(QVariant infoBlock, bool addAsComment)
     }
 
     //обновление файла метаинформации
-    QFile infoFile("temp/" + currSubFolder + "/meta");
-    infoFile.open(QIODevice::WriteOnly);
-    infoFile.write(TcpProtocol::createMessage(info));
-    infoFile.close();
-//#ifndef USE_QTJSON
-//    QJson::Serializer serializer;
-//    serializer.setIndentMode(QJson::IndentFull); // в настройки
-//#endif
+    flushInfoFile();
+}
 
-//    QFile infoFile("temp/" + currSubFolder + "/info.json");
-//    infoFile.open(QIODevice::WriteOnly);
+void Online::clearInfo(){
 
-//#ifdef USE_QTJSON
-//    infoFile.write(QJsonDocument::fromVariant(map).toJson());
-//#else
-//    bool ok;
-//    serializer.serialize(map, (QIODevice*)(&infoFile), &ok);
-//#endif
-//    infoFile.close();
+    info["end_time"] = QDateTime::currentDateTime().toString(Qt::ISODate);
+    flushInfoFile();
+    info.clear();
 }
 
 void Online::pause()

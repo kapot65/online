@@ -338,14 +338,7 @@ void OnlineForm::flushData(QString output_folder)
     QFileInfo fi(outputCurrFolder);
     int max_idx = findMaxIndexInFolder(fi.absoluteDir().absolutePath());
 
-    QByteArray binaryTime;
-    QDataStream ds(&binaryTime, QIODevice::WriteOnly);
-    qint64 time = QDateTime::currentMSecsSinceEpoch();
-    ds.writeRawData((const char*)(&(time)), sizeof(qint64));
-
-    QString timeHex = binaryTime.toHex();
-
-    outputCurrFolder = fi.absolutePath() + QDir::separator() + tr("set_%1_%2").arg(max_idx + 1).arg(timeHex);
+    outputCurrFolder = fi.absolutePath() + QDir::separator() + tr("set_%1").arg(max_idx + 1);
 
     if(!copyRecursively("temp/" + online->getCurrSubFolder(), outputCurrFolder))
     {
@@ -428,35 +421,10 @@ void OnlineForm::on_startButton_clicked()
 
     //блокировка кнопки открыть
     ui->openScenarioButton->setEnabled(false);
-
-    //сохранение информации о сборе, набраной вручную
-    QVariantMap operatorInfo;
-    operatorInfo["name"] = "operator";
-    operatorInfo["value"] = ui->operatorSurnameEdit->text();
-    online->updateInfo(operatorInfo);
-
-    refreshNameCompleter(operatorInfo["value"].toString());
+    refreshNameCompleter(ui->operatorSurnameEdit->text());
 
     processingOk = 0;
     updateEnabledButton();
-
-    if(!ui->acquisitionCommentsBox->toPlainText().isEmpty())
-    {
-        QVariantMap initialCommentInfo;
-        initialCommentInfo["name"] = "description";
-        initialCommentInfo["value"] = ui->acquisitionCommentsBox->toPlainText();
-        online->updateInfo(initialCommentInfo);
-    }
-
-    QVariantMap descriptionLink;
-    descriptionLink["name"] = "format_description";
-    descriptionLink["value"] = "https://drive.google.com/open?id=1ATs4Mq3K72TjsNy-1QZvL7WtoB9h90nRpElnLXVqZX0";
-    online->updateInfo(descriptionLink);
-
-    QVariantMap revisionInfo;
-    revisionInfo["name"] = "programm_revision";
-    revisionInfo["value"] = APP_REVISION;
-    online->updateInfo(revisionInfo);
 
 #ifndef VIRTUAL_MODE
     if(!online->init(settingsManager->getSettingsValue("CCPC7Handler", "ip").toString(),
@@ -482,6 +450,33 @@ void OnlineForm::on_startButton_clicked()
 
     for(int i = 0 ; ((!iterations) || (i < iterations)) && !stopFlag; i++)
     {
+        //сохранение информации о сборе, набраной вручную
+        QVariantMap operatorInfo;
+        operatorInfo["name"] = "operator";
+        operatorInfo["value"] = ui->operatorSurnameEdit->text();
+        online->updateInfo(operatorInfo);
+
+        if(!ui->acquisitionCommentsBox->toPlainText().isEmpty())
+        {
+            QVariantMap initialCommentInfo;
+            initialCommentInfo["name"] = "description";
+            initialCommentInfo["value"] = ui->acquisitionCommentsBox->toPlainText();
+            online->updateInfo(initialCommentInfo);
+        }
+
+        //заполнение информации об итерации
+        if(iterations > 1)
+        {
+            QVariantMap iterationInfo;
+            QVariantMap iterationParams;
+            iterationParams["iteration"] = i + 1;
+            iterationParams["reverse"] = (bool)(useReverseScenario && i%2 == 1);
+            iterationInfo["name"] = "iteration_info";
+            iterationInfo["value"] = iterationParams;
+            online->updateInfo(iterationInfo);
+        }
+
+
         if(!online->prepareFolder(curr_session, curr_group, i))
         {
             QMessageBox::critical(this, tr("Ошибка"), tr("Не удалось создать папку во временной директории."
@@ -497,17 +492,6 @@ void OnlineForm::on_startButton_clicked()
 
         //запись сценария в отдельный файл
         online->addFileToScenario(tr("scenario"), curr_scenario_raw.toLatin1());
-
-        if(iterations > 1)
-        {
-            QVariantMap iterationInfo;
-            QVariantMap iterationParams;
-            iterationParams["iteration"] = i + 1;
-            iterationParams["reverse"] = (bool)(useReverseScenario && i%2 == 1);
-            iterationInfo["name"] = "iteration_info";
-            iterationInfo["value"] = iterationParams;
-            online->updateInfo(iterationInfo);
-        }
 
         if(ui->finishOnThisIterationBox->isChecked())
             break;
@@ -531,6 +515,8 @@ void OnlineForm::on_startButton_clicked()
             ui->infoBrowser->insertPlainText("\nAcquisition scenario failed.");
             break;
         }
+
+        online->clearInfo();
 
         //переписывание файлов в конечную папку
         flushData(output_folder);

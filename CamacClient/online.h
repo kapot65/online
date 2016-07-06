@@ -225,6 +225,11 @@ public slots:
     void updateInfo(QVariant infoBlock = QVariant(), bool addAsComment = false);
 
     /*!
+     * \brief Записывает end_time и удаляет информацию из буффера
+     */
+    void clearInfo();
+
+    /*!
      * \brief Остановка сценария на паузу. Возобновляется с помощью слота Online::resume.
      */
     void pause();
@@ -353,6 +358,7 @@ private:
      * \brief Максимальное допустимое отклонение напряжения от заданного для функции HVHandler::setVoltageAndCheck. Задается в конфигурационном файле.
      */
     double checkVoltageError;
+    void flushInfoFile();
 };
 
 
