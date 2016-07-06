@@ -38,11 +38,11 @@ void OnlineForm::processWorkStatus(bool working)
 {
     if(working)
     {
-        ui->stepProgressBar->show();
+        ui->stepProgressBar->setEnabled(true);
     }
     else
     {
-        ui->stepProgressBar->hide();
+        ui->stepProgressBar->setEnabled(false);
     }
 }
 
@@ -50,7 +50,7 @@ void OnlineForm::processInfoMessage(QString message)
 {
     if(!message.endsWith("\n"))
         message += "\n";
-    ui->infoLabel->setText(ui->infoLabel->text() + message);
+    ui->infoBrowser->insertPlainText(message);
 
     infoMessageWipeTimer.start(10000);
 }
@@ -97,12 +97,11 @@ OnlineForm::OnlineForm(CCPC7Handler *ccpc7Handler, HVHandler *hvHandler,
     this->settingsManager = settingsManager;
 
     updateEnabledButton();
-    ui->pauseButton->setVisible(false);
-    ui->resumeButton->setVisible(false);
-    ui->stopButton->setVisible(false);
+    ui->pauseButton->setEnabled(false);
+    ui->resumeButton->setEnabled(false);
+    ui->stopButton->setEnabled(false);
 
-    ui->scenarioView->setVisible(false);
-    ui->finishOnThisIterationBox->setVisible(false);
+    ui->finishOnThisIterationBox->setEnabled(false);
 
     qRegisterMetaType<QVector<Event> >("QVector<Event>");
 
@@ -110,7 +109,7 @@ OnlineForm::OnlineForm(CCPC7Handler *ccpc7Handler, HVHandler *hvHandler,
     connect(online, SIGNAL(sendInfoMessage(QString)),
             this, SLOT(processInfoMessage(QString)), Qt::QueuedConnection);
     connect(&infoMessageWipeTimer, SIGNAL(timeout()),
-            ui->infoLabel, SLOT(clear()), Qt::QueuedConnection);
+            ui->infoBrowser, SLOT(clear()), Qt::QueuedConnection);
 
 
     connect(ui->pauseButton, SIGNAL(clicked()), online, SLOT(pause()));
@@ -131,9 +130,10 @@ OnlineForm::OnlineForm(CCPC7Handler *ccpc7Handler, HVHandler *hvHandler,
 
     //настройка вывода прогресса
     ui->stepProgressBar->setValue(0);
-    ui->stepProgressBar->hide();
+    ui->stepProgressBar->setEnabled(false);
 
-    timeWatcher = new OnlineFormTimeWatcher(ui->iterationTimeElapsedLabel, this);
+    paramsUpdater = new ParamsUpdater(ui->paramsBrowser, this);
+    timeWatcher = new OnlineFormTimeWatcher(paramsUpdater, this);
 
     connect(online, SIGNAL(scenario_done()),
             this, SLOT(processScenarioDone()), Qt::DirectConnection);
@@ -219,7 +219,6 @@ void OnlineForm::updateEnabledButton()
 void OnlineForm::visualizeScenario(QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> > scenario)
 {
     ui->scenarioView->clear();
-    ui->scenarioView->setVisible(true);
 
     QStringList scenarioList;
     for(int i = 0; i < scenario.size(); i++)
@@ -386,13 +385,14 @@ void OnlineForm::displayCurrentSetFolder()
     QFileInfo fi(output_folder + QDir::separator() + online->getCurrSubFolder());
     QString outGroupFolder = fi.absoluteDir().absolutePath();
     int maxInd = findMaxIndexInFolder(outGroupFolder);
-    ui->outputPathLabel->setText(QDir(output_folder).relativeFilePath(outGroupFolder + QDir::separator() + tr("set_%1").arg(maxInd + 1)));
+    paramsUpdater->updateParam("Путь к выходной директории",
+                               QDir(output_folder).relativeFilePath(outGroupFolder + QDir::separator() + tr("set_%1").arg(maxInd + 1)));
 }
 
 void OnlineForm::on_startButton_clicked()
 {
-    ui->outputPathLabel->clear();
-    ui->infoLabel->clear();
+    ui->paramsBrowser->clear();
+    ui->infoBrowser->clear();
 
     QString curr_session = ui->sessionEdit->text();
     QString curr_group = ui->groupEdit->text();
@@ -472,11 +472,11 @@ void OnlineForm::on_startButton_clicked()
     }
 #endif
 
-    ui->pauseButton->setVisible(true);
-    ui->stopButton->setVisible(true);
+    ui->pauseButton->setEnabled(true);
+    ui->stopButton->setEnabled(true);
 
     ui->finishOnThisIterationBox->setChecked(false);
-    ui->finishOnThisIterationBox->setVisible(true);
+    ui->finishOnThisIterationBox->setEnabled(true);
 
     stopFlag = false;
 
@@ -512,7 +512,7 @@ void OnlineForm::on_startButton_clicked()
         if(ui->finishOnThisIterationBox->isChecked())
             break;
 
-        ui->curr_iteration_label->setText(tr("Current iteration: %1 / %2").arg(i + 1).arg(iterations));
+        paramsUpdater->updateParam("Текущая итерация", tr("%1 / %2").arg(i + 1).arg(iterations));
 
         bool ok;
         if(useReverseScenario && i%2 == 1)
@@ -528,19 +528,19 @@ void OnlineForm::on_startButton_clicked()
 
         if(!ok)
         {
-            ui->infoLabel->setText(ui->infoLabel->text() + "\nAcquisition scenario failed.");
+            ui->infoBrowser->insertPlainText("\nAcquisition scenario failed.");
             break;
         }
 
         //переписывание файлов в конечную папку
         flushData(output_folder);
     }
-    ui->finishOnThisIterationBox->setVisible(false);
+    ui->finishOnThisIterationBox->setEnabled(false);
 
-    ui->curr_iteration_label->clear();
-    ui->stopButton->setVisible(false);
-    ui->pauseButton->setVisible(false);
-    ui->resumeButton->setVisible(false);
+    paramsUpdater->updateParam("Текущая итерация", tr("-"));
+    ui->stopButton->setEnabled(false);
+    ui->pauseButton->setEnabled(false);
+    ui->resumeButton->setEnabled(false);
 
     ui->openScenarioButton->setEnabled(true);
     processingOk = 1;
@@ -549,14 +549,14 @@ void OnlineForm::on_startButton_clicked()
 
 void OnlineForm::onPauseApplied()
 {
-    ui->pauseButton->setVisible(false);
-    ui->resumeButton->setVisible(true);
+    ui->pauseButton->setEnabled(false);
+    ui->resumeButton->setEnabled(true);
 }
 
 void OnlineForm::onResumeApplied()
 {
-    ui->pauseButton->setVisible(true);
-    ui->resumeButton->setVisible(false);
+    ui->pauseButton->setEnabled(true);
+    ui->resumeButton->setEnabled(false);
 }
 
 void OnlineForm::on_sendComment_clicked()
@@ -622,20 +622,22 @@ void OnlineForm::on_iterationsBox_valueChanged(int arg1)
 
     int sec = curr_scenario_process_time * iterations;
 
-    QString iterTime = tr("время на одну итерацию: %1ч %2мин %3с")
+    QString iterTime = tr("%1ч %2мин %3с")
                           .arg(curr_scenario_process_time / (60*60))
                           .arg(curr_scenario_process_time / 60)
                           .arg(curr_scenario_process_time % 60);
 
+    paramsUpdater->updateParam("Время на одну итерацию", iterTime);
+
     if(sec)
-        ui->scenario_time_label->setText(tr("Примерное время выполнения: "
-                                            "%1ч %2мин %3с (%4)")
-                                         .arg(sec / (60*60))
-                                         .arg(sec / 60)
-                                         .arg(sec % 60)
-                                         .arg(iterTime));
+        paramsUpdater->updateParam("Примерное время выполнения",
+                                   tr("%1ч %2мин %3с (%4)")
+                                   .arg(sec / (60*60))
+                                   .arg(sec / 60)
+                                   .arg(sec % 60)
+                                   .arg(iterTime));
     else
-        ui->scenario_time_label->setText(iterTime);
+        paramsUpdater->updateParam("Примерное время выполнения", "-");
 }
 
 void OnlineForm::on_sessionEdit_editingFinished()
@@ -671,10 +673,11 @@ void OnlineForm::on_checkUserForNextStep_stateChanged(int arg1)
     }
 }
 
-OnlineFormTimeWatcher::OnlineFormTimeWatcher(QLabel *timeLabel, QObject *parent) : QThread(parent)
+OnlineFormTimeWatcher::OnlineFormTimeWatcher(ParamsUpdater *metaUpdater, QObject *parent) : QThread(parent)
 {
-    this->timeLabel = timeLabel;
     scenarioRunning = false;
+    connect(this, SIGNAL(updateTime(QString,QString)),
+            metaUpdater, SLOT(updateParam(QString,QString)), Qt::QueuedConnection);
 }
 
 void OnlineForm::processScenarioStart()
@@ -695,8 +698,6 @@ void OnlineForm::processScenarioDone()
 
 void OnlineFormTimeWatcher::run()
 {
-    timeLabel->clear();
-
     QTime time;
 
     time.start();
@@ -712,13 +713,11 @@ void OnlineFormTimeWatcher::run()
     {
         el.exec();
 #if QT_VERSION >= 0x050000
-        timeLabel->setText(tr("Время с начала итерации: %1")
-                           .arg(QTime::fromMSecsSinceStartOfDay(time.elapsed())
-                                .toString(Qt::ISODate)));
+        QString timeStr = QTime::fromMSecsSinceStartOfDay(time.elapsed()).toString(Qt::ISODate);
 #else
-        timeLabel->setText(tr("Время с начала итерации: %1")
-                           .arg(QTime(0,0).addMSecs(time.elapsed()).toString(Qt::ISODate)));
+        QString timeStr = QTime(0,0).addMSecs(time.elapsed()).toString(Qt::ISODate);
 #endif
+        emit updateTime("Время с начала итерации", timeStr);
     }
 }
 
@@ -753,4 +752,24 @@ void ScenarioStepTicker::run()
         el.exec();
         emit setBarValue(((double)(i + 1)/(double)stage_time)*100);
     }
+}
+
+ParamsUpdater::ParamsUpdater(QTextBrowser *textBrower, QObject *parent) : QObject(parent)
+{
+    this->textBrower = textBrower;
+}
+
+void ParamsUpdater::updateParam(QString key, QString value)
+{
+    metaParams[key] = value;
+    updateView();
+}
+
+void ParamsUpdater::updateView()
+{
+    QString text;
+    foreach (QString key, metaParams.keys()) {
+        text += tr("%1: %2\n").arg(key, metaParams[key]);
+    }
+    textBrower->setPlainText(text);
 }

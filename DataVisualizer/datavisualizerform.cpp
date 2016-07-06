@@ -38,6 +38,19 @@ DataVisualizerForm::DataVisualizerForm(bool interactive, QSettings *settings, QW
     ui->metaTable->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
 #endif
 
+    //настройка размеров виджета
+    QSize size = this->sizeHint();
+    qDebug() << size;
+    QList<int> sizes;
+    sizes.push_back(size.height() * 0.75);
+    sizes.push_back(size.height() * 0.25);
+    ui->splitter->setSizes(sizes);
+
+    sizes.clear();
+    sizes.push_back(size.width() * 0.25);
+    sizes.push_back(size.width() * 0.75);
+    ui->splitter_2->setSizes(sizes);
+
 
 #ifndef APD_MODE
     ui->saveGraphs->setVisible(false);
@@ -316,7 +329,7 @@ void CustomItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &op
 void DataVisualizerForm::clearText()
 {
     curr_info.clear();
-    ui->infoLabel->clear();
+    ui->infoBrowser->clear();
 }
 
 void DataVisualizerForm::updateEventsInfo(QCPRange range)
@@ -567,7 +580,7 @@ void DataVisualizerForm::updateText(QString sender, QString info)
     for(QMap<QString, QString>::iterator it = curr_info.begin(); it != curr_info.end(); it++)
         text += tr("%1: %2\n").arg(it.key(), it.value());
 
-    ui->infoLabel->setText(text);
+    ui->infoBrowser->setText(text);
 }
 
 Ruler::Ruler(DataVisualizerForm *form, QCustomPlot *plot, QObject *parent) : QObject(parent)

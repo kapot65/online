@@ -17,10 +17,26 @@
 #endif
 
 #include <QCompleter>
+#include <QTextBrowser>
 
 namespace Ui {
 class OnlineForm;
 }
+
+class ParamsUpdater : public QObject
+{
+    Q_OBJECT
+public:
+    ParamsUpdater(QTextBrowser *textBrower, QObject *parent = NULL);
+
+public slots:
+    void updateParam(QString key, QString value);
+
+private:
+    void updateView();
+    QTextBrowser *textBrower;
+    QMap<QString, QString> metaParams;
+};
 
 /*!
  * \brief Класс для вывода времени, прошедшего с начала итерации на форму OnlineForm.
@@ -34,12 +50,14 @@ public:
     /*!
      * \param timeLabel QLabel, куда будет выводится отсчет
      */
-    OnlineFormTimeWatcher(QLabel *timeLabel,
+    OnlineFormTimeWatcher(ParamsUpdater *metaUpdater,
                           QObject *parent = NULL);
     void stopTimer(){scenarioRunning = false;}
 
+signals:
+    void updateTime(QString key, QString time);
+
 private:
-    QLabel *timeLabel;
     bool scenarioRunning;
     // QThread interface
 protected:
@@ -193,6 +211,7 @@ private:
      */
     QTimer infoMessageWipeTimer;
 
+    ParamsUpdater *paramsUpdater;
     OnlineFormTimeWatcher *timeWatcher;
     ScenarioStepTicker *ticker;
 

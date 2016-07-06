@@ -193,7 +193,8 @@ protected:
         //Определение самого большого бина
         if(binMax)
         {
-            *binMax = (int)(std::max_element(binVal.begin(), binVal.end()));
+            int max = *(std::max_element(binVal.begin(), binVal.end()));
+            *binMax = max;
     #ifdef TEST_MODE
             qDebug() << *binMax;
     #endif
