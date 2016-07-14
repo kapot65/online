@@ -185,7 +185,7 @@ QVector<Event> CamacAlgoritm::acquirePoint(int measureTime, int totalMeasureTime
 
         if(totalCounts)
         {
-            *totalCounts += countsPrev + total_events;
+            *totalCounts = countsPrev + total_events;
             *currentSeconds += delayTime;
             emit currentEventCount(*totalCounts, *currentSeconds, totalMeasureTime);
         }
@@ -238,7 +238,8 @@ QVector<Event> CamacAlgoritm::acquirePoint(int measureTime, int totalMeasureTime
     getMADCAddr(addr, addrOverflow, endOfMeasurement);
     //полное количество зафиксированных частиц
     total_events = addr;
-    emit currentEventCount(total_events);
+    *totalCounts = countsPrev + total_events;
+    emit currentEventCount(*totalCounts, *currentSeconds, totalMeasureTime);
 #ifdef TEST_MODE
     qDebug() << tr("Acquisition of point done. Total events = %1").arg(total_events);
 #endif
