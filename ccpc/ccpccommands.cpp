@@ -19,12 +19,9 @@ CCPCCommands::~CCPCCommands()
 
 void CCPCCommands::waitMSec(int msec)
 {
-    #if QT_VERSION >= 0x050300
-            QThread::msleep(msec);
-    #elif QT_VERSION >= 0x040800
-        timer->start(msec);
-        eventLoop->exec();
-#endif
+    QEventLoop el;
+    QTimer::singleShot(msec, &el, SLOT(quit()));
+    el.exec();
 }
 
 void CCPCCommands::C()

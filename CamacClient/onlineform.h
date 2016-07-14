@@ -27,14 +27,14 @@ class ParamsUpdater : public QObject
 {
     Q_OBJECT
 public:
-    ParamsUpdater(QTextBrowser *textBrower, QObject *parent = NULL);
+    ParamsUpdater(QTextBrowser *textBroswer, QObject *parent = NULL);
 
 public slots:
     void updateParam(QString key, QString value);
 
 private:
     void updateView();
-    QTextBrowser *textBrower;
+    QTextBrowser *textBroswer;
     QMap<QString, QString> metaParams;
 };
 
@@ -147,6 +147,7 @@ private slots:
      */
     void processScenarioDone();
 
+    void showCurrentAcqStatus(long counts, int currentTime, int totalTime);
 
 private:
     /*!

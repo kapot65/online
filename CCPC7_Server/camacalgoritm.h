@@ -46,8 +46,10 @@ signals:
     /*!
      * \brief Испускается в процессе набора точки.
      * \param Текущее количество набраных событий.
+     * \param currentTime Пройденное время в секундах
+     * \param totalTime Полное время в секундах
      */
-    void currentEventCount(int count);
+    void currentEventCount(long count, int currentTime, int totalTime);
 
 #ifdef VIRTUAL_MODE
     /*!
@@ -68,7 +70,8 @@ protected:
      * \param [out] manuallyBreak Флаг прерывания программы пользователем.
      * \return Вектор набранных событий в формате Event.
      */
-    QVector<Event> acquirePoint(int measureTime, bool *manuallyBreak = NULL);
+    QVector<Event> acquirePoint(int measureTime, int totalMeasureTime, bool *manuallyBreak = NULL, long *totalCounts = NULL,
+                                int *currentSeconds = NULL);
 
     /*!
      * \brief Обнуление каунтеров.

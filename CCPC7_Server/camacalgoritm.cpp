@@ -87,7 +87,8 @@ unsigned int CamacAlgoritm::getCounterValue(int counterNum, int channelNum, bool
     return fullData;
 }
 
-QVector<Event> CamacAlgoritm::acquirePoint(int measureTime, bool *manuallyBreak)
+QVector<Event> CamacAlgoritm::acquirePoint(int measureTime, int totalMeasureTime, bool *manuallyBreak, long *totalCounts,
+                                           int *currentSeconds)
 {
     breakFlag = 0;
 
@@ -162,16 +163,19 @@ QVector<Event> CamacAlgoritm::acquirePoint(int measureTime, bool *manuallyBreak)
     NAF(settings->getOV1(), 0, 25, none);
 #endif
 
+    int delayTime = 1;
+
     //цикл сбора
 #ifndef VIRTUAL_MODE
     long addr;
     bool addrOverflow;
     bool endOfMeasurement;
     long total_events = 0;
+    long countsPrev = *totalCounts;
     do
     {
         //задержка 1 сек
-        waitMSec(1000);
+        waitMSec(delayTime * 1000);
         getMADCAddr(addr, addrOverflow, endOfMeasurement);
         //количество зафиксированных частиц на текущий момент
         total_events = addr;
@@ -179,7 +183,12 @@ QVector<Event> CamacAlgoritm::acquirePoint(int measureTime, bool *manuallyBreak)
                      .arg(total_events).arg(addrOverflow)
                      .arg(endOfMeasurement).toStdString();
 
-        emit currentEventCount(total_events);
+        if(totalCounts)
+        {
+            *totalCounts += countsPrev + total_events;
+            *currentSeconds += delayTime;
+            emit currentEventCount(*totalCounts, *currentSeconds, totalMeasureTime);
+        }
     }
     while(!addrOverflow && !endOfMeasurement && !breakFlag);
 #else
@@ -188,8 +197,14 @@ QVector<Event> CamacAlgoritm::acquirePoint(int measureTime, bool *manuallyBreak)
     for(int i = 0; i < measureTime; i++)
     {
         qDebug() << tr("Simulate acquisition: %1 total events").arg(eventsInSecond * i);
-        emit currentEventCount(eventsInSecond * i);
-        waitMSec(1000);
+        waitMSec(delayTime * 1000);
+
+        if(totalCounts)
+        {
+            *totalCounts += eventsInSecond * delayTime;
+            *currentSeconds += delayTime;
+            emit currentEventCount(*totalCounts, *currentSeconds, totalMeasureTime);
+        }
     }
 #endif
 
@@ -605,4 +620,3 @@ void CamacAlgoritm::testMADC()
     unsigned short finalAdress2 = 0;
     NAF(settings->getMADC(), 0, 1, finalAdress2);
 }
-

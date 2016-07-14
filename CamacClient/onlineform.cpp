@@ -3,6 +3,7 @@
 #include <QTime>
 #include <QMovie>
 #include <QDirIterator>
+#include <QScrollBar>
 
 void OnlineForm::refreshGroupCompleter()
 {
@@ -116,10 +117,9 @@ OnlineForm::OnlineForm(CCPC7Handler *ccpc7Handler, HVHandler *hvHandler,
     connect(online, SIGNAL(paused()), this, SLOT(onPauseApplied()), Qt::QueuedConnection);
     connect(ui->resumeButton, SIGNAL(clicked()), online, SLOT(resume()));
     connect(online, SIGNAL(stop_pauseLoop()), this, SLOT(onResumeApplied()), Qt::QueuedConnection);
-
     connect(online, SIGNAL(at_step(int,int)), this, SLOT(setScenarioStage(int,int)), Qt::QueuedConnection);
-
     connect(online, SIGNAL(workStatusChanged(bool)), this, SLOT(processWorkStatus(bool)), Qt::QueuedConnection);
+
 
     on_checkUserForNextStep_stateChanged(ui->checkUserForNextStep->checkState());
 
@@ -137,9 +137,10 @@ OnlineForm::OnlineForm(CCPC7Handler *ccpc7Handler, HVHandler *hvHandler,
 
     connect(online, SIGNAL(scenario_done()),
             this, SLOT(processScenarioDone()), Qt::DirectConnection);
-
     connect(online, SIGNAL(scenario_start()),
             this, SLOT(processScenarioStart()), Qt::DirectConnection);
+
+    connect(this->ccpc7Handler, SIGNAL(currentAcqStatus(long,int,int)), this, SLOT(showCurrentAcqStatus(long,int,int)), Qt::QueuedConnection);
 
     ticker = NULL;
 }
@@ -682,6 +683,11 @@ void OnlineForm::processScenarioDone()
     timeWatcher->stopTimer();
 }
 
+void OnlineForm::showCurrentAcqStatus(long counts, int currentTime, int totalTime)
+{
+    paramsUpdater->updateParam("текущий счет", tr("%1 (%2/%3 c)").arg(counts).arg(currentTime).arg(totalTime));
+}
+
 void OnlineFormTimeWatcher::run()
 {
     QTime time;
@@ -742,7 +748,7 @@ void ScenarioStepTicker::run()
 
 ParamsUpdater::ParamsUpdater(QTextBrowser *textBrower, QObject *parent) : QObject(parent)
 {
-    this->textBrower = textBrower;
+    this->textBroswer = textBrower;
 }
 
 void ParamsUpdater::updateParam(QString key, QString value)
@@ -757,5 +763,8 @@ void ParamsUpdater::updateView()
     foreach (QString key, metaParams.keys()) {
         text += tr("%1: %2\n").arg(key, metaParams[key]);
     }
-    textBrower->setPlainText(text);
+
+    int value = textBroswer->verticalScrollBar()->value();
+    textBroswer->setPlainText(text);
+    textBroswer->verticalScrollBar()->setValue(value);
 }

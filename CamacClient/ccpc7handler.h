@@ -42,6 +42,14 @@ signals:
     void pointAcquired(MachineHeader machineHeader, QVariantMap metaData, QVector<Event> events);
 
     /*!
+     * \brief Информация о текущем статусе набора
+     * \param counts текущий счет
+     * \param currentTime текущее время набора
+     * \param totalTime полное время набора точки
+     */
+    void currentAcqStatus(long counts, int currentTime, int totalTime);
+
+    /*!
      * \brief Сигнал успешного считывания каунтера.
      * \param metaData метаданные
      */

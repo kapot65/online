@@ -12,37 +12,34 @@ CCPC7Handler::~CCPC7Handler()
 
 void CCPC7Handler::processMessage(MachineHeader mashineHeader, QVariantMap metaData, QByteArray binaryData)
 {
-    if(metaData.value("reply_type").toString() == "aquired_point")
-    {
+    if(metaData.value("reply_type").toString() == "aquired_point"){
         QVector<Event> events;
         TcpProtocol::parceMessageWithPoints(mashineHeader, metaData, binaryData, events);
-
         emit pointAcquired(mashineHeader, metaData, events);
     }
-    else
-        if(metaData.value("reply_type").toString() == "get_counters_value")
-        {
-            emit counterAcquired(metaData);
-        }
-        else
-            if(metaData.value("reply_type").toString() == "init")
-            {
-                emit serverInited();
-            }
-            else
-                if(metaData.value("reply_type").toString() == "break_acquisition")
-                {
-                    emit acquisitionBreaked();
-                }
-                else
-                if(metaData.value("reply_type").toString() == "reset_counters")
-                {
-                    emit countersResetted();
-                }
-                    else
-                    {
-                        emit unhandledMessage(mashineHeader, metaData, binaryData);
-                    }
+    else if(metaData.value("reply_type").toString() == "get_counters_value") {
+        emit counterAcquired(metaData);
+    }
+    else if(metaData.value("reply_type").toString() == "init") {
+        emit serverInited();
+    }
+    else if(metaData.value("reply_type").toString() == "break_acquisition") {
+        emit acquisitionBreaked();
+    }
+    else if(metaData.value("reply_type").toString() == "reset_counters") {
+        emit countersResetted();
+    }
+    else if(metaData.value("reply_type").toString() == "acquisition_status") {
+
+        long counts = metaData["count"].toLongLong();
+        int currentTime = metaData["current_time"].toInt();
+        int totalTime =  metaData["total_time"].toInt();
+
+        emit currentAcqStatus(counts, currentTime, totalTime);
+    }
+    else {
+        emit unhandledMessage(mashineHeader, metaData, binaryData);
+    }
 }
 
 void CCPC7Handler::initServer(bool *ok)

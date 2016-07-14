@@ -80,6 +80,7 @@ public slots:
      */
     void processBreakAcquisition(QVariantMap message);
 
+
     /*!
      * \brief Проведение команды NAF.
      * \param message Метаданные команды.
@@ -97,6 +98,15 @@ public slots:
      * \param message Метаданные команды.
      */
     void processGetCountersValue(QVariantMap message);
+
+    /*!
+     * \brief Посылка клиенту информации о текущем статусе набора
+     * слот соединен с CamacAlgoritm::currentEventCount
+     * \param count текущий счет
+     * \param currentTime текущее время в секундах
+     * \param totalTime полное время в секундах
+     */
+    void processCurrentEventCount(long count, int currentTime, int totalTime);
 
 private:
     ///Путь к временной папке.

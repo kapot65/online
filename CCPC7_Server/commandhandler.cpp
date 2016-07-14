@@ -1,5 +1,6 @@
 #include "commandhandler.h"
 #include <QStringList>
+#include <QDebug>
 
 bool CommandHandler::checkInit()
 {
@@ -264,6 +265,9 @@ void CommandHandler::processAcquirePoint(QVariantMap message)
     //создание выходного сообщения
     QVariantMap messageToSend;
 
+    long totalCounts = 0;
+    int currentSeconds = 0;
+
     bool manuallyBreak;
     if(message.value("split", false).toBool())
     {
@@ -276,7 +280,7 @@ void CommandHandler::processAcquirePoint(QVariantMap message)
         for(int i = 0; i < acqisitionTime; i += 5)
         {
             QDateTime acqDateTimeStart = QDateTime::currentDateTime();
-            QVector<Event> curr_events = acquirePoint(5, &manuallyBreak);
+            QVector<Event> curr_events = acquirePoint(5, acqisitionTime, &manuallyBreak, &totalCounts, &currentSeconds);
             QDateTime acqDateTimeEnd = QDateTime::currentDateTime();
 
             realAcqisitionTime += 5;
@@ -308,7 +312,7 @@ void CommandHandler::processAcquirePoint(QVariantMap message)
         QDateTime acqDateTimeStart = QDateTime::currentDateTime();
 
         //сбор точки
-        events = acquirePoint(acqisitionTime, &manuallyBreak);
+        events = acquirePoint(acqisitionTime, acqisitionTime, &manuallyBreak, &totalCounts, &currentSeconds);;
 
         QDateTime acqDateTimeEnd = QDateTime::currentDateTime();
 
@@ -381,4 +385,19 @@ CommandHandler::CommandHandler(CamacServerSettings *settings, METATYPE metatype,
     tempFolder = settings->getSettingsValue("tempFolder", "dirPath").toString();
 
     connect(this, SIGNAL(breakAcquisition()), this, SLOT(on_breakAcquisition()));
+    connect(this, SIGNAL(currentEventCount(long,int,int)),
+            this, SLOT(processCurrentEventCount(long,int,int)), Qt::DirectConnection);
 }
+
+void CommandHandler::processCurrentEventCount(long count, int currentTime, int totalTime)
+{
+    QVariantMap messageToSend;
+    messageToSend["type"] = "reply";
+    messageToSend["reply_type"] = "acquisition_status";
+    messageToSend["count"] = (qlonglong)count;
+    messageToSend["current_time"] = currentTime;
+    messageToSend["total_time"] = totalTime;
+
+    emit sendMessage(messageToSend, QByteArray());
+}
+
