@@ -47,7 +47,6 @@ Online::Online(IniManager *settingsManager, CCPC7Handler *ccpcHandler, HVHandler
 
     checkVoltageError = settingsManager->getSettingsValue(metaObject()->className(), "checkVoltageError").toDouble();
 
-
     connect(ccpcHandler, SIGNAL(unhandledError(QVariantMap)), this, SLOT(processUnhandledError(QVariantMap)));
     connect(hvHandler, SIGNAL(unhandledError(QVariantMap)), this, SLOT(processUnhandledError(QVariantMap)));
 
@@ -576,7 +575,7 @@ QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> > Online::constructReverseScenari
    return reverse_scenario;
 }
 
-QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> > Online::parseScenario(QString scenario_string, bool *ok)
+QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> > Online::parseScenario(QString scenario_string, bool *ok, bool noShiftBlock)
 {
     QStringList elements = scenario_string.split(QRegExp("\\s+"));
 
@@ -642,10 +641,13 @@ QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> > Online::parseScenario(QString s
 
             scenario.push_back(qMakePair(SET_VOLTAGE_AND_CHECK, QVariant(args)));
 
-            args["block"] = "2";
-            args["voltage"] = voltageShift;
 
-            scenario.push_back(qMakePair(SET_VOLTAGE_AND_CHECK, QVariant(args)));
+            if(!noShiftBlock) {
+                args["block"] = "2";
+                args["voltage"] = voltageShift;
+
+                scenario.push_back(qMakePair(SET_VOLTAGE_AND_CHECK, QVariant(args)));
+            }
 
             args.clear();
 

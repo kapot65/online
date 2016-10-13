@@ -92,6 +92,11 @@ OnlineForm::OnlineForm(CCPC7Handler *ccpc7Handler, HVHandler *hvHandler,
         on_sessionEdit_editingFinished();
     }
 
+    if(!settingsManager->getSettingsValue(metaObject()->className(), "noShiftBlock").isValid())
+        settingsManager->setSettingsValue(metaObject()->className(), "noShiftBlock", true);
+
+    noShiftBlock = settingsManager->getSettingsValue(metaObject()->className(), "noShiftBlock").toBool();
+
     this->ccpc7Handler = ccpc7Handler;
     this->hvHandler = hvHandler;
     this->online = online;
@@ -170,7 +175,7 @@ void OnlineForm::on_openScenarioButton_clicked()
     scenarioFile.open(QIODevice::ReadOnly);
     QString scenarioString = scenarioFile.readAll();
 
-    curr_scenario = Online::parseScenario(scenarioString, &scenarioOk);
+    curr_scenario = Online::parseScenario(scenarioString, &scenarioOk, noShiftBlock);
 
     updateEnabledButton();
 

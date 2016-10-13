@@ -12,6 +12,13 @@ HVServer::HVServer(IniManager *manager, int port, QObject *parent): TcpServer(po
 
     this->manager = manager;
 
+    if(!manager->getSettingsValue(metaObject()->className(), "noShiftDivider").isValid())
+        manager->setSettingsValue(metaObject()->className(), "noShiftDivider", true);
+    noShiftDivider = manager->getSettingsValue(metaObject()->className(), "noShiftDivider").toBool();
+    if(noShiftDivider) {
+        LOG(INFO) << "Ignore Shift divider. To enable it edit configuration file";
+    }
+
     //создание классов для взаимодействия с основным блоком напряжения
     divider1 = new DividerReader("Divider1", manager);
     divider1->init();
@@ -32,10 +39,14 @@ HVServer::HVServer(IniManager *manager, int port, QObject *parent): TcpServer(po
 
 
     //создание классов для взаимодействия с блоком смещения
-    divider2 = new DividerReader("Divider2", manager);
-    divider2->init();
-    divider2->start();
-    connect(divider2, SIGNAL(getVoltageDone(double)), this, SLOT(onDivider2GetVoltageDone(double)), Qt::QueuedConnection);
+    if(!noShiftDivider) {
+        divider2 = new DividerReader("Divider2", manager);
+        divider2->init();
+        divider2->start();
+        connect(divider2, SIGNAL(getVoltageDone(double)), this, SLOT(onDivider2GetVoltageDone(double)), Qt::QueuedConnection);
+    } else {
+        divider2 = NULL;
+    }
 
     hvControlerDivider2 = new HVControler(manager, "HVController2", &voltage2Block, &ok);
     hvControlerDivider2->start();
@@ -58,8 +69,10 @@ HVServer::~HVServer()
     divider1->exit();
     divider1->deleteLater();
 
-    divider2->exit();
-    divider2->deleteLater();
+    if(!noShiftDivider) {
+        divider2->exit();
+        divider2->deleteLater();
+    }
 
     hvControlerDivider1->exit();
     hvControlerDivider1->deleteLater();

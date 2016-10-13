@@ -140,7 +140,7 @@ public:
      * \return Сценарий. Вектор пар. Первый элемет в паре содержит тип команды сценария.
      * Второй элемент - ее аргуметны.
      */
-    static QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> > parseScenario(QString scenario_string, bool *ok = 0);
+    static QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> > parseScenario(QString scenario_string, bool *ok = 0, bool noShiftBlock=true);
 
 signals:
     /*!

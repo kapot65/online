@@ -94,6 +94,12 @@ private:
 
    double voltage1Block;
    double voltage2Block;
+
+   /*!
+    * \brief Не использовать делитель блока смещения. Параметр задается через конфигурационный файл.
+    */
+   bool noShiftDivider;
+
 };
 
 #endif // HVSERVER_H
