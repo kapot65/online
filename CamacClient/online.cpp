@@ -529,47 +529,39 @@ QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> > Online::constructReverseScenari
 {
    QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> > reverse_scenario;
 
-   for(int i = scenario.size() - 1; i >= 2; i -= 3)
+   for(int i = scenario.size() - 1; i >= 1;)
    {
        bool firstCondition = (scenario[i].first == ACQUIRE_POINT) ||
                              (scenario[i].first == ACQUIRE_MULTIPOINT);
 
-       if(firstCondition &&
-          scenario[i - 1].first == SET_VOLTAGE_AND_CHECK &&
-          scenario[i - 2].first == SET_VOLTAGE_AND_CHECK)
-       {
+       if(i >= 2 && firstCondition && scenario[i - 1].first == SET_VOLTAGE_AND_CHECK &&
+          scenario[i - 2].first == SET_VOLTAGE_AND_CHECK) {
            reverse_scenario.push_back(scenario[i - 2]);
            reverse_scenario.push_back(scenario[i - 1]);
            reverse_scenario.push_back(scenario[i]);
+           i -= 3;
+       } else if(firstCondition && scenario[i - 1].first == SET_VOLTAGE_AND_CHECK) {
+           reverse_scenario.push_back(scenario[i - 1]);
+           reverse_scenario.push_back(scenario[i]);
+           i -= 2;
+       } else if(i >= 3 && firstCondition && scenario[i - 1].first == WAIT &&
+                 scenario[i - 2].first == SET_VOLTAGE && scenario[i - 3].first == SET_VOLTAGE) {
+           reverse_scenario.push_back(scenario[i - 3]);
+           reverse_scenario.push_back(scenario[i - 2]);
+           reverse_scenario.push_back(scenario[i - 1]);
+           reverse_scenario.push_back(scenario[i]);
+           i -= 4;
+       } else if(i >= 2 && firstCondition && scenario[i - 1].first == WAIT &&
+                 scenario[i - 2].first == SET_VOLTAGE) {
+           reverse_scenario.push_back(scenario[i - 2]);
+           reverse_scenario.push_back(scenario[i - 1]);
+           reverse_scenario.push_back(scenario[i]);
+           i -= 3;
+       } else {
+           //при конструировании произошла ошибка
+           reverse_scenario.clear();
+           return reverse_scenario;
        }
-       else
-           if(i >= 3 &&
-              firstCondition &&
-              scenario[i - 1].first == WAIT &&
-              scenario[i - 2].first == SET_VOLTAGE &&
-              scenario[i - 3].first == SET_VOLTAGE)
-           {
-               reverse_scenario.push_back(scenario[i - 3]);
-               reverse_scenario.push_back(scenario[i - 2]);
-               reverse_scenario.push_back(scenario[i - 1]);
-               reverse_scenario.push_back(scenario[i]);
-               i--;
-           }
-           else
-               if(firstCondition &&
-                  scenario[i - 1].first == WAIT &&
-                  scenario[i - 2].first == SET_VOLTAGE)
-               {
-                   reverse_scenario.push_back(scenario[i - 2]);
-                   reverse_scenario.push_back(scenario[i - 1]);
-                   reverse_scenario.push_back(scenario[i]);
-               }
-               else
-                   {
-                       //при конструировании произошла ошибка
-                       reverse_scenario.clear();
-                       return reverse_scenario;
-                   }
    }
 
    return reverse_scenario;
