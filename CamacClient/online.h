@@ -359,6 +359,11 @@ private:
      */
     double checkVoltageError;
     void flushInfoFile();
+
+    /*!
+     * \brief Время ожидания в секундах после выставления напряжения
+     */
+    int waitSecAfterVoltage;
 };
 
 

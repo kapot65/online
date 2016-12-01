@@ -173,12 +173,15 @@
  *   установить необходимые параметры.
  *
  *  - Linux
- *   - Установить зависимости
+ *   - Qt4
+ *     - Установить зависимости
  *
- *           sudo apt-get install libqjson0
- *           sudo apt-get install libqt4-core libqt4-gui libqt4-network
+ *             sudo apt-get install libqjson0
+ *             sudo apt-get install libqt4-core libqt4-gui libqt4-network
  *
- *   - Скопировать Файлы программы в любую папку
+ *     - Скопировать Файлы программы в любую папку
+ *   - Qt5
+ *     - Не требует дополнительных зависимостей
  *
  * Необходимые поля для работы CamacClient:
  *
@@ -403,49 +406,56 @@
  *
  * Шаги при сбоке:
  *
- * - Устанваливаем Qt
+ * - Qt 5 (клиент)
+ *   - Для работы может потребоваться установка libgl-dev
  *
- *       sudo apt-get install qt4-dev-tools libqt4-dev libqt4-core libqt4-gui
+ *        sudo apt-get install libgl-dev
  *
- * - Устанваливаем Qt Creator
+ *   - Для генерирования графиков для документации можно установить graphviz.
  *
- *        sudo apt-get install qtcreator
+ *        sudo apt-get install graphviz
  *
- * \warning При установке не нужно добавлять новые репозитории. Новые версии Qt Creator, лежащие в них
- * не работают на CCPC.
+ * - Qt 4 (сервера)
+ *   - Устанваливаем Qt
  *
- * - Устанавливаем QJson
+ *         sudo apt-get install qt4-dev-tools libqt4-dev libqt4-core libqt4-gui
  *
- *       sudo apt-get install libqjson-dbg libqjson-dev libqjson0 libqjson0-dbg
+ *   - Устанваливаем Qt Creator
  *
- * - Устанавливаем Git
+ *          sudo apt-get install qtcreator
  *
- *       sudo add-apt-repository ppa:git-core/ppa
- *       sudo apt-get update
- *       sudo apt-get install git-core
+ *   \warning При установке не нужно добавлять новые репозитории. Новые версии Qt Creator, лежащие в них
+ *   не работают на CCPC.
  *
- * - Собираем библиотеку QtSerialPort. Для этого:
- *  -Клонируем репозиторий в любую папку
+ *   - Устанавливаем QJson
  *
- *       sudo git clone -b qt4-dev git://code.qt.io/qt/qtserialport.git
+ *         sudo apt-get install libqjson-dbg libqjson-dev libqjson0 libqjson0-dbg
  *
- *  -Открываем проект, через QtCreator. Добавлем дополнительный этак сборки Make с аргументом install.
- *  -Собираем проект.
+ *   - Устанавливаем Git
+ *         sudo apt-get install git
  *
- * - Клонируем репозиторий в нужную папку
+ *   - Собираем библиотеку QtSerialPort. Для этого:
+ *     -Клонируем репозиторий в любую папку
  *
- *       sudo mkdir -p  /home/QtProjects/Online
- *       sudo chmod -R 777 /home/QtProjects/Online
- *       cd  /home/QtProjects/Online
- *       git clone https://Kapot@bitbucket.org/Kapot/online.git
+ *         sudo git clone -b qt4-dev git://code.qt.io/qt/qtserialport.git
  *
- * - После установки всех нужных компонентов открываем QtCreator с правами root
+ *     -Открываем проект, через QtCreator. Добавлем дополнительный этак сборки Make с аргументом install.
+ *     -Собираем проект.
  *
- *       sudo /usr/bin/qtcreator
+ *   - Клонируем репозиторий в нужную папку
  *
- *  И открываем файл online.pro.
+ *         sudo mkdir -p  /home/QtProjects/Online
+ *         sudo chmod -R 777 /home/QtProjects/Online
+ *         cd  /home/QtProjects/Online
+ *         git clone https://Kapot@bitbucket.org/Kapot/online.git
  *
- * - Выбираем нужную программу и нажимаем qmake
+ *   - После установки всех нужных компонентов открываем QtCreator с правами root
+ *
+ *         sudo /usr/bin/qtcreator
+ *
+ *    И открываем файл online.pro.
+ *
+ *   - Выбираем нужную программу и нажимаем qmake
  *
  * \section commandsList Список команд и ответов
  * Ниже приведен список запросов и аврианты ответов для серверов CCPC7_Server

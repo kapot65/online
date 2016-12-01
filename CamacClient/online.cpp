@@ -47,6 +47,11 @@ Online::Online(IniManager *settingsManager, CCPC7Handler *ccpcHandler, HVHandler
 
     checkVoltageError = settingsManager->getSettingsValue(metaObject()->className(), "checkVoltageError").toDouble();
 
+    if(!settingsManager->getSettingsValue(metaObject()->className(), "waitSecAfterVoltage").isValid())
+        settingsManager->setSettingsValue(metaObject()->className(), "waitSecAfterVoltage", 5);
+
+    waitSecAfterVoltage = settingsManager->getSettingsValue(metaObject()->className(), "waitSecAfterVoltage").toDouble();
+
     connect(ccpcHandler, SIGNAL(unhandledError(QVariantMap)), this, SLOT(processUnhandledError(QVariantMap)));
     connect(hvHandler, SIGNAL(unhandledError(QVariantMap)), this, SLOT(processUnhandledError(QVariantMap)));
 
@@ -361,6 +366,13 @@ bool Online::processScenarioImpl(QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> 
                         break;
                 }
 
+                // Дополнительное ожидание времени после выставления напряжения
+                LOG(INFO) << tr("Setting voltage done. Waiting additional %1 seconds")
+                             .arg(waitSecAfterVoltage);
+                QTimer::singleShot(waitSecAfterVoltage * 1000, &el, SLOT(quit()));
+                el.exec();
+                LOG(INFO) << tr("Finish waiting");
+
                 break;
             }
 
@@ -444,7 +456,6 @@ bool Online::processScenarioImpl(QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> 
                 el.exec();
                 break;
             }
-
         case BREAK:
             stopHvMonitor(hvMonitor);
             emit scenario_done();
