@@ -1,5 +1,6 @@
 #include "tcpprotocol.h"
 #include <QDateTime>
+#include <QIODevice>
 #include <QDataStream>
 
 QMap<int, unsigned short> TcpProtocol::getAviableMeasuteTimes()
@@ -296,6 +297,8 @@ QByteArray TcpProtocol::createMessageWithPoints(QVariantMap meta, QVector<Event>
 
 bool TcpProtocol::parceMessageWithPoints(MachineHeader messageHeader, QVariantMap messageMeta, QByteArray messageData, QVector<Event> &events)
 {
+    unsigned long long binary_size = messageMeta["binary_size"].toULongLong();
+
     //проверка метаданных
     switch(messageHeader.dataType)
     {
@@ -306,12 +309,15 @@ bool TcpProtocol::parceMessageWithPoints(MachineHeader messageHeader, QVariantMa
             QDataStream ds(&messageData, QIODevice::ReadOnly);
 
             events.clear();
-            while(!ds.atEnd())
+            unsigned long long pos = 0;
+            while(pos < binary_size)
             {
                 Event curr_ev;
                 ds.readRawData((char*)(&(curr_ev.data)), sizeof(unsigned short));
                 ds.readRawData((char*)(&(curr_ev.time)), sizeof(int));
                 ds.readRawData((char*)(&(curr_ev.valid)), sizeof(bool));
+
+                pos += sizeof(unsigned short) + sizeof(int) + sizeof(bool);
 
                 events.push_back(curr_ev);
             }
