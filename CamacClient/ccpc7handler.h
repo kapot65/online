@@ -38,8 +38,9 @@ signals:
      * \param machineHeader бинарный хедер
      * \param metaData метаданные
      * \param events массив событий
+     * \param data сырые бианрные точки сообщения
      */
-    void pointAcquired(MachineHeader machineHeader, QVariantMap metaData, QVector<Event> events);
+    void pointAcquired(MachineHeader machineHeader, QVariantMap metaData, QVector<Event> events, QByteArray data);
 
     /*!
      * \brief Информация о текущем статусе набора

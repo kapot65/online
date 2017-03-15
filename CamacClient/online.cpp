@@ -55,8 +55,8 @@ Online::Online(IniManager *settingsManager, CCPC7Handler *ccpcHandler, HVHandler
     connect(ccpcHandler, SIGNAL(unhandledError(QVariantMap)), this, SLOT(processUnhandledError(QVariantMap)));
     connect(hvHandler, SIGNAL(unhandledError(QVariantMap)), this, SLOT(processUnhandledError(QVariantMap)));
 
-    connect(ccpcHandler, SIGNAL(pointAcquired(MachineHeader,QVariantMap,QVector<Event>)),
-            this, SLOT(savePoint(MachineHeader,QVariantMap,QVector<Event>)));
+    connect(ccpcHandler, SIGNAL(pointAcquired(MachineHeader,QVariantMap,QVector<Event>,QByteArray)),
+            this, SLOT(savePoint(MachineHeader,QVariantMap,QVector<Event>,QByteArray)));
 }
 
 Online::~Online()
@@ -404,7 +404,7 @@ bool Online::processScenarioImpl(QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> 
 
                 QEventLoop el;
                 connect(this, SIGNAL(stop_scenario()), &el, SLOT(quit()));
-                connect(ccpcHandler, SIGNAL(pointAcquired(MachineHeader,QVariantMap,QVector<Event>)), &el, SLOT(quit()));
+                connect(ccpcHandler, SIGNAL(pointAcquired(MachineHeader,QVariantMap,QVector<Event>,QByteArray)), &el, SLOT(quit()));
                 connect(ccpcHandler, SIGNAL(unhandledError(QVariantMap)), &el, SLOT(quit()));
 
 
@@ -419,7 +419,7 @@ bool Online::processScenarioImpl(QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> 
                 if(stop_flag)
                 {
                     QEventLoop elLastPoint;
-                    connect(ccpcHandler, SIGNAL(pointAcquired(MachineHeader,QVariantMap,QVector<Event>)),
+                    connect(ccpcHandler, SIGNAL(pointAcquired(MachineHeader,QVariantMap,QVector<Event>,QByteArray)),
                             &elLastPoint, SLOT(quit()));
                     connect(ccpcHandler, SIGNAL(unhandledError(QVariantMap)),
                             &elLastPoint, SLOT(quit()));
@@ -989,7 +989,7 @@ void Online::storeHVError(QVariantMap info)
     updateInfo(info, true);
 }
 
-void Online::savePoint(MachineHeader machineHeader, QVariantMap meta, QVector<Event> data)
+void Online::savePoint(MachineHeader machineHeader, QVariantMap meta, QVector<Event> events, QByteArray data)
 {
     QVariantMap ext_meta = meta["external_meta"].toMap();
 
@@ -1010,11 +1010,7 @@ void Online::savePoint(MachineHeader machineHeader, QVariantMap meta, QVector<Ev
     QFile pointFile(tr("temp/%1/%2").arg(currSubFolder).arg(filename));
     pointFile.open(QIODevice::WriteOnly);
 
-    QByteArray file_data = TcpProtocol::createMessageWithPoints(meta, data,
-                                                                machineHeader.metaType,
-                                                                machineHeader.dataType);
-
+    QByteArray file_data = TcpProtocol::createMessage(meta, data, machineHeader.metaType, machineHeader.dataType);
     pointFile.write(file_data);
-
     pointFile.close();
 }

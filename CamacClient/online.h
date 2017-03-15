@@ -279,10 +279,11 @@ private slots:
      * \brief Записывает полученную точку в файл.
      * \param machineHeader Машинный заголовок сообщения с точкой.
      * \param meta Метаданные сообщения с точкой.
-     * \param data Данные о набранных событиях.
+     * \param events Данные о набранных событиях.
+     * \param data Сырые данные сообщения.
      * \todo Изменить поле "reply_type" на финальное.
      */
-    void savePoint(MachineHeader machineHeader, QVariantMap meta, QVector<Event> data);
+    void savePoint(MachineHeader machineHeader, QVariantMap meta, QVector<Event> events, QByteArray data);
 
 private:
     /*!
