@@ -293,6 +293,21 @@ private:
      */
     void stopHvMonitor(HVMonitor *hvMonitor);
 
+    /**
+     * @brief Current session name
+     */
+    QString session;
+
+    /**
+     * @brief Current acquisition group name
+     */
+    QString group;
+
+    /**
+     * @brief Current iteration index
+     */
+    int iteration;
+
     /*!
      * \brief Текущий относительный путь к папке с данными сбора.
      */

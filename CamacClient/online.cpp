@@ -11,6 +11,10 @@ Online::Online(IniManager *settingsManager, CCPC7Handler *ccpcHandler, HVHandler
 
     catchUnhandlerErrorFlag = 0;
 
+    session = "def_session";
+    group = "def_group";
+    iteration = 0;
+
     //создание папки temp
     QDir dir("temp");
 
@@ -65,8 +69,13 @@ Online::~Online()
 }
 
 bool Online::prepareFolder(QString session, QString group, int iteration, bool add_time)
-{
+{    
     currSubFolder = tr("%1/%2/%3").arg(session).arg(group).arg(iteration);
+
+    this->session = session;
+    this->group = group;
+    this->iteration = iteration;
+
     if(add_time)
         currSubFolder = tr("%1(%2)").arg(currSubFolder)
                                     .arg(QDateTime::currentDateTime().toString("yyyyMMddhhmmss"));
@@ -399,8 +408,13 @@ bool Online::processScenarioImpl(QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> 
                 QVariantMap ext_metadata;
                 ext_metadata["HV1_value"] = tr("%1").arg(last_hv_1);
                 ext_metadata["HV2_value"] = tr("%1").arg(last_hv_2);
+
                 if(meta.contains("index"))
                     ext_metadata["point_index"] = meta["index"];
+
+                ext_metadata["session"] = session;
+                ext_metadata["group"] = group;
+                ext_metadata["iteration"] = iteration;
 
                 QEventLoop el;
                 connect(this, SIGNAL(stop_scenario()), &el, SLOT(quit()));
