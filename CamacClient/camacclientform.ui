@@ -31,23 +31,23 @@
            </sizepolicy>
           </property>
           <property name="currentIndex">
-           <number>0</number>
+           <number>2</number>
           </property>
           <widget class="QWidget" name="generalTab">
            <attribute name="title">
-            <string>Общее</string>
+            <string>General</string>
            </attribute>
            <layout class="QVBoxLayout" name="verticalLayout_5"/>
           </widget>
           <widget class="QWidget" name="CCPC7Tab">
            <attribute name="title">
-            <string>Детектор</string>
+            <string>Detector</string>
            </attribute>
            <layout class="QVBoxLayout" name="verticalLayout_7"/>
           </widget>
           <widget class="QWidget" name="HVTab">
            <attribute name="title">
-            <string>Высоковольтная стойка</string>
+            <string>High Voltage</string>
            </attribute>
            <layout class="QVBoxLayout" name="verticalLayout_3"/>
           </widget>
@@ -71,7 +71,7 @@
           <item>
            <widget class="QPushButton" name="openViewerButton">
             <property name="text">
-             <string>Открыть вьювер</string>
+             <string>Open viewer</string>
             </property>
            </widget>
           </item>
@@ -90,7 +90,7 @@
         <item>
          <widget class="QLabel" name="label_2">
           <property name="text">
-           <string>Текстовый вывод:</string>
+           <string>Output:</string>
           </property>
          </widget>
         </item>
@@ -122,7 +122,7 @@
           <item>
            <widget class="QPushButton" name="clearLogButton">
             <property name="text">
-             <string>очистить лог</string>
+             <string>Clear log</string>
             </property>
            </widget>
           </item>
@@ -133,9 +133,6 @@
      </widget>
     </item>
    </layout>
-   <zorder>splitter_2</zorder>
-   <zorder>label_2</zorder>
-   <zorder>splitter_2</zorder>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
@@ -143,7 +140,7 @@
      <x>0</x>
      <y>0</y>
      <width>376</width>
-     <height>17</height>
+     <height>19</height>
     </rect>
    </property>
   </widget>

@@ -502,7 +502,7 @@ void OnlineForm::on_startButton_clicked()
         if(ui->finishOnThisIterationBox->isChecked())
             break;
 
-        paramsUpdater->updateParam("Текущая итерация", tr("%1 / %2").arg(i + 1).arg(iterations));
+        paramsUpdater->updateParam("Iteration", tr("%1 / %2").arg(i + 1).arg(iterations));
 
         bool ok;
         if(useReverseScenario && i%2 == 1)
@@ -529,7 +529,7 @@ void OnlineForm::on_startButton_clicked()
     }
     ui->finishOnThisIterationBox->setEnabled(false);
 
-    paramsUpdater->updateParam("Текущая итерация", tr("-"));
+    paramsUpdater->updateParam("Iteration", tr("-"));
     ui->stopButton->setEnabled(false);
     ui->pauseButton->setEnabled(false);
     ui->resumeButton->setEnabled(false);
@@ -565,7 +565,7 @@ void OnlineForm::on_sendComment_clicked()
 void OnlineForm::on_stopButton_clicked()
 {
     stopFlag = true;
-    if(QMessageBox::question(this, tr("Предупреждение"), tr("Вы точно хотите остановить набор?")) == QMessageBox::Yes)
+    if(QMessageBox::question(this, tr("Warning"), tr("Stop acquisition?")) == QMessageBox::Yes)
     {
         QTimer::singleShot(0, online, SLOT(stop()));
     }
@@ -614,22 +614,22 @@ void OnlineForm::on_iterationsBox_valueChanged(int arg1)
 
     int sec = curr_scenario_process_time * iterations;
 
-    QString iterTime = tr("%1ч %2мин %3с")
+    QString iterTime = tr("%1ч %2 min %3 s")
                           .arg(curr_scenario_process_time / (60*60))
                           .arg(curr_scenario_process_time / 60)
                           .arg(curr_scenario_process_time % 60);
 
-    paramsUpdater->updateParam("Время на одну итерацию", iterTime);
+    paramsUpdater->updateParam("Iteration estimated time", iterTime);
 
     if(sec)
-        paramsUpdater->updateParam("Примерное время выполнения",
+        paramsUpdater->updateParam("Estimated time",
                                    tr("%1ч %2мин %3с (%4)")
                                    .arg(sec / (60*60))
                                    .arg(sec / 60)
                                    .arg(sec % 60)
                                    .arg(iterTime));
     else
-        paramsUpdater->updateParam("Примерное время выполнения", "-");
+        paramsUpdater->updateParam("Estimated time", "-");
 }
 
 void OnlineForm::on_sessionEdit_editingFinished()
@@ -690,7 +690,7 @@ void OnlineForm::processScenarioDone()
 
 void OnlineForm::showCurrentAcqStatus(long counts, int currentTime, int totalTime)
 {
-    paramsUpdater->updateParam("текущий счет", tr("%1 (%2/%3 c)").arg(counts).arg(currentTime).arg(totalTime));
+    paramsUpdater->updateParam("Count", tr("%1 (%2/%3 s)").arg(counts).arg(currentTime).arg(totalTime));
 }
 
 void OnlineFormTimeWatcher::run()
@@ -714,7 +714,7 @@ void OnlineFormTimeWatcher::run()
 #else
         QString timeStr = QTime(0,0).addMSecs(time.elapsed()).toString(Qt::ISODate);
 #endif
-        emit updateTime("Время с начала итерации", timeStr);
+        emit updateTime("Iteration time", timeStr);
     }
 }
 

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>546</width>
-    <height>468</height>
+    <height>469</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -62,7 +62,7 @@
        <item>
         <widget class="QPushButton" name="resetCountersButton">
          <property name="text">
-          <string>Обнулить каунтеры</string>
+          <string>Reset counters</string>
          </property>
         </widget>
        </item>
@@ -76,21 +76,21 @@
        <item row="0" column="0">
         <widget class="QCheckBox" name="writeCountersButton">
          <property name="text">
-          <string>записывать</string>
+          <string>Write</string>
          </property>
         </widget>
        </item>
        <item row="1" column="0">
         <widget class="QLabel" name="label_2">
          <property name="text">
-          <string>Путь к файлу</string>
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Filepath&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
         </widget>
        </item>
        <item row="3" column="0">
         <widget class="QLabel" name="label_5">
          <property name="text">
-          <string>Обновлять каждые</string>
+          <string>Reload every</string>
          </property>
         </widget>
        </item>
@@ -109,7 +109,7 @@
          <item>
           <widget class="QLabel" name="label_6">
            <property name="text">
-            <string>сек</string>
+            <string>s</string>
            </property>
           </widget>
          </item>
@@ -236,7 +236,7 @@
    <item>
     <widget class="QPushButton" name="initButton">
      <property name="text">
-      <string>инициализировать камак</string>
+      <string>Initialize CAMAC</string>
      </property>
     </widget>
    </item>
@@ -256,14 +256,14 @@
           </sizepolicy>
          </property>
          <property name="text">
-          <string>набрать точку</string>
+          <string>Acquire point</string>
          </property>
         </widget>
        </item>
        <item>
         <widget class="QCheckBox" name="splitPointBox">
          <property name="text">
-          <string>блоками по 5с</string>
+          <string>split by 5s blocks</string>
          </property>
          <property name="checked">
           <bool>true</bool>
@@ -273,7 +273,7 @@
        <item>
         <widget class="QLabel" name="label">
          <property name="text">
-          <string>время сбора:</string>
+          <string>acquisition time:</string>
          </property>
         </widget>
        </item>
@@ -297,14 +297,14 @@
    <item>
     <widget class="QPushButton" name="breakAcquisitionButton">
      <property name="text">
-      <string>Остановить набор</string>
+      <string>Stop point acquisition</string>
      </property>
     </widget>
    </item>
    <item>
     <widget class="QPushButton" name="reconnectButton">
      <property name="text">
-      <string>переподключиться к устройтву</string>
+      <string>Reconnect to device</string>
      </property>
     </widget>
    </item>

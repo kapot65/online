@@ -31,7 +31,7 @@
      <item>
       <widget class="QCheckBox" name="checkUserForNextStep">
        <property name="text">
-        <string>Ожидать команды пользователя на продолжение.</string>
+        <string>Wait for resume command.</string>
        </property>
        <property name="checked">
         <bool>false</bool>
@@ -41,7 +41,7 @@
      <item>
       <widget class="QPushButton" name="openScenarioButton">
        <property name="text">
-        <string>открыть файл сценария</string>
+        <string>Open scenario file</string>
        </property>
       </widget>
      </item>
@@ -50,14 +50,14 @@
        <item>
         <widget class="QPushButton" name="startButton">
          <property name="text">
-          <string>старт</string>
+          <string>Start</string>
          </property>
         </widget>
        </item>
        <item>
         <widget class="QLabel" name="iterationsLabel">
          <property name="text">
-          <string>Повторений*</string>
+          <string>Repeats*</string>
          </property>
          <property name="textFormat">
           <enum>Qt::AutoText</enum>
@@ -74,7 +74,7 @@
        <item>
         <widget class="QCheckBox" name="reversAcquisitionBox">
          <property name="text">
-          <string>менять направление сценария</string>
+          <string>Switch direction</string>
          </property>
         </widget>
        </item>
@@ -103,7 +103,7 @@
      <item>
       <widget class="QCheckBox" name="finishOnThisIterationBox">
        <property name="text">
-        <string>сделать эту итерацию последней</string>
+        <string>Stop after this iteration</string>
        </property>
       </widget>
      </item>
@@ -112,21 +112,21 @@
        <item>
         <widget class="QPushButton" name="pauseButton">
          <property name="text">
-          <string>пауза</string>
+          <string>Pause</string>
          </property>
         </widget>
        </item>
        <item>
         <widget class="QPushButton" name="resumeButton">
          <property name="text">
-          <string>продолжить</string>
+          <string>Resume</string>
          </property>
         </widget>
        </item>
        <item>
         <widget class="QPushButton" name="stopButton">
          <property name="text">
-          <string>стоп</string>
+          <string>Stop</string>
          </property>
         </widget>
        </item>
@@ -173,7 +173,7 @@
      <item>
       <widget class="QPushButton" name="sendComment">
        <property name="text">
-        <string>отправить комментарий</string>
+        <string>send message</string>
        </property>
       </widget>
      </item>
@@ -184,7 +184,7 @@
      <item>
       <widget class="QLabel" name="label">
        <property name="text">
-        <string>Информация:</string>
+        <string>Information:</string>
        </property>
       </widget>
      </item>
@@ -196,7 +196,7 @@
        <item row="3" column="0">
         <widget class="QLabel" name="operatorSurnameLabel">
          <property name="text">
-          <string>Фамилия оператора*</string>
+          <string>Operator ID*</string>
          </property>
         </widget>
        </item>
@@ -206,7 +206,8 @@
        <item row="4" column="0">
         <widget class="QLabel" name="label_3">
          <property name="text">
-          <string>Комментарии по набору</string>
+          <string>Acquisition 
+comments</string>
          </property>
         </widget>
        </item>
@@ -216,7 +217,7 @@
        <item row="1" column="0">
         <widget class="QLabel" name="sessionLabel">
          <property name="text">
-          <string>Сеанс*</string>
+          <string>Session*</string>
          </property>
         </widget>
        </item>
@@ -226,7 +227,7 @@
        <item row="2" column="0">
         <widget class="QLabel" name="groupLabel">
          <property name="text">
-          <string>Название групы*</string>
+          <string>Group*</string>
          </property>
         </widget>
        </item>
@@ -263,7 +264,7 @@
    <item row="5" column="0">
     <widget class="QLabel" name="metadataLabel">
      <property name="text">
-      <string>Информация о наборе</string>
+      <string>Acquisition log</string>
      </property>
     </widget>
    </item>

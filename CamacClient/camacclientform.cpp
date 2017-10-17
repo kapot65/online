@@ -108,8 +108,8 @@ CamacClientForm::~CamacClientForm()
 void CamacClientForm::closeEvent(QCloseEvent *e)
 {
     QMessageBox::StandardButton button;
-    button = QMessageBox::question(this, tr("Подтверждение"),
-                                  tr("Вы точно хотите выйти из программы?"));
+    button = QMessageBox::question(this, tr("Confirm"),
+                                  tr("Exit programm?"));
 
 #ifdef TEST_MODE
     qDebug()<<button;

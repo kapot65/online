@@ -50,7 +50,7 @@
      <item>
       <widget class="QLabel" name="label">
        <property name="text">
-        <string>Поставить напряжение</string>
+        <string>Set voltage</string>
        </property>
       </widget>
      </item>
@@ -62,17 +62,23 @@
           <bool>true</bool>
          </property>
          <property name="text">
-          <string>&amp;Divider1</string>
+          <string>Main block</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
          </property>
         </widget>
        </item>
        <item>
         <widget class="QRadioButton" name="block2Button">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
          <property name="text">
-          <string>D&amp;ivider2</string>
+          <string>Bias block</string>
          </property>
          <property name="checked">
-          <bool>true</bool>
+          <bool>false</bool>
          </property>
         </widget>
        </item>
@@ -83,7 +89,7 @@
        <item>
         <widget class="QPushButton" name="setHVButton">
          <property name="text">
-          <string>Установить напряжение</string>
+          <string>Set voltage</string>
          </property>
         </widget>
        </item>
@@ -115,31 +121,45 @@
      <item>
       <widget class="QLabel" name="label_6">
        <property name="text">
-        <string>Текущее напряжение:</string>
+        <string>Current voltage:</string>
        </property>
       </widget>
      </item>
      <item>
       <layout class="QFormLayout" name="formLayout_2">
-       <item row="1" column="0">
-        <widget class="QLabel" name="label_2">
-         <property name="text">
-          <string>ОСНОВНОЙ БЛОК</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="1">
-        <widget class="QLCDNumber" name="divider1VolatgeDisplay"/>
-       </item>
        <item row="2" column="0">
         <widget class="QLabel" name="label_5">
          <property name="text">
-          <string>БЛОК СМЕЩЕНИЯ</string>
+          <string>MAIN BLOCK</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="0">
+        <widget class="QLabel" name="label_2">
+         <property name="text">
+          <string>BIAS BLOCK</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="1">
+        <widget class="QLCDNumber" name="divider2VolatgeDisplay">
+         <property name="segmentStyle">
+          <enum>QLCDNumber::Flat</enum>
          </property>
         </widget>
        </item>
        <item row="2" column="1">
-        <widget class="QLCDNumber" name="divider2VolatgeDisplay"/>
+        <widget class="QLCDNumber" name="divider1VolatgeDisplay">
+         <property name="enabled">
+          <bool>true</bool>
+         </property>
+         <property name="smallDecimalPoint">
+          <bool>false</bool>
+         </property>
+         <property name="segmentStyle">
+          <enum>QLCDNumber::Flat</enum>
+         </property>
+        </widget>
        </item>
       </layout>
      </item>
@@ -168,7 +188,7 @@
    <item>
     <widget class="QPushButton" name="reconnectButton">
      <property name="text">
-      <string>переподключиться к устройтву</string>
+      <string>Reconnect to device</string>
      </property>
     </widget>
    </item>
