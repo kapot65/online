@@ -20,14 +20,14 @@
       <item>
        <widget class="QPushButton" name="openFolderButton">
         <property name="text">
-         <string>Отрыть папку</string>
+         <string>Open Folder</string>
         </property>
        </widget>
       </item>
       <item>
        <widget class="QPushButton" name="clearButton">
         <property name="text">
-         <string>Очистить</string>
+         <string>Clear View</string>
         </property>
        </widget>
       </item>
@@ -58,7 +58,7 @@
      <x>0</x>
      <y>0</y>
      <width>687</width>
-     <height>30</height>
+     <height>19</height>
     </rect>
    </property>
   </widget>

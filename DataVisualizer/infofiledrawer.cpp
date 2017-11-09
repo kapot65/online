@@ -18,27 +18,27 @@ void InfoFileDrawer::setMetaDataToTable()
     table->setRowCount(0);
     table->setColumnCount(2);
     table->insertRow(table->rowCount());
-    setMetaTableText(0, 0, tr("тип файла"));
-    setMetaTableText(1, 0, tr("файл с комментариями к сбору"));
+    setMetaTableText(0, 0, tr("File type"));
+    setMetaTableText(1, 0, tr("Dataset info"));
 
     table->insertRow(table->rowCount());
     if(meta.contains("date"))
     {
-        setMetaTableText(0, table->rowCount() - 1, tr("дата"));
+        setMetaTableText(0, table->rowCount() - 1, tr("date"));
         setMetaTableText(1, table->rowCount() - 1, meta["date"].toString());
     }
 
     table->insertRow(table->rowCount());
     if(meta.contains("operator"))
     {
-        setMetaTableText(0, table->rowCount() - 1, tr("оператор"));
+        setMetaTableText(0, table->rowCount() - 1, tr("operator"));
         setMetaTableText(1, table->rowCount() - 1, meta["operator"].toString());
     }
 
     table->insertRow(table->rowCount());
     if(meta.contains("description"))
     {
-        setMetaTableText(0, table->rowCount() - 1, tr("комментарий к началу сбора"));
+        setMetaTableText(0, table->rowCount() - 1, tr("Dataset description"));
         setMetaTableText(1, table->rowCount() - 1, meta["description"].toString());
     }
 
@@ -50,7 +50,7 @@ void InfoFileDrawer::setMetaDataToTable()
         if(!comments[i].canConvert(QVariant::Map) ||
            !(comments[i].toMap().contains("comment") && comments[i].toMap().contains("date_time")))
         {
-            setMetaTableText(0, table->rowCount() - 1, tr("неизвестный тип комментария"));
+            setMetaTableText(0, table->rowCount() - 1, tr("generic comment"));
 #ifdef USE_QTJSON
             setMetaTableText(1, table->rowCount() - 1, QJsonDocument::fromVariant(comments[i]).toJson());
 #else

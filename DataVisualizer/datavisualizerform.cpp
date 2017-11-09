@@ -78,7 +78,7 @@ DataVisualizerForm::DataVisualizerForm(bool interactive, QSettings *settings, QW
     timeAxis = plot->axisRect()->addAxis(QCPAxis::atBottom);
     connect(plot->xAxis, SIGNAL(rangeChanged(QCPRange)),
             this, SLOT(updateTimeAxis(QCPRange)),Qt::DirectConnection);
-    timeAxis->setLabel(tr("Время"));
+    timeAxis->setLabel(tr("Time"));
     timeAxis->setTickLabelType(QCPAxis::ltDateTime);
     timeAxis->setDateTimeFormat("hh:mm:ss");
 
@@ -240,7 +240,7 @@ void DataVisualizerForm::on_colorEditButton_clicked()
     FileDrawer *fd = opened_files[dir];
 
     QColor new_color = QColorDialog::getColor(fd->getColor(), this,
-                                              tr("выберите цвет"),
+                                              tr("Choose color"),
                                               QColorDialog::ShowAlphaChannel);
     fd->setColor(new_color);
 
@@ -684,7 +684,7 @@ void Ruler::processMouseRelease(QMouseEvent *ev)
 
                             plot->addItem(text);
 
-                            text->setText(tr("\n%1 нс").arg(qAbs(x2 - x1)));
+                            text->setText(tr("\n%1 ns").arg(qAbs(x2 - x1)));
                             text->position->setCoords((x2 + x1) / 2., y);
 
                             break;
@@ -697,7 +697,7 @@ void Ruler::processMouseRelease(QMouseEvent *ev)
 
                             plot->addItem(text);
 
-                            text->setText(tr("\n Окно обновлено: (%1, %2)").arg(qMin(x1, x2)).arg(qMax(x1, x2)));
+                            text->setText(tr("\n Frame updated: (%1, %2)").arg(qMin(x1, x2)).arg(qMax(x1, x2)));
                             text->position->setCoords((x2 + x1) / 2., y);
 
                             form->updateEventsInfo(QCPRange(qMin(x1, x2), qMax(x1, x2)));
@@ -765,7 +765,7 @@ void DataVisualizerForm::on_saveButton_clicked()
     settings->beginGroup(metaObject()->className());
     QString lastSavePngFilepath = settings->value("lastSavePngFilepath").toString();
 
-    QString pngPath = QFileDialog::getSaveFileName(this, tr("Укажите путь к файлу"), lastSavePngFilepath, tr("Images (*.png)"));
+    QString pngPath = QFileDialog::getSaveFileName(this, tr("Choose path to folder"), lastSavePngFilepath, tr("Images (*.png)"));
 
     if(!pngPath.isEmpty())
         settings->setValue("lastSavePngFilepath", pngPath);

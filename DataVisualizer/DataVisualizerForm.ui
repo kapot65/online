@@ -52,12 +52,12 @@
          </property>
          <column>
           <property name="text">
-           <string>Имя параметра</string>
+           <string>Param Name</string>
           </property>
          </column>
          <column>
           <property name="text">
-           <string>Значение</string>
+           <string>Value</string>
           </property>
          </column>
         </widget>
@@ -65,14 +65,14 @@
        <item>
         <widget class="QPushButton" name="colorEditButton">
          <property name="text">
-          <string>цвет графика</string>
+          <string>Color</string>
          </property>
         </widget>
        </item>
        <item>
         <widget class="QPushButton" name="saveGraphs">
          <property name="text">
-          <string>сохранить графики</string>
+          <string>Save Gpaphs</string>
          </property>
         </widget>
        </item>
@@ -104,7 +104,7 @@
         <item>
          <widget class="QLabel" name="mousePosLabel">
           <property name="text">
-           <string>Позиция курсора</string>
+           <string>Cursor Position</string>
           </property>
          </widget>
         </item>
@@ -113,7 +113,7 @@
           <item>
            <widget class="QRadioButton" name="graphButton">
             <property name="text">
-             <string>График (абсолютное время)</string>
+             <string>Absolute time</string>
             </property>
             <property name="checked">
              <bool>true</bool>
@@ -123,21 +123,21 @@
           <item>
            <widget class="QRadioButton" name="graphRelativeTimeButton">
             <property name="text">
-             <string>График(относительное время)</string>
+             <string>Relative time</string>
             </property>
            </widget>
           </item>
           <item>
            <widget class="QRadioButton" name="histButton">
             <property name="text">
-             <string>Гистограмма</string>
+             <string>Histogram</string>
             </property>
            </widget>
           </item>
           <item>
            <widget class="QPushButton" name="saveButton">
             <property name="text">
-             <string>Сохранить в png</string>
+             <string>Save to Png</string>
             </property>
            </widget>
           </item>

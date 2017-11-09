@@ -48,7 +48,7 @@ void PointFileDrawer::sendHistEventsInWindow(QCPRange range)
             sum += binVal[i];
 
         emit sendTextInfo(QFileInfo(*file).filePath(),
-                          tr("Событий в окне: %1 ")
+                          tr("Events in frame: %1 ")
                           .arg(sum));
     }
 }
@@ -59,16 +59,16 @@ void PointFileDrawer::setMetaDataToTable()
     table->clearContents();
     table->setRowCount(8);
     table->setColumnCount(2);
-    setMetaTableText(0, 0, tr("тип файла"));
-    setMetaTableText(1, 0, tr("точка"));
+    setMetaTableText(0, 0, tr("File type"));
+    setMetaTableText(1, 0, tr("point"));
     if(meta.contains("date"))
     {
-        setMetaTableText(0, 1, tr("дата сбора"));
+        setMetaTableText(0, 1, tr("Date"));
         setMetaTableText(1, 1, meta["date"].toString());
     }
 
-    setMetaTableText(0, 2, tr("время начала сбора"));
-    setMetaTableText(0, 3, tr("время конца сбора"));
+    setMetaTableText(0, 2, tr("Acquisition start time"));
+    setMetaTableText(0, 3, tr("Acquisition end time"));
 
     if(meta.value("split", false).toBool())
     {
@@ -81,14 +81,14 @@ void PointFileDrawer::setMetaDataToTable()
         setMetaTableText(1, 3, meta["end_time"].toString());
     }
 
-    setMetaTableText(0, 4, tr("количество событий"));
+    setMetaTableText(0, 4, tr("Events count"));
     setMetaTableText(1, 4, meta["total_events"].toString());
-    setMetaTableText(0, 5, tr("время сбора"));
+    setMetaTableText(0, 5, tr("Acquisition time"));
     setMetaTableText(1, 5, meta["acquisition_time"].toString());
-    setMetaTableText(0, 6, tr("основной блок"));
+    setMetaTableText(0, 6, tr("Voltage"));
     setMetaTableText(1, 6, meta["external_meta"].toMap()
                            ["HV1_value"].toString());
-    setMetaTableText(0, 7, tr("блок смещения"));
+    setMetaTableText(0, 7, tr("Bias"));
     setMetaTableText(1, 7, meta["external_meta"].toMap()
                            ["HV2_value"].toString());
     table->resizeColumnsToContents();
