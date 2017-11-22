@@ -10,6 +10,8 @@ void CamacClientForm::restoreSettings()
 
     if(!manager->settings->value("advanced_mode").isValid())
         manager->settings->setValue("advanced_mode", false);
+    if(!manager->settings->value("voltage_only").isValid())
+        manager->settings->setValue("voltage_only", false);
 }
 
 void CamacClientForm::setCCPC7Handler()
@@ -78,12 +80,6 @@ CamacClientForm::CamacClientForm(QWidget *parent) :
     setHVHandler();
     setHVHandlerForm();
 
-    if(!manager->settings->value("advanced_mode").toBool())
-    {
-        ccpc7HandlerForm->setEnabled(false);
-        hvHandlerForm->setEnabled(false);
-    }
-
     if(!manager->settings->value("log_size").isValid())
         manager->settings->setValue("log_size", 10000);
 
@@ -93,6 +89,14 @@ CamacClientForm::CamacClientForm(QWidget *parent) :
     online = new Online(manager, ccpc7Handler, hvHandler, this);
     onlineForm = new OnlineForm(ccpc7Handler, hvHandler, online, manager, this);
     ui->tabWidget->widget(0)->layout()->addWidget(onlineForm);
+
+    if(!manager->settings->value("voltage_only").toBool()) {
+        onlineForm->setEnabled(false);
+        ccpc7HandlerForm->setEnabled(false);
+    } else if(!manager->settings->value("advanced_mode").toBool()) {
+        ccpc7HandlerForm->setEnabled(false);
+        hvHandlerForm->setEnabled(false);
+    }
 
     //настройка главного окошка
     //connect(this, SIGNAL(sendTestCamacMessage(QByteArray)), ccpc7HandlerForm, SLOT(receiveTestJson(QByteArray)));
