@@ -16,4 +16,5 @@ win32{
         HV_Server \
         CamacClient \
         DataVisualizer \
+        drs-converter
 }

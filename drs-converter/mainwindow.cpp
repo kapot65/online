@@ -8,6 +8,7 @@
 #include <QVector>
 #include <QDateTime>
 #include <QProcess>
+#include <QDebug>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -15,14 +16,16 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
     settings = new QSettings("settings.ini", QSettings::IniFormat);
+
     folder = QFileDialog::getExistingDirectory(
                 this, tr("Выберите папку с данными"),
                 settings->value("last_opened", QString()).toString()
                 );
-    folder = settings->value("last_opened", QString()).toString();
     settings->setValue("last_opened", folder);
+
     checkIntervalSec = settings->value("check_sec", QVariant(5)).toInt();
     settings->setValue("check_sec", checkIntervalSec);
+
     if(!QFile::exists(settings->value("viewer_filepath").toString())) {
         QString viewerExecutable = QFileDialog::getOpenFileName(
             this, tr("Выберите бинарный файл вьювера"));
@@ -51,7 +54,6 @@ void MainWindow::checkFolder() {
         if(!QFile::exists(dir->filePath(file))) {
             convertFile(file);
         }
-
     }
     QTimer::singleShot(
                 checkIntervalSec * 1000, this,
