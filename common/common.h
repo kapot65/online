@@ -5,6 +5,7 @@
 #include <QSettings>
 #include <QDir>
 #include <QTimer>
+#include <QDateTime>
 #include <tempfolder.h>
 
 /*!

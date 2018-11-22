@@ -6,7 +6,8 @@ unix: !macx{
 greaterThan(QT_MAJOR_VERSION, 4){
     SUBDIRS += documentation \
             CamacClient \
-            DataVisualizer
+            DataVisualizer \
+            drs-converter
 }
 
 }
@@ -15,5 +16,5 @@ win32{
         HV_Server \
         CamacClient \
         DataVisualizer \
+        drs-converter
 }
-

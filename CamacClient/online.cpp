@@ -339,13 +339,13 @@ bool Online::processScenarioImpl(QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> 
 
                 if(answerMeta["status"].toString() != "ok")
                 {
-                    switch (QMessageBox::question(NULL, tr("Не удалось выставить напряжение"),
-                                          tr("Не удалось выставить напряжение на блоке %1. "
-                                             "Сбор будет поставлен на паузу\n"
-                                             "Требуемое напряжение: %2 В\n"
-                                             "Фактическое напряжение: %3 В\n"
-                                             "Ошибка: %4 В\n"
-                                             "Статус операции: %5")
+                    switch (QMessageBox::question(NULL, tr("Failed to set HV"),
+                                          tr("Failed to set up HV %1. "
+                                             "Acquisition will be paused\n"
+                                             "Desired HV: %2 V\n"
+                                             "Real HV: %3 V\n"
+                                             "Error: %4 В\n"
+                                             "Operation status: %5")
                                              .arg(answerMeta["block"].toInt())
                                              .arg(args["voltage"].toDouble())
                                              .arg(answerMeta["voltage"].toDouble())

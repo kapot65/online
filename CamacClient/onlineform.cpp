@@ -234,7 +234,7 @@ void OnlineForm::visualizeScenario(QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant
         case SET_VOLTAGE_AND_CHECK:
             {
                 QVariantMap args = scenario[i].second.toMap();
-                scenarioList.push_back(tr("Выставить с проверкой напряжение %1 на блоке %2")
+                scenarioList.push_back(tr("Set voltage %1 on block #%2 and check")
                                        .arg(args["voltage"].toDouble())
                                        .arg(args["block"].toInt())
                                        );
@@ -243,7 +243,7 @@ void OnlineForm::visualizeScenario(QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant
         case SET_VOLTAGE:
             {
                 QVariantMap args = scenario[i].second.toMap();
-                scenarioList.push_back(tr("Выставить напряжение %1 на блоке %2")
+                scenarioList.push_back(tr("Set voltage %1 on block #%2")
                                        .arg(args["voltage"].toDouble())
                                        .arg(args["block"].toInt())
                                        );
@@ -251,27 +251,27 @@ void OnlineForm::visualizeScenario(QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant
             }
         case ACQUIRE_POINT:
             {
-                scenarioList.push_back(tr("Сбор точки %1 (%2s)")
+                scenarioList.push_back(tr("Acquire point %1 (%2s)")
                                        .arg(scenario[i].second.toMap()["index"].toInt())
                                        .arg(scenario[i].second.toMap()["time"].toInt()));
                 break;
             }
         case ACQUIRE_MULTIPOINT:
             {
-                scenarioList.push_back(tr("Сбор точки с разделением %1 (%2s)")
+                scenarioList.push_back(tr("Acquire point splitted by chunks %1 (%2s)")
                                        .arg(scenario[i].second.toMap()["index"].toInt())
                         .arg(scenario[i].second.toMap()["time"].toInt()));
                 break;
             }
         case WAIT:
             {
-                scenarioList.push_back(tr("Ожидание %1s")
+                scenarioList.push_back(tr("Wait %1s")
                                        .arg((double)(scenario[i].second.toInt()) / 1000.));
                 break;
             }
         case BREAK:
             {
-                scenarioList.push_back(tr("Остановка"));
+                scenarioList.push_back(tr("Stop"));
                 break;
             }
         }

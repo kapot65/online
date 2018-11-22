@@ -20,6 +20,9 @@ HVHandlerForm::HVHandlerForm(HVHandler *hvHandler, IniManager *settingsManager,
 
     ui->voltageBox->setValue(settingsManager->getSettingsValue("HV_handler", "last_voltage").toDouble());
 
+    this->on_block1Button_clicked(ui->block1Button->isChecked());
+    this->on_block2Button_clicked(ui->block2Button->isChecked());
+
     connect(this, SIGNAL(serverSettingsChanged()), this, SLOT(on_serverSettingsChanged()));
     connect(hvHandler, SIGNAL(getVoltageDone(QVariantMap)),
             this, SLOT(displayVoltage(QVariantMap)), Qt::QueuedConnection);
