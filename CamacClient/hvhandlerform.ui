@@ -87,19 +87,19 @@
      <item>
       <layout class="QHBoxLayout" name="horizontalLayout_5">
        <item>
-        <widget class="QPushButton" name="setHVButton">
-         <property name="text">
-          <string>Set voltage</string>
-         </property>
-        </widget>
-       </item>
-       <item>
         <widget class="QDoubleSpinBox" name="voltageBox">
          <property name="decimals">
           <number>0</number>
          </property>
          <property name="maximum">
-          <double>800.000000000000000</double>
+          <double>26000.000000000000000</double>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="setHVButton">
+         <property name="text">
+          <string>Set voltage</string>
          </property>
         </widget>
        </item>
