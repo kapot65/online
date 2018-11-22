@@ -7,7 +7,7 @@ greaterThan(QT_MAJOR_VERSION, 4){
     SUBDIRS += documentation \
             CamacClient \
             DataVisualizer \
-            drs-converter
+#            drs-converter
 }
 
 }
@@ -16,5 +16,5 @@ win32{
         HV_Server \
         CamacClient \
         DataVisualizer \
-        drs-converter
+#        drs-converter
 }
