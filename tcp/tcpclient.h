@@ -78,12 +78,6 @@ private slots:
      */
     void processError(QAbstractSocket::SocketError err){}
 
-    /*!
-     * \brief открытие сессии
-     * \details взято из примера Qt
-     */
-    void sessionOpened();
-
 private:
     QNetworkSession *networkSession;
 

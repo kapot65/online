@@ -10,8 +10,9 @@ TcpClient::~TcpClient()
 {
     if(networkSession)
         networkSession->deleteLater();
-    if(connection)
+    if(connection) {
         connection->deleteLater();
+    }
 }
 
 void TcpClient::setPeer(QString peerName, int peerPort)
@@ -22,17 +23,22 @@ void TcpClient::setPeer(QString peerName, int peerPort)
 
 void TcpClient::connectToServer()
 {
-    if(networkSession)
-    {
-        delete networkSession;
-        if(connection)
-            delete connection;    }
+    if(networkSession) {
+        networkSession->deleteLater();
+        networkSession = NULL;
+    }
 
+    if(connection) {
+        disconnect(connection, 0, 0, 0);
+        connection->deleteLater();
+        connection = 0;
+    }
 
     connection = new QTcpSocket;
     connect(connection, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(processError(QAbstractSocket::SocketError)));
     connect(connection, SIGNAL(connected()), this, SLOT(onSocketConnected()));
     connect(connection, SIGNAL(disconnected()), this, SLOT(onSocketDisconnected()));
+    connect(connection, SIGNAL(readyRead()), this, SLOT(readMessage()));
 
     QNetworkConfigurationManager manager;
     if (manager.capabilities() & QNetworkConfigurationManager::NetworkSessionRequired)
@@ -66,50 +72,6 @@ void TcpClient::connectToServer()
         err["error_code"] = UNKNOWN_ERROR;
         emit error(TcpProtocol::wrapErrorInfo(err));
     }
-
-    connect(connection, SIGNAL(readyRead()), this, SLOT(readMessage()));
-}
-
-void TcpClient::sessionOpened()
-{
-    // Save the used configuration
-    QNetworkConfiguration config = networkSession->configuration();
-    QString id;
-    if (config.type() == QNetworkConfiguration::UserChoice)
-        id = networkSession->sessionProperty(QLatin1String("UserChoiceConfiguration")).toString();
-    else
-        id = config.identifier();
-
-    QSettings settings(QSettings::UserScope, QLatin1String("QtProject"));
-    settings.beginGroup(QLatin1String("QtNetwork"));
-    settings.setValue(QLatin1String("DefaultNetworkConfiguration"), id);
-    settings.endGroup();
-
-    QNetworkConfigurationManager manager;
-    if (manager.capabilities() & QNetworkConfigurationManager::NetworkSessionRequired)
-    {
-        // Get saved network configuration
-        QSettings settings(QSettings::UserScope, QLatin1String("QtProject"));
-        settings.beginGroup(QLatin1String("QtNetwork"));
-        const QString id = settings.value(QLatin1String("DefaultNetworkConfiguration")).toString();
-        settings.endGroup();
-
-        // If the saved network configuration is not currently discovered use the system default
-        QNetworkConfiguration config = manager.configurationFromIdentifier(id);
-        if ((config.state() & QNetworkConfiguration::Discovered) !=
-            QNetworkConfiguration::Discovered)
-        {
-            config = manager.defaultConfiguration();
-        }
-
-        networkSession = new QNetworkSession(config, this);
-        connect(networkSession, SIGNAL(opened()), this, SLOT(sessionOpened()));
-
-        networkSession->open();
-    }
-
-    connection->connectToHost(this->peerName, this->peerPort);
-    connect(connection, SIGNAL(readyRead()), this, SLOT(readMessage()));
 }
 
 bool TcpClient::handleError(QVariantMap err)

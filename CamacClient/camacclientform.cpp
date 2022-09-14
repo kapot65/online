@@ -3,6 +3,7 @@
 #include <QProcess>
 #include <QFileDialog>
 #include <QCloseEvent>
+#include <QtWidgets>
 
 void CamacClientForm::restoreSettings()
 {
