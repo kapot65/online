@@ -20,6 +20,7 @@ ServerHandler::ServerHandler(IniManager *manager, QObject *parent) : TcpClient(m
 
 void ServerHandler::reconnect(QString ip, int port)
 {
+//    this->dis
     this->setPeer(ip, port);
     this->connectToServer();
 
@@ -35,7 +36,7 @@ void ServerHandler::on_Connected(QString ip, int port)
 void ServerHandler::on_Disconnected()
 {
     lastError = QVariantMap();
-    lastError["error_code"] = QString("%1").arg(CLIENT_DISCONNECT);
+    lastError["error_code"] = CLIENT_DISCONNECT;
     initFlag = 0;
 
     emit error(lastError);

@@ -87,7 +87,7 @@ void HVServer::dividerGetVoltageDone(QString dividerName, double voltage)
     message.insert("type", "answer");
     message.insert("block", dividerName);
     message.insert("answer_type", "get_voltage");
-    message.insert("voltage", QString("%1").arg(voltage));
+    message.insert("voltage", voltage);
 
 #ifdef TEST_MODE
     qDebug() << QThread::currentThreadId() << tr("Send message get_voltage: divider - %1, voltage - %2.")
@@ -179,7 +179,7 @@ void HVServer::processMessage(MachineHeader header, QVariantMap meta, QByteArray
         {
             //создание описания ошибки
             QVariantMap errorParams;
-            errorParams["error_code"] = QString("%1").arg(UNKNOWN_MESSAGE_ERROR);
+            errorParams["error_code"] = UNKNOWN_MESSAGE_ERROR;
             errorParams.insert("stage", "process message type");
             errorParams.insert("description", QString("unknown message type: %1").arg(messageType));
 
@@ -191,7 +191,7 @@ void HVServer::processMessage(MachineHeader header, QVariantMap meta, QByteArray
 void HVServer::sendBusyMessage(QString block)
 {
     QVariantMap errorParams;
-    errorParams["error_code"] = QString("%1").arg(SERVER_BUSY_ERROR);
+    errorParams["error_code"] = SERVER_BUSY_ERROR;
     errorParams.insert("stage", "check busy");
     errorParams.insert("description", QString("%1 busy").arg(block));
 
@@ -201,7 +201,7 @@ void HVServer::sendBusyMessage(QString block)
 void HVServer::sendUnknownBlockError(QString block)
 {
     QVariantMap errorParams;
-    errorParams["error_code"] = QString("%1").arg(INCORRECT_MESSAGE_PARAMS);
+    errorParams["error_code"] = INCORRECT_MESSAGE_PARAMS;
     errorParams.insert("stage", "process block id");
     errorParams.insert("description", QString("unknown block: %1").arg(block));
 
@@ -211,7 +211,7 @@ void HVServer::sendUnknownBlockError(QString block)
 void HVServer::sendUnknownCommandError(QString commandType)
 {
     QVariantMap errorParams;
-    errorParams["error_code"] = QString("%1").arg(INCORRECT_MESSAGE_PARAMS);
+    errorParams["error_code"] = INCORRECT_MESSAGE_PARAMS;
     errorParams.insert("stage", "process command_type");
     errorParams.insert("description", QString("unknown command_type: %1").arg(commandType));
 
@@ -279,7 +279,7 @@ void HVServer::processCommand(QVariantMap message)
             if(!message.contains("voltage"))
             {
                 QVariantMap errorParams;
-                errorParams["error_code"] = QString("%1").arg(INCORRECT_MESSAGE_PARAMS);
+                errorParams["error_code"] = INCORRECT_MESSAGE_PARAMS;
                 errorParams.insert("description", QString("voltage field incorrect").arg(commandType));
 
                 emit error(errorParams);
@@ -328,7 +328,7 @@ void HVServer::processReply(QVariantMap message)
 {
     //не предусмотрены действия на reply
     QVariantMap errorInfo;
-    errorInfo["error_code"] = QString("%1").arg(UNKNOWN_MESSAGE_ERROR);
+    errorInfo["error_code"] = UNKNOWN_MESSAGE_ERROR;
     errorInfo.insert("stage", "process reply");
     errorInfo.insert("description","no action prescribed for this reply");
     emit error(errorInfo);

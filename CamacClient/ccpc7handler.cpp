@@ -76,7 +76,7 @@ void CCPC7Handler::acquirePoint(int time, QVariant external_meta, bool splitPoin
 
     message.insert("type", "command");
     message.insert("command_type", "acquire_point");
-    message.insert("acquisition_time", QString().number(time));
+    message.insert("acquisition_time", time);
 
     if(splitPoint)
         message["split"] = true;

@@ -240,7 +240,7 @@ QVariantMap TcpProtocol::wrapErrorInfo(QVariantMap error_info)
 
     //если код ошибки не указан, то она воспринимается как неизвестная
     if(!error_info.contains("error_code"))
-        error_info["error_code"] = QString("%1").arg(UNKNOWN_ERROR);
+        error_info["error_code"] = UNKNOWN_ERROR;
 
     return error_info;
 }

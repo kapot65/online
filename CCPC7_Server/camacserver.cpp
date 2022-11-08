@@ -56,7 +56,7 @@ void CamacServer::processMessage(MachineHeader machineHeader, QVariantMap metaDa
         {
             //создание описания ошибки
             QVariantMap errorParams;
-            errorParams["error_code"] = QString("%1").arg(UNKNOWN_MESSAGE_ERROR);
+            errorParams["error_code"] = UNKNOWN_MESSAGE_ERROR;
             errorParams.insert("stage", "process message type");
             errorParams.insert("description", QString("unknown message type: %1").arg(messageType));
 
@@ -83,7 +83,7 @@ void CamacServer::processCommand(QVariantMap message)
             //устройство занято
             //создание описания ошибки
             QVariantMap errorParams;
-            errorParams["error_code"] = QString("%1").arg(SERVER_BUSY_ERROR);
+            errorParams["error_code"] = SERVER_BUSY_ERROR;
             errorParams.insert("stage", "check busy");
             errorParams.insert("description", QString("CAMAC is busy now"));
 
@@ -124,7 +124,7 @@ void CamacServer::processCommand(QVariantMap message)
                             {
                                 //создание описания ошибки
                                 QVariantMap errorParams;
-                                errorParams["error_code"] = QString("%1").arg(UNKNOWN_MESSAGE_ERROR);
+                                errorParams["error_code"] = UNKNOWN_MESSAGE_ERROR;
                                 errorParams.insert("stage", "process command_type");
                                 errorParams.insert("description", QString("unknown command_type: %1").arg(commandType));
 

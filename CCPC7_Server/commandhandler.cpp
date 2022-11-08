@@ -14,7 +14,7 @@ bool CommandHandler::checkInit()
         busyFlag = 0;
         //создание описания ошибки
         QVariantMap errorParams;
-        errorParams["error_code"] = QString("%1").arg(SERVER_INIT_ERROR);
+        errorParams["error_code"] = SERVER_INIT_ERROR;
         errorParams.insert("stage", QString("check init"));
         errorParams.insert("description", "CCPC hasn't set yet");
 
@@ -79,7 +79,7 @@ void CommandHandler::processGetCountersValue(QVariantMap message)
     {
         //создание описания ошибки
         QVariantMap errorParams;
-        errorParams["error_code"] = QString("%1").arg(INCORRECT_MESSAGE_PARAMS);
+        errorParams["error_code"] = INCORRECT_MESSAGE_PARAMS;
         errorParams.insert("stage", QString("get_counters_value"));
         errorParams.insert("description", "counter_id or channels_id not set");
 
@@ -195,7 +195,7 @@ void CommandHandler::processInit(QVariantMap message)
     {
         //создание описания ошибки
         QVariantMap errorParams;
-        errorParams["error_code"] = QString("%1").arg(INCORRECT_MESSAGE_PARAMS);
+        errorParams["error_code"] = INCORRECT_MESSAGE_PARAMS;
         errorParams.insert("stage", QString("init"));
         errorParams.insert("description", "settings for virtual camac not set");
 
@@ -249,7 +249,7 @@ void CommandHandler::processAcquirePoint(QVariantMap message)
     {
         //создание описания ошибки
         QVariantMap errorParams;
-        errorParams["error_code"] = QString("%1").arg(INCORRECT_MESSAGE_PARAMS);
+        errorParams["error_code"] = INCORRECT_MESSAGE_PARAMS;
         errorParams.insert("stage", QString("acquire point"));
         errorParams.insert("description", "parameter acquisition_time not found");
 

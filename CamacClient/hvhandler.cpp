@@ -31,7 +31,7 @@ void HVHandler::setVoltage(int block, double value)
     message.insert("type", "command");
     message.insert("command_type", "set_voltage");
     message.insert("block", divider);
-    message.insert("voltage", QString("%1").arg(value));
+    message.insert("voltage", value);
 
 #ifdef TEST_MODE
     #ifdef USE_QTJSON
@@ -65,9 +65,9 @@ void HVHandler::setVoltageAndCheck(int block, double value, double max_error, in
     message.insert("type", "command");
     message.insert("command_type", "set_voltage_and_check");
     message.insert("block", divider);
-    message.insert("voltage", QString("%1").arg(value));
-    message["max_error"] = QString("%1").arg(max_error);
-    message["timeout"] = QString("%1").arg(timeout);
+    message.insert("voltage", value);
+    message["max_error"] = max_error;
+    message["timeout"] = timeout;
 
 #ifdef TEST_MODE
     #ifdef USE_QTJSON

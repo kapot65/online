@@ -4,9 +4,10 @@ unix: !macx{
             HV_Server
 
 greaterThan(QT_MAJOR_VERSION, 4){
-    SUBDIRS += documentation \
+    SUBDIRS +=  \
             CamacClient \
             DataVisualizer \
+            documentation  \
 #            drs-converter
 }
 

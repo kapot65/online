@@ -514,13 +514,13 @@
  *    Команда:
  *
  *         {
- *             "acquisition_time" : "5",
+ *             "acquisition_time" : 5,
  *             "command_type" : "acquire_point",
  *             "type" : "command",
  *             "external_meta": {
  *                "HV1_value": "-1",
  *                "HV2_value": "-1",
- *                "acquisition_time": "5",
+ *                "acquisition_time": 5,
  *                "point_index": "0"
  *              }
  *         }
@@ -538,7 +538,7 @@
  *             "external_meta": {
  *                 "HV1_value": "-1",
  *                 "HV2_value": "-1",
- *                 "acquisition_time": "5",
+ *                 "acquisition_time": 5,
  *                 "point_index": "0"
  *             },
  *             "format_description": "https://drive.google.com/open?id=1xh_SF1k2F0leS-8apDR37x7-4b-YrQMlXkL4PMH-YxM",
