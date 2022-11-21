@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>594</width>
-    <height>684</height>
+    <height>720</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -68,6 +68,9 @@
         <widget class="QSpinBox" name="iterationsBox">
          <property name="minimum">
           <number>0</number>
+         </property>
+         <property name="value">
+          <number>1</number>
          </property>
         </widget>
        </item>

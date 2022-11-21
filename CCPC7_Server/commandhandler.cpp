@@ -231,7 +231,7 @@ void CommandHandler::processInit(QVariantMap message)
     messageToSend.insert("type", "reply");
     messageToSend.insert("reply_type", "init");
     messageToSend.insert("status", "ok");
-    messageToSend.insert("reseted", QString().number(!reset));
+    messageToSend.insert("reseted", !reset);
 
     emit sendMessage(messageToSend, QByteArray());
 

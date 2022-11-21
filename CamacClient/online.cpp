@@ -538,7 +538,7 @@ double Online::approximateOperationTime(QPair<SCENARIO_COMMAND_TYPE, QVariant> s
         }
         case SET_VOLTAGE_AND_CHECK:
         {
-            timeMSec += checkVoltageTimeout * 1000;
+            timeMSec += 10000;
             break;
         }
         case BREAK:

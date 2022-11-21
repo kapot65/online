@@ -117,32 +117,6 @@ void CCPC7HandlerForm::on_monitorReceiveCountersValue(QVariantMap message)
     }
 }
 
-//void CCPC7HandlerForm::drawAcquiredPoint(MachineHeader machineHeader, QVariantMap meta, QVector<Event> events)
-//{
-//    disconnect(ccpc7Handler, SIGNAL(pointAcquired(MachineHeader,QVariantMap,QVector<Event>)),
-//            this, SLOT(drawAcquiredPoint(MachineHeader,QVariantMap,QVector<Event>)));
-
-//    GraphUnit* newGraph = graphViewer->createGraph(QString("Point %1").arg(QTime::currentTime().toString()),
-//                                                   GRAPH); // поменять GRAPH на HIST
-
-//    //копирование метаинформации в описание графика
-//#ifdef USE_QTJSON
-//    newGraph->addDescription(QJsonDocument::fromVariant(meta).toJson());
-//#else
-//    newGraph->addDescription(QJson::Serializer().serialize(meta));
-//#endif
-
-//    //извлечение точек из events
-//    QVector<QPointF> points;
-//    for(int  i = 0 ; i < events.size(); i++)
-//        points.push_back(QPointF(events[i].time, events[i].data));
-
-//    //добавление точек на график
-//    newGraph->addPoints(points);
-//    //пометить на возможность ручного удаления (больше график програмно не будет использоваться)
-//    newGraph->markForManualDelete(true);
-//}
-
 void CCPC7HandlerForm::on_writeCountersButton_clicked(bool checked)
 {
     static bool first_time_here = true;
