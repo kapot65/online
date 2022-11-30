@@ -70,6 +70,10 @@ HVControler::HVControler(IniManager *manager, QString controllerName, double *vo
     if(!manager->getSettingsValue(controllerName, "correctionCoefficient").isValid())
         manager->setSettingsValue(controllerName, "correctionCoefficient", 0.5);
     correctionCoefficient = manager->getSettingsValue(controllerName, "correctionCoefficient").toDouble();
+    
+    if(!manager->getSettingsValue(controllerName, "useCorrection").isValid())
+        manager->setSettingsValue(controllerName, "useCorrection", false);
+    useCorrection = manager->getSettingsValue(controllerName, "useCorrection").toDouble();
 
     settedVoltage = -1;
     stopFlag = false;
