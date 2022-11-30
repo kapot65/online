@@ -88,28 +88,31 @@ void HvMainController::setVoltage(double voltage)
 
 void HvMainController::setVoltage(double voltage, bool &ok)
 {
-    if(voltage < initialShift)
-    {
-        //обнуление напряжения на блоке смещения
-        lastCorrectionVoltage = 0;
+    if(!useCorrection) {
+        setVoltageBase(voltage, ok);
+    } else {
+        if(voltage < initialShift)
+        {
+            //обнуление напряжения на блоке смещения
+            lastCorrectionVoltage = 0;
 
-        //установка напряжения
-        setVoltageShift(voltage - initialShift);
+            setVoltageShift(voltage - initialShift);
 
-        lastCorrectionVoltage = 0;
+            lastCorrectionVoltage = 0;
 
-        setVoltageBase(0, ok);
-        return;
-    }
-    else
-    {
-        setVoltageShift(0); // установка части напряжения через com порт
+            setVoltageBase(0, ok);
+            return;
+        }
+        else
+        {
+            setVoltageShift(0); // установка части напряжения через com порт
 
-        //установка оставшейся части через ЦАП
+            //установка оставшейся части через ЦАП
 
-        double voltageBase = voltage - initialShift;
+            double voltageBase = voltage - initialShift;
 
-        setVoltageBase(voltageBase, ok);
+            setVoltageBase(voltageBase, ok);
+        }
     }
 }
 

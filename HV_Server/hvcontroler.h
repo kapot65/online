@@ -137,6 +137,8 @@ protected:
      */
     bool stopFlag;
 
+    bool useCorrection;
+
 protected:
     double lastCorrectionVoltage;
 
