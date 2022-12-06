@@ -614,24 +614,19 @@ void OnlineForm::on_iterationsBox_valueChanged(int arg1)
     else
         ui->reversAcquisitionBox->setEnabled(true);
 
-    int sec = curr_scenario_process_time * iterations;
-
-    QString iterTime = tr("%1ч %2 min %3 s")
-                          .arg(curr_scenario_process_time / (60*60))
-                          .arg(curr_scenario_process_time / 60)
-                          .arg(curr_scenario_process_time % 60);
+    QString totalTime = QDateTime::fromTime_t(curr_scenario_process_time * iterations).toUTC().toString("hh:mm:ss");
+    QString iterTime = QDateTime::fromTime_t(curr_scenario_process_time).toUTC().toString("hh:mm:ss");
 
     paramsUpdater->updateParam("Iteration estimated time", iterTime);
 
-    if(sec)
+    if(iterations)
         paramsUpdater->updateParam("Estimated time",
-                                   tr("%1ч %2мин %3с (%4)")
-                                   .arg(sec / (60*60))
-                                   .arg(sec / 60)
-                                   .arg(sec % 60)
+                                   tr("%1 (%2 per iteration)")
+                                   .arg(totalTime)
                                    .arg(iterTime));
     else
-        paramsUpdater->updateParam("Estimated time", "-");
+        paramsUpdater->updateParam("Estimated time",
+                                   tr("- (%1 per iteration)").arg(iterTime));
 }
 
 void OnlineForm::on_sessionEdit_editingFinished()
