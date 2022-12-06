@@ -35,14 +35,18 @@ HVHandlerForm::~HVHandlerForm()
 
 void HVHandlerForm::on_ipEdit_editingFinished()
 {
-    settingsManager->setSettingsValue("HV_handler", "ip", ui->ipEdit->text());
-    emit serverSettingsChanged();
+    if(ui->ipEdit->text() != settingsManager->getSettingsValue("HV_handler", "ip").toString()) {
+        settingsManager->setSettingsValue("HV_handler", "ip", ui->ipEdit->text());
+        emit serverSettingsChanged();
+    }
 }
 
 void HVHandlerForm::on_portEdit_editingFinished()
 {
-    settingsManager->setSettingsValue("HV_handler", "port", ui->portEdit->value());
-    emit serverSettingsChanged();
+    if(ui->portEdit->value() != settingsManager->getSettingsValue("HV_handler", "port").toInt()) {
+        settingsManager->setSettingsValue("HV_handler", "port", ui->portEdit->value());
+        emit serverSettingsChanged();
+    }
 }
 
 void HVHandlerForm::on_reconnectButton_clicked()

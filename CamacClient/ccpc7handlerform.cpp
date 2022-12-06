@@ -44,14 +44,18 @@ CCPC7HandlerForm::~CCPC7HandlerForm()
 
 void CCPC7HandlerForm::on_camacIpEdit_editingFinished()
 {
-    settingsManager->setSettingsValue("CCPC7Handler", "ip", ui->camacIpEdit->text());
-    emit serverSettingsChanged();
+    if(ui->camacIpEdit->text() != settingsManager->getSettingsValue("CCPC7Handler", "ip").toString()) {
+        settingsManager->setSettingsValue("CCPC7Handler", "ip", ui->camacIpEdit->text());
+        emit serverSettingsChanged();
+    }
 }
 
 void CCPC7HandlerForm::on_camacPortEdit_editingFinished()
 {
-    settingsManager->setSettingsValue("CCPC7Handler", "port", ui->camacPortEdit->value());
-    emit serverSettingsChanged();
+    if(ui->camacPortEdit->value() != settingsManager->getSettingsValue("CCPC7Handler", "port").toInt()) {
+        settingsManager->setSettingsValue("CCPC7Handler", "port", ui->camacPortEdit->value());
+        emit serverSettingsChanged();
+    }
 }
 
 void CCPC7HandlerForm::on_serverSettingsChanged()
