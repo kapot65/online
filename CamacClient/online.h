@@ -143,6 +143,10 @@ public:
     static QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> > parseScenario(QString scenario_string, bool *ok = 0, bool noShiftBlock=true);
 
 signals:
+
+    void step_back();
+    void step_front();
+
     /*!
      * \brief Сигнал испускаестя при поставовке сценария на паузу с помощью функции Online::pause.
      */

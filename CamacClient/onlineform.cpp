@@ -125,6 +125,8 @@ OnlineForm::OnlineForm(CCPC7Handler *ccpc7Handler, HVHandler *hvHandler,
     connect(online, SIGNAL(at_step(int,int)), this, SLOT(setScenarioStage(int,int)), Qt::QueuedConnection);
     connect(online, SIGNAL(workStatusChanged(bool)), this, SLOT(processWorkStatus(bool)), Qt::QueuedConnection);
 
+    QObject::connect(ui->stepBackButton, &QPushButton::clicked, online, &Online::step_back);
+    QObject::connect(ui->stepFrontButton, &QPushButton::clicked, online, &Online::step_front);
 
     on_checkUserForNextStep_stateChanged(ui->checkUserForNextStep->checkState());
 

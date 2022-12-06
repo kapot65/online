@@ -230,13 +230,30 @@ bool Online::processScenarioImpl(QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> 
 
     emit scenario_start();
 
-    for(int i = 0; i < scenario.size(); i++)
+    int i = 0;
+
+    auto decrement = [&] () {
+        i = qMin(qMax(0, i-1), scenario.size() - 1);
+        QPair<SCENARIO_COMMAND_TYPE, QVariant> command = scenario[i];
+        emit at_step(i, approximateOperationTime(command));
+    };
+
+    auto increment = [&] () {
+        i = qMin(qMax(0, i+1), scenario.size() - 1);
+        QPair<SCENARIO_COMMAND_TYPE, QVariant> command = scenario[i];
+        emit at_step(i, approximateOperationTime(command));
+    };
+
+    QObject::connect(this, &Online::step_back, decrement);
+    QObject::connect(this, &Online::step_front, increment);
+
+    for(; i < scenario.size(); i++)
     {
         if(catchUnhandlerErrorFlag)
         {
             //Откатывание на шаг назад после ошибки
             catchUnhandlerErrorFlag = false;
-            i = qMax(0, i--);
+            i = qMax(0, i - 4);
         }
 
         //получение примерного времени выполнения шага
