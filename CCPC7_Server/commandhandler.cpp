@@ -243,6 +243,17 @@ void CommandHandler::processAcquirePoint(QVariantMap message)
     if(!checkInit())
         return;
 
+#ifdef VIRTUAL_MODE
+    static auto num = 0;
+    if (num++ %2) {
+        QVariantMap errorParams;
+        errorParams["error_code"] = ALGORITM_ERROR;
+        errorParams.insert("description", "Test ALGORITM_ERROR");
+        emit error(errorParams);
+        return;
+    }
+#endif
+
     busyFlag = 1;
 
     if(!message.value("acquisition_time").isValid())

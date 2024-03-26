@@ -251,9 +251,22 @@ bool Online::processScenarioImpl(QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> 
     {
         if(catchUnhandlerErrorFlag)
         {
-            //Откатывание на шаг назад после ошибки
             catchUnhandlerErrorFlag = false;
-            i = qMax(0, i - 4);
+
+            auto step = scenario[qMax(0, i - 1)];
+
+            switch (step.first) {
+                case ACQUIRE_POINT:
+                case ACQUIRE_MULTIPOINT:
+                    // перенабираем последнюю и предпоследнюю точку
+                    // (предпоследняя могла быть неполная)
+                    i = qMax(0, i - 4);
+                    break;
+                default:
+                    // остальные шаги достаточно просто повторить
+                    i = qMax(0, i - 1);
+                    break;
+            }
         }
 
         //получение примерного времени выполнения шага
@@ -916,12 +929,15 @@ void Online::processUnhandledError(QVariantMap info)
             onlineFormUi->autoResumeBox->isChecked() &&
             info["error_code"].toInt() == 6
         ) {
-        QMessageBox::warning(NULL, tr("Произошла ошибка"),
-         tr("%1\n %2.\n Набор  автоматически продолжен.")
-            .arg(QTime::currentTime().toString())
-            .arg(QString(QJsonDocument::fromVariant(info).toJson(QJsonDocument::Indented))));
-        LOG(ERROR) << "Catched unhandled error. Pause Acquisition";
-
+        auto th = QThread::create([info]() {
+            QMessageBox::information(NULL, tr("Произошла ошибка"),
+             tr("%1\n %2.\n Набор  автоматически продолжен.")
+                .arg(QTime::currentTime().toString())
+                .arg(QString(QJsonDocument::fromVariant(info).toJson(QJsonDocument::Indented))));
+        });
+        connect(th, &QThread::finished, th, &QThread::deleteLater);
+        th->start();
+        LOG(ERROR) << "Catched unhandled error. Auto Resume";
     } else {
         QMessageBox::warning(NULL, tr("Поймана необрабатываемая ошибка"),
                              tr("В процессе работы цикла поймана необрабатываемая ошибка: %1.\n"
