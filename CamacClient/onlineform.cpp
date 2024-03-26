@@ -100,6 +100,7 @@ OnlineForm::OnlineForm(CCPC7Handler *ccpc7Handler, HVHandler *hvHandler,
     this->ccpc7Handler = ccpc7Handler;
     this->hvHandler = hvHandler;
     this->online = online;
+    this->online->onlineFormUi = ui;
     this->settingsManager = settingsManager;
 
     updateEnabledButton();

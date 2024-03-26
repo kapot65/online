@@ -12,6 +12,7 @@
 #include <QDateTime>
 
 #include "hvmonitor.h"
+#include "ui_onlineform.h"
 
 #ifdef VIRTUAL_MODE
 #include <QTimer>
@@ -53,6 +54,8 @@ class Online : public QObject
 {
     Q_OBJECT
 public:
+    Ui::OnlineForm* onlineFormUi = nullptr;
+
     /*!
      * \brief Конструктор
      * \param settingsManager Менеджер настроек.

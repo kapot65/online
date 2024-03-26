@@ -910,13 +910,25 @@ void Online::addFileToScenario(QString filename, QByteArray data)
 
 void Online::processUnhandledError(QVariantMap info)
 {
-    QMessageBox::warning(NULL, tr("Поймана необрабатываемая ошибка"),
-                         tr("В процессе работы цикла поймана необрабатываемая ошибка: %1.\n"
-                            "Сбор поставлен на паузу.").arg(info["description"].toString()));
-
     catchUnhandlerErrorFlag = true;
-    LOG(ERROR) << "Catched unhandled error. Pause Acquisition";
-    pause();
+    if (
+            onlineFormUi != nullptr &&
+            onlineFormUi->autoResumeBox->isChecked() &&
+            info["error_code"].toInt() == 6
+        ) {
+        QMessageBox::warning(NULL, tr("Произошла ошибка"),
+         tr("%1\n %2.\n Набор  автоматически продолжен.")
+            .arg(QTime::currentTime().toString())
+            .arg(QString(QJsonDocument::fromVariant(info).toJson(QJsonDocument::Indented))));
+        LOG(ERROR) << "Catched unhandled error. Pause Acquisition";
+
+    } else {
+        QMessageBox::warning(NULL, tr("Поймана необрабатываемая ошибка"),
+                             tr("В процессе работы цикла поймана необрабатываемая ошибка: %1.\n"
+                                "Сбор поставлен на паузу.").arg(info["description"].toString()));
+        LOG(ERROR) << "Catched unhandled error. Pause Acquisition";
+        pause();
+    }
 }
 
 void Online::flushInfoFile()

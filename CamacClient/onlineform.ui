@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>594</width>
-    <height>720</height>
+    <height>753</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -89,6 +89,16 @@
      <property name="bottomMargin">
       <number>10</number>
      </property>
+     <item>
+      <widget class="QCheckBox" name="autoResumeBox">
+       <property name="text">
+        <string>auto resume on detector error</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
      <item>
       <widget class="QCheckBox" name="checkUserForNextStep">
        <property name="text">
