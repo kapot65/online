@@ -1,4 +1,5 @@
 #include "online.h"
+#include "qprocess.h"
 #include <QMessageBox>
 
 Online::Online(IniManager *settingsManager, CCPC7Handler *ccpcHandler, HVHandler *hvHandler, QObject *parent) : QObject(parent)
@@ -929,14 +930,14 @@ void Online::processUnhandledError(QVariantMap info)
             onlineFormUi->autoResumeBox->isChecked() &&
             info["error_code"].toInt() == 6
         ) {
-        auto th = QThread::create([info]() {
-            QMessageBox::information(NULL, tr("Произошла ошибка"),
-             tr("%1\n %2.\n Набор  автоматически продолжен.")
+
+        QProcess::startDetached(
+            tr("zenity --warning --text \"%1 %2 (resuming)\" &")
                 .arg(QTime::currentTime().toString())
-                .arg(QString(QJsonDocument::fromVariant(info).toJson(QJsonDocument::Indented))));
-        });
-        connect(th, &QThread::finished, th, &QThread::deleteLater);
-        th->start();
+                .arg(info["description"].toString()));
+
+//        connect(th, &QThread::finished, th, &QThread::deleteLater);
+//        th->start();
         LOG(ERROR) << "Catched unhandled error. Auto Resume";
     } else {
         QMessageBox::warning(NULL, tr("Поймана необрабатываемая ошибка"),
@@ -1066,7 +1067,14 @@ void Online::savePoint(MachineHeader machineHeader, QVariantMap meta, QVector<Ev
         filename += tr("(HV2=%1)").arg(ext_meta["HV2_value"].toInt());
 
 
-    QFile pointFile(tr("temp/%1/%2").arg(currSubFolder).arg(filename));
+    auto filepath = tr("temp/%1/%2").arg(currSubFolder).arg(filename);
+    QFile pointFile(filepath);
+    if (pointFile.exists()) {
+        auto overwritePath = tr("temp/%1/_dup").arg(currSubFolder);
+        QDir().mkpath(overwritePath);
+        QDir().rename(filepath, tr("%1/%2-%3").arg(overwritePath, filename, QUuid::createUuid().toString()));
+    }
+
     pointFile.open(QIODevice::WriteOnly);
 
     QByteArray file_data = TcpProtocol::createMessage(meta, data, machineHeader.metaType, machineHeader.dataType);
