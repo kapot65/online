@@ -932,7 +932,7 @@ void Online::processUnhandledError(QVariantMap info)
         ) {
 
         QProcess::startDetached(
-            tr("zenity --warning --text \"%1 %2 (resuming)\" &")
+            tr("nohup zenity --warning --text \"%1 %2 (resuming)\" &")
                 .arg(QTime::currentTime().toString())
                 .arg(info["description"].toString()));
 
