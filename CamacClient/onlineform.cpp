@@ -319,7 +319,7 @@ void OnlineForm::flushData(QString output_folder)
 
     outputCurrFolder = fi.absolutePath() + QDir::separator() + tr("set_%1").arg(max_idx + 1);
 
-    if (!QDir().rename("temp/" + online->getCurrSubFolder(), outputCurrFolder)) {
+    if (!QDir().mkpath(fi.absolutePath()) || !QDir().rename("temp/" + online->getCurrSubFolder(), outputCurrFolder)) {
         QMessageBox::warning(this, "Copy move files", tr("Can't move temp/%1 to %2. Please do it"
                                                     "manually and then press ok.")
                                                  .arg(online->getCurrSubFolder()).arg(outputCurrFolder));
