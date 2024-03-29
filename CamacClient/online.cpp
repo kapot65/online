@@ -16,15 +16,6 @@ Online::Online(IniManager *settingsManager, CCPC7Handler *ccpcHandler, HVHandler
     group = "def_group";
     iteration = 0;
 
-    //создание папки temp
-    QDir dir("temp");
-
-#if QT_VERSION >= 0x050000
-    dir.removeRecursively();
-#else
-    dir.rmpath("temp");
-#endif
-
     QDir().mkdir("temp");
 
     //настройка паузы

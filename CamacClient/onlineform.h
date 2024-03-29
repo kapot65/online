@@ -219,8 +219,6 @@ private:
     QStringListModel *model;
     void visualizeScenario(QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> > scenario);
 
-    static bool copyRecursively(const QString &srcFilePath, const QString &tgtFilePath);
-
     /*!
      * \brief Не использовать блок смещения при выполении сценария
      * \note При парсинге сценария, в командах point будет проигнорировано выставление и проверка напряжения на блоке смещения

@@ -289,36 +289,6 @@ void OnlineForm::visualizeScenario(QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant
     ui->scenarioView->addItems(scenarioList);
 }
 
-bool OnlineForm::copyRecursively(const QString &srcFilePath,
-                            const QString &tgtFilePath)
-{
-    QFileInfo srcFileInfo(srcFilePath);
-    if (srcFileInfo.isDir())
-    {
-        QDir targetDir = QFileInfo(tgtFilePath).absoluteDir();
-#ifdef TEST_MODE
-        qDebug()<<QFileInfo(tgtFilePath).fileName();
-#endif
-        if (!targetDir.mkpath(QFileInfo(tgtFilePath).fileName()))
-            return false;
-
-        QDir sourceDir(srcFilePath);
-        QStringList fileNames = sourceDir.entryList(QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot | QDir::Hidden | QDir::System);
-        foreach (const QString &fileName, fileNames) {
-            const QString newSrcFilePath
-                    = srcFilePath + QLatin1Char('/') + fileName;
-            const QString newTgtFilePath
-                    = tgtFilePath + QLatin1Char('/') + fileName;
-            if (!copyRecursively(newSrcFilePath, newTgtFilePath))
-                return false;
-        }
-    } else {
-        if (!QFile::copy(srcFilePath, tgtFilePath))
-            return false;
-    }
-    return true;
-}
-
 int OnlineForm::findMaxIndexInFolder(QString output_folder)
 {
     QStringList foldersList = QDir(output_folder).entryList(QDir::Dirs);
