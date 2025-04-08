@@ -3,6 +3,7 @@ online.pro.user.b54289d
 *.cpp.*
 *.h.*
 documentation/build/
-documentation/img/
+documentation/img/*.gv.png
+documentation/img/*.dot.png
 *.pro.user
 *.pro.user.*

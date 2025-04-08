@@ -30,7 +30,7 @@
  * - **DataVisualizer** - Необязательная программа. Позволяет визуализировать уже набранные данные сценарии.
  *
  *
- * \image html complex.png "Взаимодействие между элементами в программном комплексе Online"
+ * \image html complex.dot.png "Взаимодействие между элементами в программном комплексе Online"
  *
  * \section install Установка
  * \subsection CCPC7Install Установка ССPC7_Server

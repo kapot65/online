@@ -1,0 +1,81 @@
+graph Online
+{
+        //splines=polyline
+        node [shape=box];
+        //esep=20;
+
+	
+
+	subgraph cluster_0
+	{
+                label="Пользовалели";
+                User[label="Пользователь"];
+                Programmer[label="Программист"];
+	}
+	
+
+	User -- OnlineForm[label="Управление"]
+
+        "helpSplit"[width=0,height=0,style=invis,label=""];
+
+        Programmer -- "helpSplit"[label="Управление"];
+
+        "helpSplit" -- OnlineForm
+        "helpSplit" -- HVHandlerForm
+        "helpSplit" -- CCPCHandlerForm
+
+
+	subgraph cluster_1
+	{
+		rankDir = "TB"
+		label="CamacClient";
+
+		OnlineForm;
+		HVHandlerForm;
+		CCPCHandlerForm;
+		DatavisualizerForm;
+
+		Online;
+
+		CCPC7Handler;
+		HVHandler;
+
+		{rank=same OnlineForm HVHandlerForm CCPCHandlerForm DatavisualizerForm}
+		{rank=same HVHandler CCPC7Handler}
+		 
+	} 
+	Online -- OnlineForm[label="Управление\nходом набора"]
+	Online -- DatavisualizerForm[label="Визуализация\nнабранных\nданных"];
+	Online -- CCPC7Handler[label="Управление\nCamac"];
+	Online -- HVHandler[label="Управление\nвысоким\nнапряжением"];
+	HVHandlerForm -- HVHandler [label="Ручное управление\nвысоким\nнапряжением"];
+	CCPCHandlerForm -- CCPC7Handler [label="Ручное\nуправление\nCamac"];
+	
+	CCPC7Handler -- CCPC7Server[label="Общение через Tcp", style="dashed"];
+	
+	subgraph cluster_2
+	{
+		label="CCPC_Server";
+		CCPC7Server -- TempFolder[label="Хранение\nпоследних\nнабранных\nфайлов"];
+		CCPC7Server -- Camac[label="Управление\nCamac посредством\nCCPC7 Api", style="dashed"];
+	}
+
+	HVHandler -- HVServer[label="Общение через Tcp", style="dashed"];
+
+	subgraph cluster_3
+	{
+		label="HV_Server";
+
+                "helpSplitHV"[width=0,height=0,style=invis,label=""];
+
+                HVServer -- "helpSplitHV"[label="Управление\nчерез\nCom порты", style="dashed"];
+		
+                "helpSplitHV" --  Block1[style="dashed"];
+                "helpSplitHV" -- Block2[style="dashed"];
+                "helpSplitHV" -- Voltmeter1[style="dashed"];
+                "helpSplitHV" -- Voltmeter2[style="dashed"];
+
+                HVServer --  Block1[label="Управление\nчерез\nCamac", style="dashed"];
+
+	}
+}
