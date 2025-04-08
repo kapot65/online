@@ -22,7 +22,7 @@ include(../common/common.pri )
 include(../tcp/tcp.pri)
 
 #включение тестовых функций
-DEFINES += TEST_MODE
+#DEFINES += TEST_MODE
 #виртуальный режим
 #DEFINES += VIRTUAL_MODE
 

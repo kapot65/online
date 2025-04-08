@@ -1,6 +1,7 @@
 #include "online.h"
 #include "qprocess.h"
 #include <QMessageBox>
+#include <QUuid>
 
 Online::Online(IniManager *settingsManager, CCPC7Handler *ccpcHandler, HVHandler *hvHandler, QObject *parent) : QObject(parent)
 {
