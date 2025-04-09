@@ -701,7 +701,7 @@ void ScenarioStepTicker::stopTimer()
 
 void ScenarioStepTicker::run()
 {
-    stopFlag == false;
+    stopFlag = false;
 
     emit setBarValue(0);
 

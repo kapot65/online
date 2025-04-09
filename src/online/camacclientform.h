@@ -5,7 +5,6 @@
 #include <QSettings>
 
 #include <easylogging++.h>
-#include "tcpclient.h"
 #include <event.h>
 #include <inimanager.h>
 #include "ccpc7handler.h"

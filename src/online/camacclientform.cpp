@@ -200,6 +200,5 @@ void CamacClientForm::on_openViewerButton_clicked()
     QString path = manager->getSettingsValue(metaObject()->className(),
                                              "dataViewerPath").toString();
 
-    QProcess::startDetached(tr("%1 --directory=temp/%2").arg(path)
-                            .arg(online->getCurrSubFolder()));
+    QProcess::startDetached(path, QStringList(tr("--directory=temp/%1").arg(online->getCurrSubFolder())));
 }

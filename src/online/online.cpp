@@ -385,6 +385,8 @@ bool Online::processScenarioImpl(QVector<QPair<SCENARIO_COMMAND_TYPE, QVariant> 
                         case QMessageBox::Retry:
                             i--;
                             break;
+                        default:
+                           break;
                     }
                 }
 

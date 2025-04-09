@@ -63,8 +63,6 @@ private slots:
 
     void on_block2Button_clicked(bool checked);
 
-    void on_setHVAndCheckButton_clicked();
-
     void displayVoltage(QVariantMap meta);
 
 private:
