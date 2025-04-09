@@ -10,9 +10,9 @@ void CamacClientForm::restoreSettings()
     manager = new IniManager(tr("%1Settings.ini").arg(BIN_NAME), this);
 
     if(!manager->settings->value("advanced_mode").isValid())
-        manager->settings->setValue("advanced_mode", false);
+        manager->settings->setValue("advanced_mode", true);
     if(!manager->settings->value("voltage_only").isValid())
-        manager->settings->setValue("voltage_only", false);
+        manager->settings->setValue("voltage_only", true);
 }
 
 void CamacClientForm::setCCPC7Handler()
