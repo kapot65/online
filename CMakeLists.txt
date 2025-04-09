@@ -39,34 +39,34 @@ add_definitions(-DBIN_NAME="online")
 add_definitions(-DAPP_REVISION="${GIT_REVISION}")
 
 set(PROJECT_SOURCES
-    CamacClient/camacclientform.cpp
-    CamacClient/camacclientform.ui
-    CamacClient/ccpc7handler.cpp
-    CamacClient/ccpc7handlerform.cpp
-    CamacClient/ccpc7handlerform.ui
-    CamacClient/hvhandler.cpp
-    CamacClient/hvhandlerform.cpp
-    CamacClient/hvhandlerform.ui
-    CamacClient/hvmonitor.cpp
-    CamacClient/main.cpp
-    CamacClient/online.cpp
-    CamacClient/onlineform.cpp
-    CamacClient/onlineform.ui
-    CamacClient/resource.qrc
-    CamacClient/serverhandler.cpp
-    tcp/event.cpp tcp/inimanager.cpp
-    tcp/tcpbase.cpp
-    tcp/tcpclient.cpp
-    tcp/tcpprotocol.cpp
-    tcp/tcpserver.cpp
-    common/tempfolder.cpp
-    common/resources.qrc
+    src/online/camacclientform.cpp
+    src/online/camacclientform.ui
+    src/online/ccpc7handler.cpp
+    src/online/ccpc7handlerform.cpp
+    src/online/ccpc7handlerform.ui
+    src/online/hvhandler.cpp
+    src/online/hvhandlerform.cpp
+    src/online/hvhandlerform.ui
+    src/online/hvmonitor.cpp
+    src/online/main.cpp
+    src/online/online.cpp
+    src/online/onlineform.cpp
+    src/online/onlineform.ui
+    src/online/serverhandler.cpp
+    src/tcp/event.cpp 
+    src/tcp/inimanager.cpp
+    src/tcp/tcpbase.cpp
+    src/tcp/tcpclient.cpp
+    src/tcp/tcpprotocol.cpp
+    src/tcp/tcpserver.cpp
+    src/common/tempfolder.cpp
+    src/common/resources.qrc
     ${easyloggingpp_SOURCE_DIR}/src/easylogging++.cc
 )
 
-include_directories(CamacClient)
-include_directories(tcp)
-include_directories(common)
+include_directories(src/online)
+include_directories(src/tcp)
+include_directories(src/common)
 include_directories(${easyloggingpp_SOURCE_DIR}/src)
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)

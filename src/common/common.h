@@ -6,6 +6,9 @@
 #include <QDir>
 #include <QTimer>
 #include <QDateTime>
+#include <qdebug.h>
+#include <qglobal.h>
+#include <qresource.h>
 #include <tempfolder.h>
 
 /*!
@@ -64,6 +67,10 @@ QString getStyleSheet()
 {
     if(!QFile::exists("styleSheets.qss"))
         QFile::copy(":/common/resources/styleSheets.qss", "styleSheets.qss");
+
+        
+    QFile testFile2(":/common/resources/styleSheets.qss");
+    qDebug() << QResource(":/common/resources/styleSheets.qss").data();
 
     QFile file("styleSheets.qss");
     file.open(QIODevice::ReadOnly);
