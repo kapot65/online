@@ -1,4 +1,5 @@
 #include "tcpserver.h"
+#include <QtNetwork/QNetworkConfigurationManager>
 #include <easylogging++.h>
 
 TcpServer::TcpServer(int port, IniManager *manager, QObject *parent) : TcpBase(manager, parent)

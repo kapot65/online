@@ -4,8 +4,9 @@
 #include <QObject>
 #include <QTimer>
 #include <QDataStream>
+#include <QtNetwork/QTcpServer>
+#include <QtNetwork/QNetworkSession>
 #include <QVector>
-#include <QtNetwork>
 #include <stdlib.h>
 #ifdef USE_QTJSON
 #include <QJsonDocument>
@@ -13,7 +14,6 @@
 #include <qjson/parser.h>
 #include <qjson/serializer.h>
 #endif
-#include "tcpprotocol.h"
 #include "tcpbase.h"
 #include <inimanager.h>
 //#include <easylogging++.h>

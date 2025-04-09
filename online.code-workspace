@@ -1,0 +1,17 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+	},
+	"extensions": {
+		"recommendations": [
+			"aaron-bond.better-comments",
+			"llvm-vs-code-extensions.vscode-clangd",
+			"sr-team.vscode-clangd-cmake",
+			"twxs.cmake"
+		]
+	}
+}

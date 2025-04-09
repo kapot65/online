@@ -2,10 +2,10 @@
 #define TCPCLIENT_H
 
 #include <QThread>
-#include <QTcpSocket>
-#include <QNetworkSession>
+#include <QtNetwork/QTcpSocket>
+#include <QtNetwork/QNetworkSession>
 #include <QSettings>
-#include <QNetworkConfigurationManager>
+#include <QtNetwork/QNetworkConfigurationManager>
 #ifdef USE_QTJSON
 #include <QJsonObject>
 #include <QJsonDocument>

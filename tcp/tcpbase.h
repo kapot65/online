@@ -3,7 +3,7 @@
 
 #include <tcpprotocol.h>
 #include <QThread>
-#include <QTcpSocket>
+#include <QtNetwork/QTcpSocket>
 #include <inimanager.h>
 
 /*!
